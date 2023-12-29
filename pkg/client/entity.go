@@ -3,13 +3,12 @@ package client
 import (
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
-	"github.com/jirenius/go-res/resprot"
 	"github.com/loungeup/go-loungeup/pkg/transport"
 )
 
 // Entity as represented with the RES protocol.
 type Entity struct {
-	ID         string         `json:"id"`
+	ID         uuid.UUID      `json:"id"`
 	LegacyID   int            `json:"legacyId,omitempty"`
 	Type       string         `json:"type"`
 	Name       string         `json:"name,omitempty"`
@@ -41,14 +40,26 @@ type entitiesClient struct {
 }
 
 func (c *entitiesClient) ReadEntity(selector EntitySelector) (Entity, error) {
-	response := c.resClient.Request("get."+authorityServiceName+".entities."+selector.ID.String(), resprot.Request{})
-	if response.HasError() {
-		return Entity{}, response.Error
+	return transport.GetRESModel[Entity](c.resClient, authorityServiceName+".entities."+selector.ID.String())
+}
+
+func (c *entitiesClient) ReadEntityAccounts(selector EntitySelector) ([]Entity, error) {
+	resourceID := authorityServiceName + ".entities." + selector.ID.String() + ".accounts"
+
+	accountReferences, err := transport.GetRESCollection[res.Ref](c.resClient, resourceID)
+	if err != nil {
+		return nil, err
 	}
 
-	result := Entity{}
-	if _, err := response.ParseModel(&result); err != nil {
-		return Entity{}, err
+	result := []Entity{}
+
+	for _, accountReference := range accountReferences {
+		relatedAccount, err := transport.GetRESModel[Entity](c.resClient, string(accountReference))
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, relatedAccount)
 	}
 
 	return result, nil

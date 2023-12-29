@@ -30,3 +30,36 @@ var _ (RESRequester) = (*RESClient)(nil)
 func (c *RESClient) Request(resourceID string, request resprot.Request) resprot.Response {
 	return resprot.SendRequest(c.natsConnection, resourceID, request, defaultNATSTimeout)
 }
+
+// GetRESCollection from the resource ID.
+func GetRESCollection[T any](client RESRequester, resourceID string) ([]T, error) {
+	var result []T
+
+	response := client.Request("get."+resourceID, resprot.Request{})
+	if response.HasError() {
+		return result, response.Error
+	}
+
+	if _, err := response.ParseCollection(&result); err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
+// GetRESModel from the resource ID.
+func GetRESModel[T any](client RESRequester, resourceID string) (T, error) {
+	var result T
+
+	response := client.Request("get."+resourceID, resprot.Request{})
+
+	if response.HasError() {
+		return result, response.Error
+	}
+
+	if _, err := response.ParseModel(&result); err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
