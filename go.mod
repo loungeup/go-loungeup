@@ -3,6 +3,7 @@ module github.com/loungeup/go-loungeup
 go 1.21.0
 
 require (
+	github.com/dgraph-io/ristretto v0.0.2
 	github.com/google/uuid v1.3.1
 	github.com/jirenius/go-res v0.4.7
 	github.com/lib/pq v1.10.9
@@ -10,6 +11,7 @@ require (
 )
 
 require (
+	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/jirenius/timerqueue v1.0.0 // indirect
