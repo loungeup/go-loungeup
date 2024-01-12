@@ -3,15 +3,14 @@ package client
 import (
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res/resprot"
-	"github.com/loungeup/go-loungeup/pkg/transport"
 )
 
-type guestsClient struct {
-	resClient transport.RESRequester
-}
+type guestsClient struct{ baseClient *Client }
 
 func (c *guestsClient) AnonymizeGuests(entityID uuid.UUID, guestIDs []uuid.UUID) error {
-	response := c.resClient.Request("call.guestprofile.entities."+entityID.String()+".guests.anonymize", resprot.Request{
+	resourceID := "call.guestprofile.entities." + entityID.String() + ".guests.anonymize"
+
+	response := c.baseClient.resClient.Request(resourceID, resprot.Request{
 		Params: map[string]any{
 			"guests": guestIDs,
 		},

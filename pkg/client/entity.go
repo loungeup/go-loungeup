@@ -30,23 +30,62 @@ type Entity struct {
 	UpdatedAt  string         `json:"updatedAt"`
 }
 
+type EntityCustomFields struct {
+	User  RESDataValue[map[string]EntityCustomField] `json:"user,omitempty"`
+	Visit RESDataValue[map[string]EntityCustomField] `json:"visit,omitempty"`
+}
+
+type EntityCustomField struct {
+	Label string                `json:"label,omitempty"`
+	Type  EntityCustomFieldType `json:"type,omitempty"`
+}
+
+type EntityCustomFieldType string
+
+const (
+	EntityCustomFieldTypeBoolean EntityCustomFieldType = "boolean"
+	EntityCustomFieldTypeDate    EntityCustomFieldType = "date"
+	EntityCustomFieldTypeList    EntityCustomFieldType = "list"
+	EntityCustomFieldTypeNumber  EntityCustomFieldType = "number"
+	EntityCustomFieldTypeText    EntityCustomFieldType = "text"
+)
+
 type EntitySelector struct {
 	ID uuid.UUID `json:"id"`
 }
 
+func (s EntitySelector) resourceID() string {
+	return authorityServiceName + ".entities." + s.ID.String()
+}
+
 // entitiesClient provides methods to interact with entities.
-type entitiesClient struct {
-	resClient transport.RESRequester
+type entitiesClient struct{ baseClient *Client }
+
+func (c *entitiesClient) ReadEntity(s EntitySelector) (Entity, error) {
+	resourceID := s.resourceID()
+
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).(Entity); ok {
+		return cachedResult, nil
+	}
+
+	result, err := transport.GetRESModel[Entity](c.baseClient.resClient, resourceID)
+	if err != nil {
+		return Entity{}, err
+	}
+
+	defer c.baseClient.eventuallyWriteCache(resourceID, result)
+
+	return result, nil
 }
 
-func (c *entitiesClient) ReadEntity(selector EntitySelector) (Entity, error) {
-	return transport.GetRESModel[Entity](c.resClient, authorityServiceName+".entities."+selector.ID.String())
-}
+func (c *entitiesClient) ReadEntityAccounts(s EntitySelector) ([]Entity, error) {
+	resourceID := s.resourceID() + ".accounts"
 
-func (c *entitiesClient) ReadEntityAccounts(selector EntitySelector) ([]Entity, error) {
-	resourceID := authorityServiceName + ".entities." + selector.ID.String() + ".accounts"
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).([]Entity); ok {
+		return cachedResult, nil
+	}
 
-	accountReferences, err := transport.GetRESCollection[res.Ref](c.resClient, resourceID)
+	accountReferences, err := transport.GetRESCollection[res.Ref](c.baseClient.resClient, s.resourceID()+".accounts")
 	if err != nil {
 		return nil, err
 	}
@@ -54,13 +93,32 @@ func (c *entitiesClient) ReadEntityAccounts(selector EntitySelector) ([]Entity, 
 	result := []Entity{}
 
 	for _, accountReference := range accountReferences {
-		relatedAccount, err := transport.GetRESModel[Entity](c.resClient, string(accountReference))
+		relatedAccount, err := transport.GetRESModel[Entity](c.baseClient.resClient, string(accountReference))
 		if err != nil {
 			return nil, err
 		}
 
 		result = append(result, relatedAccount)
 	}
+
+	defer c.baseClient.eventuallyWriteCache(resourceID, result)
+
+	return result, nil
+}
+
+func (c *entitiesClient) ReadEntityCustomFields(s EntitySelector) (EntityCustomFields, error) {
+	resourceID := s.resourceID() + ".custom-fields"
+
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).(EntityCustomFields); ok {
+		return cachedResult, nil
+	}
+
+	result, err := transport.GetRESModel[EntityCustomFields](c.baseClient.resClient, s.resourceID()+".custom-fields")
+	if err != nil {
+		return EntityCustomFields{}, err
+	}
+
+	defer c.baseClient.eventuallyWriteCache(resourceID, result)
 
 	return result, nil
 }
