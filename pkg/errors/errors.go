@@ -73,4 +73,5 @@ func ErrorMessage(err error) string {
 	return "An internal error has occurred. Please contact technical support."
 }
 
-func Is(err, target error) bool { return errors.Is(err, target) }
+func As(err error, target any) bool { return errors.As(err, target) }
+func Is(err, target error) bool     { return errors.Is(err, target) }
