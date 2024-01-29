@@ -26,6 +26,22 @@ func TestTranslationsGet(t *testing.T) {
 	}
 }
 
+func TestTranslationsIsZero(t *testing.T) {
+	tests := map[string]struct {
+		in   Translations
+		want bool
+	}{
+		"empty":     {in: Translations{}, want: true},
+		"not empty": {in: Translations{"en": "Hello"}, want: false},
+	}
+
+	for test, tt := range tests {
+		t.Run(test, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.in.IsZero())
+		})
+	}
+}
+
 func TestTranslationsScan(t *testing.T) {
 	tests := map[string]struct {
 		in      any

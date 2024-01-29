@@ -20,6 +20,8 @@ func (t Translations) Get(k TranslationKey) TranslationValue { return t[k] }
 
 var _ (sql.Scanner) = (Translations)(nil)
 
+func (t Translations) IsZero() bool { return len(t) == 0 }
+
 func (t Translations) Scan(v any) error {
 	vAsBytes, ok := v.([]byte)
 	if !ok {
