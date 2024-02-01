@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
 	"github.com/loungeup/go-loungeup/pkg/transport"
@@ -78,14 +80,33 @@ func (c *entitiesClient) ReadEntity(s EntitySelector) (Entity, error) {
 	return result, nil
 }
 
-func (c *entitiesClient) ReadEntityAccounts(s EntitySelector) ([]Entity, error) {
-	resourceID := s.resourceID() + ".accounts"
+type EntityAccountsSelector struct {
+	EntitySelector
+
+	Limit, Offset uint
+}
+
+func (s EntityAccountsSelector) resourceID() string {
+	result := s.EntitySelector.resourceID() + ".accounts"
+	if s.Limit > 0 {
+		result += "?limit=" + fmt.Sprint(s.Limit)
+	}
+
+	if s.Offset > 0 {
+		result += "&offset=" + fmt.Sprint(s.Offset)
+	}
+
+	return result
+}
+
+func (c *entitiesClient) ReadEntityAccounts(s EntityAccountsSelector) ([]Entity, error) {
+	resourceID := s.resourceID()
 
 	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).([]Entity); ok {
 		return cachedResult, nil
 	}
 
-	accountReferences, err := transport.GetRESCollection[res.Ref](c.baseClient.resClient, s.resourceID()+".accounts")
+	accountReferences, err := transport.GetRESCollection[res.Ref](c.baseClient.resClient, resourceID)
 	if err != nil {
 		return nil, err
 	}
