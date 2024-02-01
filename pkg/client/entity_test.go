@@ -109,10 +109,11 @@ func TestReadEntityCustomFields(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
-func TestEntityAccountsSelectorResourceID(t *testing.T) {
+func TestEntityAccountsSelector(t *testing.T) {
 	tests := map[string]struct {
-		in   EntityAccountsSelector
-		want string
+		in               EntityAccountsSelector
+		wantResourceID   string
+		wantEncodedQuery string
 	}{
 		"simple": {
 			in: EntityAccountsSelector{
@@ -120,7 +121,8 @@ func TestEntityAccountsSelectorResourceID(t *testing.T) {
 					ID: uuid.MustParse("acec14d0-1897-478b-ac80-009ad0b9508a"),
 				},
 			},
-			want: "authority.entities.acec14d0-1897-478b-ac80-009ad0b9508a.accounts",
+			wantResourceID:   "authority.entities.acec14d0-1897-478b-ac80-009ad0b9508a.accounts",
+			wantEncodedQuery: "",
 		},
 		"with limit": {
 			in: EntityAccountsSelector{
@@ -129,7 +131,8 @@ func TestEntityAccountsSelectorResourceID(t *testing.T) {
 				},
 				Limit: 10,
 			},
-			want: "authority.entities.acec14d0-1897-478b-ac80-009ad0b9508a.accounts?limit=10",
+			wantResourceID:   "authority.entities.acec14d0-1897-478b-ac80-009ad0b9508a.accounts",
+			wantEncodedQuery: "limit=10",
 		},
 		"with offset": {
 			in: EntityAccountsSelector{
@@ -139,13 +142,15 @@ func TestEntityAccountsSelectorResourceID(t *testing.T) {
 				Limit:  10,
 				Offset: 10,
 			},
-			want: "authority.entities.acec14d0-1897-478b-ac80-009ad0b9508a.accounts?limit=10&offset=10",
+			wantResourceID:   "authority.entities.acec14d0-1897-478b-ac80-009ad0b9508a.accounts",
+			wantEncodedQuery: "limit=10&offset=10",
 		},
 	}
 
 	for test, tt := range tests {
 		t.Run(test, func(t *testing.T) {
-			assert.Equal(t, tt.want, tt.in.resourceID())
+			assert.Equal(t, tt.wantResourceID, tt.in.resourceID())
+			assert.Equal(t, tt.wantEncodedQuery, tt.in.encodeQuery())
 		})
 	}
 }
