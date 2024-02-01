@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
@@ -83,31 +84,38 @@ func (c *entitiesClient) ReadEntity(s EntitySelector) (Entity, error) {
 type EntityAccountsSelector struct {
 	EntitySelector
 
-	Limit, Offset uint
+	Limit, Offset int
 }
 
 func (s EntityAccountsSelector) resourceID() string {
-	result := s.EntitySelector.resourceID() + ".accounts"
+	sanitizedLimit := 25
 	if s.Limit > 0 {
-		result += "?limit=" + fmt.Sprint(s.Limit)
+		sanitizedLimit = s.Limit
 	}
 
+	sanitizedOffset := 0
 	if s.Offset > 0 {
-		result += "&offset=" + fmt.Sprint(s.Offset)
+		sanitizedOffset = s.Offset
 	}
 
-	return result
+	return fmt.Sprintf("%s.accounts?limit=%d&offset=%d", s.EntitySelector.resourceID(), sanitizedLimit, sanitizedOffset)
 }
 
 func (c *entitiesClient) ReadEntityAccounts(s EntityAccountsSelector) ([]Entity, error) {
 	resourceID := s.resourceID()
 
+	log.Printf("Reading entity accounts (resourceID=%s)\n", resourceID)
+
 	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).([]Entity); ok {
+		log.Printf("Found cached entity accounts (resourceID=%s)\n", resourceID)
+
 		return cachedResult, nil
 	}
 
 	accountReferences, err := transport.GetRESCollection[res.Ref](c.baseClient.resClient, resourceID)
 	if err != nil {
+		log.Printf("Failed to read entity accounts collection (resourceID=%s): %s\n", resourceID, err)
+
 		return nil, err
 	}
 
@@ -116,13 +124,17 @@ func (c *entitiesClient) ReadEntityAccounts(s EntityAccountsSelector) ([]Entity,
 	for _, accountReference := range accountReferences {
 		relatedAccount, err := transport.GetRESModel[Entity](c.baseClient.resClient, string(accountReference))
 		if err != nil {
-			return nil, err
+			log.Printf("Failed to read entity account model (resourceID=%s): %s\n", accountReference, err)
+
+			return nil, err // Maybe just ignore this account?
 		}
 
 		result = append(result, relatedAccount)
 	}
 
 	defer c.baseClient.eventuallyWriteCache(resourceID, result)
+
+	log.Printf("Successfully read entity accounts (resourceID=%s)\n", resourceID)
 
 	return result, nil
 }
