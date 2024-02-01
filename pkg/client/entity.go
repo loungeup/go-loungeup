@@ -1,11 +1,11 @@
 package client
 
 import (
-	"fmt"
-	"log"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
+	"github.com/jirenius/go-res/resprot"
 	"github.com/loungeup/go-loungeup/pkg/transport"
 )
 
@@ -87,7 +87,7 @@ type EntityAccountsSelector struct {
 	Limit, Offset int
 }
 
-func (s EntityAccountsSelector) resourceID() string {
+func (s EntityAccountsSelector) encodeQuery() string {
 	sanitizedLimit := 25
 	if s.Limit > 0 {
 		sanitizedLimit = s.Limit
@@ -98,24 +98,27 @@ func (s EntityAccountsSelector) resourceID() string {
 		sanitizedOffset = s.Offset
 	}
 
-	return fmt.Sprintf("%s.accounts?limit=%d&offset=%d", s.EntitySelector.resourceID(), sanitizedLimit, sanitizedOffset)
+	return "limit=" + strconv.Itoa(sanitizedLimit) + "&offset=" + strconv.Itoa(sanitizedOffset)
+}
+
+func (s EntityAccountsSelector) resourceID() string {
+	return s.EntitySelector.resourceID() + ".accounts"
 }
 
 func (c *entitiesClient) ReadEntityAccounts(s EntityAccountsSelector) ([]Entity, error) {
+	encodedQuery := s.encodeQuery()
 	resourceID := s.resourceID()
 
-	log.Printf("Reading entity accounts (resourceID=%s)\n", resourceID)
+	cacheKey := resourceID + "?" + encodedQuery
 
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).([]Entity); ok {
-		log.Printf("Found cached entity accounts (resourceID=%s)\n", resourceID)
-
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).([]Entity); ok {
 		return cachedResult, nil
 	}
 
-	accountReferences, err := transport.GetRESCollection[res.Ref](c.baseClient.resClient, resourceID)
+	accountReferences, err := transport.GetRESCollection[res.Ref](c.baseClient.resClient, resourceID, resprot.Request{
+		Query: encodedQuery,
+	})
 	if err != nil {
-		log.Printf("Failed to read entity accounts collection (resourceID=%s): %s\n", resourceID, err)
-
 		return nil, err
 	}
 
@@ -124,17 +127,13 @@ func (c *entitiesClient) ReadEntityAccounts(s EntityAccountsSelector) ([]Entity,
 	for _, accountReference := range accountReferences {
 		relatedAccount, err := transport.GetRESModel[Entity](c.baseClient.resClient, string(accountReference))
 		if err != nil {
-			log.Printf("Failed to read entity account model (resourceID=%s): %s\n", accountReference, err)
-
-			return nil, err // Maybe just ignore this account?
+			return nil, err
 		}
 
 		result = append(result, relatedAccount)
 	}
 
-	defer c.baseClient.eventuallyWriteCache(resourceID, result)
-
-	log.Printf("Successfully read entity accounts (resourceID=%s)\n", resourceID)
+	defer c.baseClient.eventuallyWriteCache(cacheKey, result)
 
 	return result, nil
 }

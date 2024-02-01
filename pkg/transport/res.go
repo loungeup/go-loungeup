@@ -32,10 +32,10 @@ func (c *RESClient) Request(resourceID string, request resprot.Request) resprot.
 }
 
 // GetRESCollection from the resource ID.
-func GetRESCollection[T any](client RESRequester, resourceID string) ([]T, error) {
+func GetRESCollection[T any](client RESRequester, resourceID string, request resprot.Request) ([]T, error) {
 	var result []T
 
-	response := client.Request("get."+resourceID, resprot.Request{})
+	response := client.Request("get."+resourceID, request)
 	if response.HasError() {
 		return result, response.Error
 	}
