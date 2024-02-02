@@ -3,11 +3,15 @@ package cache
 import (
 	"bytes"
 	"encoding/gob"
+	"time"
 
 	"github.com/dgraph-io/ristretto"
 )
 
-const defaultRistrettoCacheCost = 0
+const (
+	defaultRistrettoCacheCost = 0
+	defaultRistrettoCacheTTL  = 5 * time.Minute
+)
 
 type Ristretto struct{ baseCache *ristretto.Cache }
 
@@ -34,7 +38,7 @@ func (r *Ristretto) Write(key string, v any) {
 		return
 	}
 
-	r.baseCache.Set(key, v, int64(getValueSize(v)))
+	r.baseCache.SetWithTTL(key, v, int64(getValueSize(v)), defaultRistrettoCacheTTL)
 }
 
 func getValueSize(v any) int {
