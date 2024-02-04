@@ -4,17 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dgraph-io/ristretto"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRistrettoCache(t *testing.T) {
-	cache, err := NewRistretto(&ristretto.Config{
-		BufferItems: 64,
-		MaxCost:     10,  // 10 bytes.
-		NumCounters: 100, // 10 times the cache capacity.
-		Metrics:     true,
-	})
+	cache, err := NewRistretto(tooSmallRistrettoCache)
 	require.NoError(t, err)
 
 	t.Run("simple", func(t *testing.T) {
@@ -34,11 +28,11 @@ func TestRistrettoCache(t *testing.T) {
 		waitForCache()
 
 		require.Equal(t, nil, cache.Read("baz"))
-		require.Equal(t, 7, getValueSize("bar"))
+		require.Equal(t, int64(7), getRistrettoValueCost("bar"))
 	})
 }
 
-func TestGetValueSize(t *testing.T) {
+func TestGetRistrettoValueCost(t *testing.T) {
 	type User struct {
 		FirstName string
 		LastName  string
@@ -55,16 +49,10 @@ func TestGetValueSize(t *testing.T) {
 		&User{FirstName: "Johnny", LastName: "Depp"},
 	}
 
-	previousSize := 0
-
 	for i := 0; i < len(tests); i++ {
-		size := getValueSize(tests[i])
-
 		if i > 0 {
-			require.Greater(t, size, previousSize)
+			require.Greater(t, getRistrettoValueCost(tests[i]), getRistrettoValueCost(tests[i-1]))
 		}
-
-		previousSize = size
 	}
 }
 
