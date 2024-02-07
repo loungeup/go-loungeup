@@ -13,7 +13,7 @@ import (
 type Entity struct {
 	ID         uuid.UUID      `json:"id"`
 	LegacyID   int            `json:"legacyId,omitempty"`
-	Type       string         `json:"type"`
+	Type       EntityType     `json:"type"`
 	Name       string         `json:"name,omitempty"`
 	Slug       string         `json:"slug,omitempty"`
 	Image      string         `json:"image,omitempty"`
@@ -32,6 +32,15 @@ type Entity struct {
 	CreatedAt  string         `json:"createdAt"`
 	UpdatedAt  string         `json:"updatedAt"`
 }
+
+type EntityType string
+
+const (
+	EntityTypeAccount  EntityType = "account"
+	EntityTypeChain    EntityType = "chain"
+	EntityTypeGroup    EntityType = "group"
+	EntityTypeReseller EntityType = "reseller"
+)
 
 type EntityCustomFields struct {
 	User  RESDataValue[map[string]EntityCustomField] `json:"user,omitempty"`
