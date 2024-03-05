@@ -2,6 +2,7 @@ package client
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
@@ -61,6 +62,17 @@ const (
 	EntityCustomFieldTypeNumber  EntityCustomFieldType = "number"
 	EntityCustomFieldTypeText    EntityCustomFieldType = "text"
 )
+
+type RoomType struct {
+	ID                   uuid.UUID `json:"id"`
+	EntityID             uuid.UUID `json:"entityId"`
+	Name                 string    `json:"name,omitempty"`
+	Code                 string    `json:"code,omitempty"`
+	Capacity             int       `json:"capacity,omitempty"`
+	CapacitySafetyMargin int       `json:"capacitySafetyMargin,omitempty"`
+	CreatedAt            time.Time `json:"createdAt,omitempty"`
+	UpdatedAt            time.Time `json:"updatedAt,omitempty"`
+}
 
 type EntitySelector struct {
 	ID uuid.UUID `json:"id"`
@@ -157,6 +169,42 @@ func (c *entitiesClient) ReadEntityCustomFields(s EntitySelector) (EntityCustomF
 	result, err := transport.GetRESModel[EntityCustomFields](c.baseClient.resClient, s.resourceID()+".custom-fields")
 	if err != nil {
 		return EntityCustomFields{}, err
+	}
+
+	defer c.baseClient.eventuallyWriteCache(resourceID, result)
+
+	return result, nil
+}
+
+type RoomTypesSelector struct {
+	EntitySelector
+}
+
+func (s RoomTypesSelector) resourceID() string {
+	return s.EntitySelector.resourceID() + ".room-types"
+}
+
+func (c *entitiesClient) ReadRoomTypes(s RoomTypesSelector) ([]RoomType, error) {
+	resourceID := s.resourceID()
+
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).([]RoomType); ok {
+		return cachedResult, nil
+	}
+
+	references, err := transport.GetRESCollection[res.Ref](c.baseClient.resClient, resourceID, resprot.Request{})
+	if err != nil {
+		return nil, err
+	}
+
+	result := []RoomType{}
+
+	for _, reference := range references {
+		relatedRoomType, err := transport.GetRESModel[RoomType](c.baseClient.resClient, string(reference))
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, relatedRoomType)
 	}
 
 	defer c.baseClient.eventuallyWriteCache(resourceID, result)

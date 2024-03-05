@@ -154,3 +154,49 @@ func TestEntityAccountsSelector(t *testing.T) {
 		})
 	}
 }
+
+func TestReadRoomTypes(t *testing.T) {
+	roomTypeID := "5b6ad30a-f765-4247-9925-a13380ba284c"
+	entityID := "acec14d0-1897-478b-ac80-009ad0b9508a"
+	want := []RoomType{
+		{
+			ID:       uuid.MustParse(roomTypeID),
+			EntityID: uuid.MustParse(entityID),
+			Name:     "Foo",
+		},
+	}
+
+	got, err := NewWithTransport(
+		&transport.Transport{
+			RESClient: &resClientMock{
+				requestFunc: func(resourceID string, request resprot.Request) resprot.Response {
+					if strings.Contains(resourceID, roomTypeID) {
+						return resprot.Response{
+							Result: json.RawMessage(`{
+								"model": {
+									"id": "` + roomTypeID + `",
+									"entityId": "` + entityID + `",
+									"name": "Foo"
+								}
+							}`),
+						}
+					}
+
+					return resprot.Response{
+						Result: json.RawMessage(`{
+							"collection": [
+								{"rid": "authority.entities.` + entityID + `.room-types.` + roomTypeID + `"}
+							]
+						}`),
+					}
+				},
+			},
+		},
+	).Internal.Entities.ReadRoomTypes(RoomTypesSelector{
+		EntitySelector: EntitySelector{
+			ID: uuid.MustParse(entityID),
+		},
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, want, got)
+}
