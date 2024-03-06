@@ -31,6 +31,18 @@ func (c *RESClient) Request(resourceID string, request resprot.Request) resprot.
 	return resprot.SendRequest(c.natsConnection, resourceID, request, defaultNATSTimeout)
 }
 
+// CallRESResult from the resource ID.
+func CallRESResult[T any](client RESRequester, resourceID string, request resprot.Request) (T, error) {
+	var result T
+
+	response := client.Request("call."+resourceID, request)
+	if response.HasError() {
+		return result, response.Error
+	}
+
+	return result, response.ParseResult(&result)
+}
+
 // GetRESCollection from the resource ID.
 func GetRESCollection[T any](client RESRequester, resourceID string, request resprot.Request) ([]T, error) {
 	var result []T

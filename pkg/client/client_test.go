@@ -1,6 +1,7 @@
 package client
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/jirenius/go-res/resprot"
@@ -36,4 +37,19 @@ var _ (transport.RESRequester) = (*resClientMock)(nil)
 
 func (c *resClientMock) Request(resourceID string, request resprot.Request) resprot.Response {
 	return c.requestFunc(resourceID, request)
+}
+
+// newCollectionResponse creates a new response with the specified collection.
+func newCollectionResponse(collection string) resprot.Response {
+	return resprot.Response{Result: json.RawMessage(`{"collection":` + collection + `}`)}
+}
+
+// newModelResponse creates a new resprot.Response with the given model.
+func newModelResponse(model string) resprot.Response {
+	return resprot.Response{Result: json.RawMessage(`{"model":` + model + `}`)}
+}
+
+// newResultResponse creates a new resprot.Response with the given result.
+func newResultResponse(result string) resprot.Response {
+	return resprot.Response{Result: json.RawMessage(result)}
 }

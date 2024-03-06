@@ -25,8 +25,10 @@ func NewWithTransport(transport *transport.Transport, options ...Option) *Client
 	}
 
 	result.Internal = internalClient{
-		Entities: entitiesClient{baseClient: result},
-		Guests:   guestsClient{baseClient: result},
+		Entities:     entitiesClient{baseClient: result},
+		Guests:       guestsClient{baseClient: result},
+		Integrations: integrationsClient{baseClient: result},
+		RoomTypes:    roomTypesClient{baseClient: result},
 	}
 
 	for _, option := range options {
