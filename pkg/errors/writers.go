@@ -14,8 +14,8 @@ type errorWriter interface {
 }
 
 type logContext struct {
-	LogID             string
-	UnderlyingMessage string
+	LogID             string `json:"logId"`
+	UnderlyingMessage string `json:"underlyingMessage,omitempty"`
 }
 
 func (c *logContext) Attributes() []any {
