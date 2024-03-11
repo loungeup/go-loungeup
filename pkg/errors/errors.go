@@ -10,6 +10,8 @@ const (
 	CodeInternal = "internal"
 	CodeInvalid  = "invalid"
 	CodeNotFound = "notFound"
+
+	internalErrorMessage = "An internal error has occurred. Please contact technical support."
 )
 
 type Error struct {
@@ -39,6 +41,7 @@ func (e *Error) Error() string {
 		if e.Code != "" {
 			result += "<" + e.Code + "> "
 		}
+
 		result += e.Message
 	}
 
@@ -70,7 +73,7 @@ func ErrorMessage(err error) string {
 		return ErrorMessage(err.UnderlyingError)
 	}
 
-	return "An internal error has occurred. Please contact technical support."
+	return internalErrorMessage
 }
 
 func As(err error, target any) bool { return errors.As(err, target) }
