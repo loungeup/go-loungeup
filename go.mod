@@ -8,6 +8,7 @@ require (
 	github.com/jirenius/go-res v0.4.7
 	github.com/lib/pq v1.10.9
 	github.com/stretchr/testify v1.6.1
+	github.com/tidwall/gjson v1.17.1
 )
 
 require (
@@ -21,6 +22,8 @@ require (
 	github.com/nats-io/nkeys v0.4.4 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	golang.org/x/crypto v0.12.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
