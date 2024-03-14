@@ -1,6 +1,8 @@
 package client
 
 import (
+	"encoding/json"
+
 	"github.com/jirenius/go-res"
 	"github.com/jirenius/go-res/resprot"
 	"github.com/loungeup/go-loungeup/pkg/client/models"
@@ -89,8 +91,8 @@ func (c *integrationsClient) ReadIntegrations(selector *models.IntegrationsSelec
 func (c *integrationsClient) FetchFromProvider(
 	selector *models.EntityIntegrationSelector,
 	params any,
-) (*models.ProviderResult, error) {
-	return transport.CallRESResult[*models.ProviderResult](
+) (json.RawMessage, error) {
+	return transport.CallRESResult(
 		c.baseClient.resClient,
 		selector.RID()+".fetch-from-provider",
 		resprot.Request{Params: params},
@@ -100,8 +102,8 @@ func (c *integrationsClient) FetchFromProvider(
 func (c *integrationsClient) SendToProvider(
 	selector *models.EntityIntegrationSelector,
 	params any,
-) (*models.ProviderResult, error) {
-	return transport.CallRESResult[*models.ProviderResult](
+) (json.RawMessage, error) {
+	return transport.CallRESResult(
 		c.baseClient.resClient,
 		selector.RID()+".send-to-provider",
 		resprot.Request{Params: params},

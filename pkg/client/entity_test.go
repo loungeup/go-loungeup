@@ -8,18 +8,19 @@ import (
 	"github.com/loungeup/go-loungeup/pkg/client/models"
 	"github.com/loungeup/go-loungeup/pkg/client/testdata"
 	"github.com/loungeup/go-loungeup/pkg/transport"
+	"github.com/loungeup/go-loungeup/pkg/transporttest"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestReadEntity(t *testing.T) {
 	got, err := NewWithTransport(&transport.Transport{
-		RESClient: &resClientMock{
-			requestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
+		RESClient: &transporttest.RESClientMock{
+			RequestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
 				switch {
 				case strings.HasSuffix(resourceID, testdata.EntitySelector.RID()):
-					return newModelResponse(testdata.EntityModel)
+					return transporttest.NewRESModelResponse(testdata.EntityModel)
 				default:
-					return newModelResponse(`{}`)
+					return transporttest.NewRESModelResponse(`{}`)
 				}
 			},
 		},
@@ -30,15 +31,15 @@ func TestReadEntity(t *testing.T) {
 
 func TestReadEntityAccounts(t *testing.T) {
 	got, err := NewWithTransport(&transport.Transport{
-		RESClient: &resClientMock{
-			requestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
+		RESClient: &transporttest.RESClientMock{
+			RequestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
 				switch {
 				case strings.HasSuffix(resourceID, testdata.EntityAccountsSelector.RID()):
-					return newCollectionResponse(testdata.EntityCollection)
+					return transporttest.NewRESCollectionResponse(testdata.EntityCollection)
 				case strings.HasSuffix(resourceID, testdata.EntitySelector.RID()):
-					return newModelResponse(testdata.EntityModel)
+					return transporttest.NewRESModelResponse(testdata.EntityModel)
 				default:
-					return newModelResponse(`{}`)
+					return transporttest.NewRESModelResponse(`{}`)
 				}
 			},
 		},
@@ -49,13 +50,13 @@ func TestReadEntityAccounts(t *testing.T) {
 
 func TestReadEntityCustomFields(t *testing.T) {
 	got, err := NewWithTransport(&transport.Transport{
-		RESClient: &resClientMock{
-			requestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
+		RESClient: &transporttest.RESClientMock{
+			RequestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
 				switch {
 				case strings.HasSuffix(resourceID, testdata.EntityCustomFieldsSelector.RID()):
-					return newModelResponse(testdata.EntityCustomFieldsModel)
+					return transporttest.NewRESModelResponse(testdata.EntityCustomFieldsModel)
 				default:
-					return newModelResponse(`{}`)
+					return transporttest.NewRESModelResponse(`{}`)
 				}
 			},
 		},

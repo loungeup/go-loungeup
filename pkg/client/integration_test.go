@@ -8,20 +8,21 @@ import (
 	"github.com/loungeup/go-loungeup/pkg/client/models"
 	"github.com/loungeup/go-loungeup/pkg/client/testdata"
 	"github.com/loungeup/go-loungeup/pkg/transport"
+	"github.com/loungeup/go-loungeup/pkg/transporttest"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestReadEntityIntegration(t *testing.T) {
 	got, err := NewWithTransport(&transport.Transport{
-		RESClient: &resClientMock{
-			requestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
+		RESClient: &transporttest.RESClientMock{
+			RequestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
 				switch {
 				case strings.HasSuffix(resourceID, testdata.EntityIntegrationSelector.RID()):
-					return newModelResponse(testdata.EntityIntegrationModel)
+					return transporttest.NewRESModelResponse(testdata.EntityIntegrationModel)
 				case strings.HasSuffix(resourceID, testdata.IntegrationSelector.RID()):
-					return newModelResponse(testdata.IntegrationModel)
+					return transporttest.NewRESModelResponse(testdata.IntegrationModel)
 				default:
-					return newModelResponse(`{}`)
+					return transporttest.NewRESModelResponse(`{}`)
 				}
 			},
 		},
@@ -32,17 +33,17 @@ func TestReadEntityIntegration(t *testing.T) {
 
 func TestReadEntityIntegrations(t *testing.T) {
 	got, err := NewWithTransport(&transport.Transport{
-		RESClient: &resClientMock{
-			requestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
+		RESClient: &transporttest.RESClientMock{
+			RequestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
 				switch {
 				case strings.HasSuffix(resourceID, testdata.EntityIntegrationsSelector.RID()):
-					return newCollectionResponse(testdata.EntityIntegrationCollection)
+					return transporttest.NewRESCollectionResponse(testdata.EntityIntegrationCollection)
 				case strings.HasSuffix(resourceID, testdata.EntityIntegrationSelector.RID()):
-					return newModelResponse(testdata.EntityIntegrationModel)
+					return transporttest.NewRESModelResponse(testdata.EntityIntegrationModel)
 				case strings.HasSuffix(resourceID, testdata.IntegrationSelector.RID()):
-					return newModelResponse(testdata.IntegrationModel)
+					return transporttest.NewRESModelResponse(testdata.IntegrationModel)
 				default:
-					return newModelResponse(`{}`)
+					return transporttest.NewRESModelResponse(`{}`)
 				}
 			},
 		},
@@ -53,13 +54,13 @@ func TestReadEntityIntegrations(t *testing.T) {
 
 func TestReadIntegration(t *testing.T) {
 	got, err := NewWithTransport(&transport.Transport{
-		RESClient: &resClientMock{
-			requestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
+		RESClient: &transporttest.RESClientMock{
+			RequestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
 				switch {
 				case strings.HasSuffix(resourceID, testdata.IntegrationSelector.RID()):
-					return newModelResponse(testdata.IntegrationModel)
+					return transporttest.NewRESModelResponse(testdata.IntegrationModel)
 				default:
-					return newModelResponse(`{}`)
+					return transporttest.NewRESModelResponse(`{}`)
 				}
 			},
 		},
@@ -70,15 +71,15 @@ func TestReadIntegration(t *testing.T) {
 
 func TestReadIntegrations(t *testing.T) {
 	got, err := NewWithTransport(&transport.Transport{
-		RESClient: &resClientMock{
-			requestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
+		RESClient: &transporttest.RESClientMock{
+			RequestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
 				switch {
 				case strings.HasSuffix(resourceID, testdata.IntegrationsSelector.RID()):
-					return newCollectionResponse(testdata.IntegrationCollection)
+					return transporttest.NewRESCollectionResponse(testdata.IntegrationCollection)
 				case strings.HasSuffix(resourceID, testdata.IntegrationSelector.RID()):
-					return newModelResponse(testdata.IntegrationModel)
+					return transporttest.NewRESModelResponse(testdata.IntegrationModel)
 				default:
-					return newModelResponse(`{}`)
+					return transporttest.NewRESModelResponse(`{}`)
 				}
 			},
 		},
@@ -89,9 +90,9 @@ func TestReadIntegrations(t *testing.T) {
 
 func TestFetchFromProvider(t *testing.T) {
 	got, err := NewWithTransport(&transport.Transport{
-		RESClient: &resClientMock{
-			requestFunc: func(resourceID string, request resprot.Request) resprot.Response {
-				return newResultResponse(testdata.ProviderResultModel)
+		RESClient: &transporttest.RESClientMock{
+			RequestFunc: func(resourceID string, request resprot.Request) resprot.Response {
+				return transporttest.NewRESResultResponse(testdata.ProviderResultModel)
 			},
 		},
 	}).Internal.Integrations.FetchFromProvider(testdata.EntityIntegrationSelector, nil)
@@ -101,9 +102,9 @@ func TestFetchFromProvider(t *testing.T) {
 
 func TestSendToProvider(t *testing.T) {
 	got, err := NewWithTransport(&transport.Transport{
-		RESClient: &resClientMock{
-			requestFunc: func(resourceID string, request resprot.Request) resprot.Response {
-				return newResultResponse(testdata.ProviderResultModel)
+		RESClient: &transporttest.RESClientMock{
+			RequestFunc: func(resourceID string, request resprot.Request) resprot.Response {
+				return transporttest.NewRESResultResponse(testdata.ProviderResultModel)
 			},
 		},
 	}).Internal.Integrations.SendToProvider(testdata.EntityIntegrationSelector, nil)

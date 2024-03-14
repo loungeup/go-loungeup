@@ -102,15 +102,6 @@ var (
 		Category: "pms",
 	}
 
-	ProviderResult = &models.ProviderResult{
-		Body:   json.RawMessage(`{"foo": "bar"}`),
-		Errors: []string{"Internal Error"},
-		LogID:  "123",
-	}
-
-	ProviderResultModel = `{
-		"body": {"foo": "bar"},
-		"errors": ["Internal Error"],
-		"logId": "123"
-	}`
+	ProviderResult      = json.RawMessage(`{"foo": "bar"}`)
+	ProviderResultModel = `{"foo": "bar"}`
 )

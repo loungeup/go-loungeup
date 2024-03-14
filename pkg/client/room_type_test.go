@@ -8,20 +8,21 @@ import (
 	"github.com/loungeup/go-loungeup/pkg/client/models"
 	"github.com/loungeup/go-loungeup/pkg/client/testdata"
 	"github.com/loungeup/go-loungeup/pkg/transport"
+	"github.com/loungeup/go-loungeup/pkg/transporttest"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestReadRoomTypes(t *testing.T) {
 	got, err := NewWithTransport(&transport.Transport{
-		RESClient: &resClientMock{
-			requestFunc: func(resourceID string, request resprot.Request) resprot.Response {
+		RESClient: &transporttest.RESClientMock{
+			RequestFunc: func(resourceID string, request resprot.Request) resprot.Response {
 				switch {
 				case strings.HasSuffix(resourceID, testdata.RoomTypesSelector.RID()):
-					return newCollectionResponse(testdata.RoomTypeCollection)
+					return transporttest.NewRESCollectionResponse(testdata.RoomTypeCollection)
 				case strings.HasSuffix(resourceID, testdata.RoomTypeSelector.RID()):
-					return newModelResponse(testdata.RoomTypeModel)
+					return transporttest.NewRESModelResponse(testdata.RoomTypeModel)
 				default:
-					return newModelResponse(`{}`)
+					return transporttest.NewRESModelResponse(`{}`)
 				}
 			},
 		},

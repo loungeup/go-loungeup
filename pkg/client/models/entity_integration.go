@@ -1,7 +1,6 @@
 package models
 
 import (
-	"encoding/json"
 	"strings"
 
 	"github.com/google/uuid"
@@ -38,10 +37,4 @@ func (s EntityIntegrationsSelector) EncodedQuery() string {
 
 func (s EntityIntegrationsSelector) RID() string {
 	return "integrations.entities." + s.EntityID.String() + ".integrations"
-}
-
-type ProviderResult struct {
-	Body   json.RawMessage `json:"body,omitempty"`
-	Errors []string        `json:"errors,omitempty"`
-	LogID  string          `json:"logId,omitempty"`
 }

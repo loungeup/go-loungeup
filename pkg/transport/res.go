@@ -1,6 +1,8 @@
 package transport
 
 import (
+	"encoding/json"
+
 	"github.com/jirenius/go-res"
 	"github.com/jirenius/go-res/resprot"
 )
@@ -32,15 +34,15 @@ func (c *RESClient) Request(resourceID string, request resprot.Request) resprot.
 }
 
 // CallRESResult from the resource ID.
-func CallRESResult[T any](client RESRequester, resourceID string, request resprot.Request) (T, error) {
-	var result T
+func CallRESResult(client RESRequester, resourceID string, request resprot.Request) (json.RawMessage, error) {
+	result := json.RawMessage(`{}`)
 
 	response := client.Request("call."+resourceID, request)
 	if response.HasError() {
 		return result, response.Error
 	}
 
-	return result, response.ParseResult(&result)
+	return response.Result, nil
 }
 
 // GetRESCollection from the resource ID.
