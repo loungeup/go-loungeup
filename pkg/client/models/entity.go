@@ -26,7 +26,7 @@ type Entity struct {
 	Chain      res.SoftRef         `json:"chain,omitempty"`
 	Group      res.SoftRef         `json:"group,omitempty"`
 	Reseller   res.SoftRef         `json:"reseller,omitempty"`
-	Teams      res.Ref             `json:"teams,omitempty"`
+	Teams      res.SoftRef         `json:"teams,omitempty"`
 	CreatedAt  time.Time           `json:"createdAt"`
 	UpdatedAt  time.Time           `json:"updatedAt"`
 }
