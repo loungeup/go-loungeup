@@ -17,6 +17,10 @@ type RoomType struct {
 	UpdatedAt            time.Time `json:"updatedAt,omitempty"`
 }
 
+func (t *RoomType) EffectiveCapacity() int { return t.Capacity - t.CapacitySafetyMargin }
+
+func (t *RoomType) IsAvailable() bool { return t.EffectiveCapacity() > 0 }
+
 type RoomTypeSelector struct {
 	EntityID      uuid.UUID
 	IntegrationID uuid.UUID

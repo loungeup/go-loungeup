@@ -10,14 +10,14 @@ import (
 // entitiesClient provides methods to interact with entities.
 type entitiesClient struct{ baseClient *Client }
 
-func (c *entitiesClient) ReadEntity(selector models.EntitySelector) (models.Entity, error) {
+func (c *entitiesClient) ReadEntity(selector *models.EntitySelector) (*models.Entity, error) {
 	return c.readEntityByRID(selector.RID())
 }
 
-func (c *entitiesClient) ReadEntityAccounts(selector models.EntityAccountsSelector) ([]models.Entity, error) {
+func (c *entitiesClient) ReadEntityAccounts(selector *models.EntityAccountsSelector) ([]*models.Entity, error) {
 	cacheKey := selector.RID() + "?" + selector.EncodedQuery()
 
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).([]models.Entity); ok {
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).([]*models.Entity); ok {
 		return cachedResult, nil
 	}
 
@@ -32,7 +32,7 @@ func (c *entitiesClient) ReadEntityAccounts(selector models.EntityAccountsSelect
 		return nil, err
 	}
 
-	result := []models.Entity{}
+	result := []*models.Entity{}
 
 	for _, reference := range references {
 		account, err := c.readEntityByRID(string(reference))
@@ -49,18 +49,18 @@ func (c *entitiesClient) ReadEntityAccounts(selector models.EntityAccountsSelect
 }
 
 func (c *entitiesClient) ReadEntityCustomFields(
-	selector models.EntityCustomFieldsSelector,
-) (models.EntityCustomFields, error) {
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(selector.RID()).(models.EntityCustomFields); ok {
+	selector *models.EntityCustomFieldsSelector,
+) (*models.EntityCustomFields, error) {
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(selector.RID()).(*models.EntityCustomFields); ok {
 		return cachedResult, nil
 	}
 
-	result, err := transport.GetRESModel[models.EntityCustomFields](
+	result, err := transport.GetRESModel[*models.EntityCustomFields](
 		c.baseClient.resClient,
 		selector.RID(),
 	)
 	if err != nil {
-		return models.EntityCustomFields{}, err
+		return nil, err
 	}
 
 	defer c.baseClient.eventuallyWriteCache(selector.RID(), result)
@@ -68,14 +68,14 @@ func (c *entitiesClient) ReadEntityCustomFields(
 	return result, nil
 }
 
-func (c *entitiesClient) readEntityByRID(resourceID string) (models.Entity, error) {
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).(models.Entity); ok {
+func (c *entitiesClient) readEntityByRID(resourceID string) (*models.Entity, error) {
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).(*models.Entity); ok {
 		return cachedResult, nil
 	}
 
-	result, err := transport.GetRESModel[models.Entity](c.baseClient.resClient, resourceID)
+	result, err := transport.GetRESModel[*models.Entity](c.baseClient.resClient, resourceID)
 	if err != nil {
-		return models.Entity{}, err
+		return nil, err
 	}
 
 	defer c.baseClient.eventuallyWriteCache(resourceID, result)

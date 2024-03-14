@@ -9,8 +9,8 @@ import (
 
 type roomTypesClient struct{ baseClient *Client }
 
-func (c *roomTypesClient) ReadRoomTypes(selector models.RoomTypesSelector) ([]models.RoomType, error) {
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(selector.RID()).([]models.RoomType); ok {
+func (c *roomTypesClient) ReadRoomTypes(selector *models.RoomTypesSelector) ([]*models.RoomType, error) {
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(selector.RID()).([]*models.RoomType); ok {
 		return cachedResult, nil
 	}
 
@@ -19,10 +19,10 @@ func (c *roomTypesClient) ReadRoomTypes(selector models.RoomTypesSelector) ([]mo
 		return nil, err
 	}
 
-	result := []models.RoomType{}
+	result := []*models.RoomType{}
 
 	for _, reference := range references {
-		relatedRoomType, err := transport.GetRESModel[models.RoomType](c.baseClient.resClient, string(reference))
+		relatedRoomType, err := transport.GetRESModel[*models.RoomType](c.baseClient.resClient, string(reference))
 		if err != nil {
 			return nil, err
 		}

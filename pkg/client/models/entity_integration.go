@@ -12,7 +12,7 @@ type EntityIntegration struct {
 	ID                   uuid.UUID                 `json:"id,omitempty"`
 	EntityID             uuid.UUID                 `json:"entityId,omitempty"`
 	IntegrationReference res.Ref                   `json:"integration,omitempty"`
-	Integration          Integration               `json:"-"`
+	Integration          *Integration              `json:"-"`
 	Values               DataValue[map[string]any] `json:"values,omitempty"`
 	Status               string                    `json:"status,omitempty"`
 }
@@ -26,7 +26,7 @@ func (s EntityIntegrationSelector) RID() string {
 }
 
 type EntityIntegrationsSelector struct {
-	IntegrationsSelector
+	*IntegrationsSelector
 
 	EnabledFeatures []string
 	EntityID        uuid.UUID

@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	Entity = models.Entity{
+	Entity = &models.Entity{
 		ID:         uuid.New(),
 		LegacyID:   1,
 		Type:       models.EntityTypeAccount,
@@ -29,7 +29,7 @@ var (
 		UpdatedAt:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 	}
 
-	EntityAccountsSelector = models.EntityAccountsSelector{
+	EntityAccountsSelector = &models.EntityAccountsSelector{
 		EntityID: Entity.ID,
 	}
 
@@ -60,7 +60,7 @@ var (
 		"updatedAt": "2020-01-01T00:00:00Z"
 	}`
 
-	EntitySelector = models.EntitySelector{
+	EntitySelector = &models.EntitySelector{
 		EntityID: Entity.ID,
 	}
 )

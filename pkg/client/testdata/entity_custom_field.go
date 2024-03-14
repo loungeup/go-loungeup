@@ -3,7 +3,7 @@ package testdata
 import "github.com/loungeup/go-loungeup/pkg/client/models"
 
 var (
-	EntityCustomFields = models.EntityCustomFields{
+	EntityCustomFields = &models.EntityCustomFields{
 		User: models.NewDataValue(map[string]models.EntityCustomField{
 			"vipLevel": {
 				Label: "VIP Level",
@@ -37,7 +37,7 @@ var (
 		}
 	}`
 
-	EntityCustomFieldsSelector = models.EntityCustomFieldsSelector{
+	EntityCustomFieldsSelector = &models.EntityCustomFieldsSelector{
 		EntityID: Entity.ID,
 	}
 )

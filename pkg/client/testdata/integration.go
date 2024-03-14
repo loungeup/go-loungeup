@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	EntityIntegration = models.EntityIntegration{
+	EntityIntegration = &models.EntityIntegration{
 		ID:                   uuid.New(),
 		EntityID:             uuid.New(),
 		IntegrationReference: res.Ref(IntegrationSelector.RID()),
@@ -36,17 +36,17 @@ var (
 		"status": "valid"
 	}`
 
-	EntityIntegrationSelector = models.EntityIntegrationSelector{
+	EntityIntegrationSelector = &models.EntityIntegrationSelector{
 		EntityID:      EntityIntegration.EntityID,
 		IntegrationID: EntityIntegration.ID,
 	}
 
-	EntityIntegrationsSelector = models.EntityIntegrationsSelector{
+	EntityIntegrationsSelector = &models.EntityIntegrationsSelector{
 		EntityID:             EntityIntegration.EntityID,
 		IntegrationsSelector: IntegrationsSelector,
 	}
 
-	Integration = models.Integration{
+	Integration = &models.Integration{
 		Name:     "mews",
 		Category: "pms",
 		Unique:   true,
@@ -94,15 +94,15 @@ var (
 		}
 	}`
 
-	IntegrationSelector = models.IntegrationSelector{
+	IntegrationSelector = &models.IntegrationSelector{
 		Name: "mews",
 	}
 
-	IntegrationsSelector = models.IntegrationsSelector{
+	IntegrationsSelector = &models.IntegrationsSelector{
 		Category: "pms",
 	}
 
-	ProviderResult = models.ProviderResult{
+	ProviderResult = &models.ProviderResult{
 		Body:   json.RawMessage(`{"foo": "bar"}`),
 		Errors: []string{"Internal Error"},
 		LogID:  "123",

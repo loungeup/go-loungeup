@@ -3,8 +3,9 @@ package client
 // internalClient used to interact with NATS services using the RES protocol. This client is meant to be used by
 // internal services for service-to-service communication.
 type internalClient struct {
-	Entities     entitiesClient
-	Guests       guestsClient
-	Integrations integrationsClient
-	RoomTypes    roomTypesClient
+	Entities     *entitiesClient
+	Guests       *guestsClient
+	Integrations *integrationsClient
+	ProxyDB      *proxyDBClient
+	RoomTypes    *roomTypesClient
 }

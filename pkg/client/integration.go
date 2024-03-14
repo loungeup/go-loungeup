@@ -11,17 +11,17 @@ import (
 type integrationsClient struct{ baseClient *Client }
 
 func (c *integrationsClient) ReadEntityIntegration(
-	selector models.EntityIntegrationSelector,
-) (models.EntityIntegration, error) {
+	selector *models.EntityIntegrationSelector,
+) (*models.EntityIntegration, error) {
 	return c.readEntityIntegrationByRID(selector.RID())
 }
 
 func (c *integrationsClient) ReadEntityIntegrations(
-	selector models.EntityIntegrationsSelector,
-) ([]models.EntityIntegration, error) {
+	selector *models.EntityIntegrationsSelector,
+) ([]*models.EntityIntegration, error) {
 	cacheKey := selector.RID() + "?" + selector.EncodedQuery()
 
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).([]models.EntityIntegration); ok {
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).([]*models.EntityIntegration); ok {
 		return cachedResult, nil
 	}
 
@@ -34,7 +34,7 @@ func (c *integrationsClient) ReadEntityIntegrations(
 		return nil, err
 	}
 
-	result := []models.EntityIntegration{}
+	result := []*models.EntityIntegration{}
 
 	for _, reference := range references {
 		model, err := c.readEntityIntegrationByRID(string(reference))
@@ -50,14 +50,14 @@ func (c *integrationsClient) ReadEntityIntegrations(
 	return result, nil
 }
 
-func (c *integrationsClient) ReadIntegration(selector models.IntegrationSelector) (models.Integration, error) {
+func (c *integrationsClient) ReadIntegration(selector *models.IntegrationSelector) (*models.Integration, error) {
 	return c.readIntegrationByRID(selector.RID())
 }
 
-func (c *integrationsClient) ReadIntegrations(selector models.IntegrationsSelector) ([]models.Integration, error) {
+func (c *integrationsClient) ReadIntegrations(selector *models.IntegrationsSelector) ([]*models.Integration, error) {
 	cacheKey := selector.RID() + "?" + selector.EncodedQuery()
 
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).([]models.Integration); ok {
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).([]*models.Integration); ok {
 		return cachedResult, nil
 	}
 
@@ -70,7 +70,7 @@ func (c *integrationsClient) ReadIntegrations(selector models.IntegrationsSelect
 		return nil, err
 	}
 
-	result := []models.Integration{}
+	result := []*models.Integration{}
 
 	for _, reference := range references {
 		model, err := c.readIntegrationByRID(string(reference))
@@ -87,10 +87,10 @@ func (c *integrationsClient) ReadIntegrations(selector models.IntegrationsSelect
 }
 
 func (c *integrationsClient) FetchFromProvider(
-	selector models.EntityIntegrationSelector,
+	selector *models.EntityIntegrationSelector,
 	params any,
-) (models.ProviderResult, error) {
-	return transport.CallRESResult[models.ProviderResult](
+) (*models.ProviderResult, error) {
+	return transport.CallRESResult[*models.ProviderResult](
 		c.baseClient.resClient,
 		selector.RID()+".fetch-from-provider",
 		resprot.Request{Params: params},
@@ -98,24 +98,24 @@ func (c *integrationsClient) FetchFromProvider(
 }
 
 func (c *integrationsClient) SendToProvider(
-	selector models.EntityIntegrationSelector,
+	selector *models.EntityIntegrationSelector,
 	params any,
-) (models.ProviderResult, error) {
-	return transport.CallRESResult[models.ProviderResult](
+) (*models.ProviderResult, error) {
+	return transport.CallRESResult[*models.ProviderResult](
 		c.baseClient.resClient,
 		selector.RID()+".send-to-provider",
 		resprot.Request{Params: params},
 	)
 }
 
-func (c *integrationsClient) readEntityIntegrationByRID(resourceID string) (models.EntityIntegration, error) {
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).(models.EntityIntegration); ok {
+func (c *integrationsClient) readEntityIntegrationByRID(resourceID string) (*models.EntityIntegration, error) {
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).(*models.EntityIntegration); ok {
 		return cachedResult, nil
 	}
 
-	result, err := transport.GetRESModel[models.EntityIntegration](c.baseClient.resClient, resourceID)
+	result, err := transport.GetRESModel[*models.EntityIntegration](c.baseClient.resClient, resourceID)
 	if err != nil {
-		return models.EntityIntegration{}, err
+		return nil, err
 	}
 
 	if !result.IntegrationReference.IsValid() {
@@ -124,7 +124,7 @@ func (c *integrationsClient) readEntityIntegrationByRID(resourceID string) (mode
 
 	relatedIntegration, err := c.readIntegrationByRID(string(result.IntegrationReference))
 	if err != nil {
-		return models.EntityIntegration{}, err
+		return nil, err
 	}
 
 	result.Integration = relatedIntegration
@@ -134,14 +134,14 @@ func (c *integrationsClient) readEntityIntegrationByRID(resourceID string) (mode
 	return result, nil
 }
 
-func (c *integrationsClient) readIntegrationByRID(resourceID string) (models.Integration, error) {
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).(models.Integration); ok {
+func (c *integrationsClient) readIntegrationByRID(resourceID string) (*models.Integration, error) {
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).(*models.Integration); ok {
 		return cachedResult, nil
 	}
 
-	result, err := transport.GetRESModel[models.Integration](c.baseClient.resClient, resourceID)
+	result, err := transport.GetRESModel[*models.Integration](c.baseClient.resClient, resourceID)
 	if err != nil {
-		return models.Integration{}, err
+		return nil, err
 	}
 
 	defer c.baseClient.eventuallyWriteCache(resourceID, result)

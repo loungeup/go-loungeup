@@ -44,7 +44,7 @@ func TestReadEntityAccounts(t *testing.T) {
 		},
 	}).Internal.Entities.ReadEntityAccounts(testdata.EntityAccountsSelector)
 	assert.NoError(t, err)
-	assert.Equal(t, []models.Entity{testdata.Entity}, got)
+	assert.Equal(t, []*models.Entity{testdata.Entity}, got)
 }
 
 func TestReadEntityCustomFields(t *testing.T) {

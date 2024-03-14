@@ -48,7 +48,7 @@ func TestReadEntityIntegrations(t *testing.T) {
 		},
 	}).Internal.Integrations.ReadEntityIntegrations(testdata.EntityIntegrationsSelector)
 	assert.NoError(t, err)
-	assert.Equal(t, []models.EntityIntegration{testdata.EntityIntegration}, got)
+	assert.Equal(t, []*models.EntityIntegration{testdata.EntityIntegration}, got)
 }
 
 func TestReadIntegration(t *testing.T) {
@@ -84,7 +84,7 @@ func TestReadIntegrations(t *testing.T) {
 		},
 	}).Internal.Integrations.ReadIntegrations(testdata.IntegrationsSelector)
 	assert.NoError(t, err)
-	assert.Equal(t, []models.Integration{testdata.Integration}, got)
+	assert.Equal(t, []*models.Integration{testdata.Integration}, got)
 }
 
 func TestFetchFromProvider(t *testing.T) {

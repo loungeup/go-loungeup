@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	RoomType = models.RoomType{
+	RoomType = &models.RoomType{
 		ID:                   uuid.New(),
 		EntityID:             uuid.New(),
 		Name:                 "Standard",
@@ -35,12 +35,12 @@ var (
 		"updatedAt": "2020-01-01T00:00:00Z"
 	}`
 
-	RoomTypeSelector = models.RoomTypeSelector{
+	RoomTypeSelector = &models.RoomTypeSelector{
 		EntityID:      RoomType.EntityID,
 		IntegrationID: RoomType.ID,
 	}
 
-	RoomTypesSelector = models.RoomTypesSelector{
+	RoomTypesSelector = &models.RoomTypesSelector{
 		EntityID: RoomType.EntityID,
 	}
 )
