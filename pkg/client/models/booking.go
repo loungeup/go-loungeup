@@ -10,11 +10,13 @@ import (
 const aDay = 24 * time.Hour
 
 type Booking struct {
-	ID        int       `json:"id"`
-	EntityID  uuid.UUID `json:"entityId"`
-	Arrival   time.Time `json:"arrival"`
-	Departure time.Time `json:"departure"`
-	RoomType  string    `json:"roomType"`
+	ID                 int       `json:"id"`
+	EntityID           uuid.UUID `json:"entityId"`
+	Arrival            time.Time `json:"arrival"`
+	Departure          time.Time `json:"departure"`
+	RoomType           string    `json:"roomType"`
+	PMSBookingID       string    `json:"pmsBookingId"`
+	PMSBookingParentID string    `json:"pmsBookingParentId"`
 }
 
 func (b *Booking) InStayDates() []time.Time {
