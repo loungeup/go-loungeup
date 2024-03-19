@@ -38,3 +38,11 @@ func (s EntityIntegrationsSelector) EncodedQuery() string {
 func (s EntityIntegrationsSelector) RID() string {
 	return "integrations.entities." + s.EntityID.String() + ".integrations"
 }
+
+type LatestIntegrationSelector struct {
+	*EntityIntegrationsSelector
+}
+
+func (s LatestIntegrationSelector) RID() string {
+	return "integrations.entities." + s.EntityID.String() + ".latest-integration"
+}

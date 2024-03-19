@@ -92,10 +92,22 @@ func (c *integrationsClient) FetchFromProvider(
 	selector *models.EntityIntegrationSelector,
 	params any,
 ) (json.RawMessage, error) {
-	return transport.CallRESResult(
+	return transport.CallRESResult[json.RawMessage](
 		c.baseClient.resClient,
 		selector.RID()+".fetch-from-provider",
 		resprot.Request{Params: params},
+	)
+}
+
+func (c *integrationsClient) FetchLatestEntityIntegrationRoomTypes(
+	selector *models.LatestIntegrationSelector,
+) ([]*models.RoomType, error) {
+	return transport.CallRESResult[[]*models.RoomType](
+		c.baseClient.resClient,
+		selector.RID()+".fetch-room-types",
+		resprot.Request{
+			Query: selector.EncodedQuery(),
+		},
 	)
 }
 
@@ -103,7 +115,7 @@ func (c *integrationsClient) SendToProvider(
 	selector *models.EntityIntegrationSelector,
 	params any,
 ) (json.RawMessage, error) {
-	return transport.CallRESResult(
+	return transport.CallRESResult[json.RawMessage](
 		c.baseClient.resClient,
 		selector.RID()+".send-to-provider",
 		resprot.Request{Params: params},
