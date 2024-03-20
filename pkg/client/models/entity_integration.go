@@ -1,19 +1,55 @@
 package models
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
+	"github.com/loungeup/go-loungeup/pkg/errors"
+)
+
+var (
+	ErrorEntityIntegrationValueNotFound = &errors.Error{
+		Code:    errors.CodeInvalid,
+		Message: "Entity integration value not found",
+	}
+
+	ErrorInvalidEntityIntegrationValueType = &errors.Error{
+		Code:    errors.CodeInvalid,
+		Message: "Invalid entity integration value type",
+	}
 )
 
 type EntityIntegration struct {
-	ID                   uuid.UUID                 `json:"id,omitempty"`
-	EntityID             uuid.UUID                 `json:"entityId,omitempty"`
-	IntegrationReference res.Ref                   `json:"integration,omitempty"`
-	Integration          *Integration              `json:"-"`
-	Values               DataValue[map[string]any] `json:"values,omitempty"`
-	Status               string                    `json:"status,omitempty"`
+	ID                   uuid.UUID                          `json:"id,omitempty"`
+	EntityID             uuid.UUID                          `json:"entityId,omitempty"`
+	IntegrationReference res.Ref                            `json:"integration,omitempty"`
+	Integration          *Integration                       `json:"-"`
+	Values               DataValue[EntityIntegrationValues] `json:"values,omitempty"`
+	Status               string                             `json:"status,omitempty"`
+}
+
+type EntityIntegrationValues map[string]any
+
+func GetEntityIntegrationValue[T any](values EntityIntegrationValues, key string) (T, error) {
+	var result T
+
+	value, ok := values[key]
+	if !ok {
+		return result, ErrorEntityIntegrationValueNotFound
+	}
+
+	encodedValue, err := json.Marshal(value)
+	if err != nil {
+		return result, ErrorInvalidEntityIntegrationValueType
+	}
+
+	if err := json.Unmarshal(encodedValue, &result); err != nil {
+		return result, ErrorInvalidEntityIntegrationValueType
+	}
+
+	return result, nil
 }
 
 type EntityIntegrationSelector struct {
