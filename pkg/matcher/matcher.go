@@ -2,45 +2,41 @@
 package matcher
 
 import (
-	"encoding/json"
+	"strconv"
 
 	"github.com/google/uuid"
 )
 
-type Matcher[TKey comparable] map[TKey]*Matchable
+type Matcher map[Matchable]Matchable
 
-func (m Matcher[TKey]) Get(key TKey) *Matchable {
+func (m Matcher) Get(key Matchable) Matchable {
 	if result, ok := m[key]; ok {
 		return result
 	}
 
-	return nil
+	return Matchable("")
 }
 
-type Matchable struct{ value any }
+type Matchable string
 
-func NewMatchable(value any) *Matchable { return &Matchable{value} }
+func (m Matchable) String() string { return string(m) }
 
-var (
-	_ json.Marshaler   = (*Matchable)(nil)
-	_ json.Unmarshaler = (*Matchable)(nil)
-)
+func (m Matchable) Bool() bool {
+	result, _ := strconv.ParseBool(m.String())
+	return result
+}
 
-func (m *Matchable) MarshalJSON() ([]byte, error)    { return json.Marshal(m.value) }
-func (m *Matchable) UnmarshalJSON(data []byte) error { return json.Unmarshal(data, &m.value) }
+func (m Matchable) Float64() float64 {
+	result, _ := strconv.ParseFloat(m.String(), 64)
+	return result
+}
 
-func (m *Matchable) IsNil() bool { return m == nil || m.value == nil }
+func (m Matchable) Int() int {
+	result, _ := strconv.ParseInt(m.String(), 10, 64)
+	return int(result)
+}
 
-func (m *Matchable) Bool() bool       { return castAs[bool](m.value) }
-func (m *Matchable) Float64() float64 { return castAs[float64](m.value) }
-func (m *Matchable) Int() int         { return castAs[int](m.value) }
-func (m *Matchable) String() string   { return castAs[string](m.value) }
-func (m *Matchable) UUID() uuid.UUID  { return castAs[uuid.UUID](m.value) }
-
-func castAs[T any](v any) T {
-	var result T
-
-	result, _ = v.(T)
-
+func (m Matchable) UUID() uuid.UUID {
+	result, _ := uuid.Parse(m.String())
 	return result
 }
