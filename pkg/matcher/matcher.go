@@ -5,13 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
-	"github.com/loungeup/go-loungeup/pkg/errors"
 )
-
-var InvalidMatchError = &errors.Error{
-	Code:    errors.CodeInvalid,
-	Message: "A match must have valid internal and external IDs",
-}
 
 type Matcher[TKey comparable] map[TKey]*Matchable
 
