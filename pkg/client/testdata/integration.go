@@ -14,7 +14,7 @@ var (
 		EntityID:             uuid.New(),
 		IntegrationReference: res.Ref(IntegrationSelector.RID()),
 		Integration:          Integration,
-		Values: models.NewDataValue(map[string]any{
+		Values: models.NewDataValue(models.EntityIntegrationValues{
 			"username": "john.doe",
 		}),
 		Status: "valid",
