@@ -1,4 +1,4 @@
-package jq
+package jsonutil
 
 import (
 	"testing"

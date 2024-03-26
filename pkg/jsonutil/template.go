@@ -1,4 +1,4 @@
-package jq
+package jsonutil
 
 import (
 	"bytes"
@@ -22,3 +22,5 @@ func (t Template) Replace(key string, value json.RawMessage) Template {
 
 	return result
 }
+
+func (t Template) String() string { return string(t) }
