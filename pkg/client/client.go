@@ -7,7 +7,7 @@ import (
 
 // Client is used to interact with our services.
 type Client struct {
-	Internal internalClient
+	Internal *internalClient
 
 	// The following fields are used internally by sub-clients.
 	cache     cache.ReadWriter
@@ -23,10 +23,11 @@ func NewWithTransport(transport *transport.Transport, options ...Option) *Client
 		resClient: transport.RESClient,
 	}
 
-	result.Internal = internalClient{
+	result.Internal = &internalClient{
 		Entities:     &entitiesClient{baseClient: result},
 		Guests:       &guestsClient{baseClient: result},
 		Integrations: &integrationsClient{baseClient: result},
+		Products:     &productsClient{baseClient: result},
 		ProxyDB:      &proxyDBClient{baseClient: result},
 		RoomTypes:    &roomTypesClient{baseClient: result},
 	}

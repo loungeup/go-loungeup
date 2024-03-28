@@ -6,6 +6,7 @@ type internalClient struct {
 	Entities     *entitiesClient
 	Guests       *guestsClient
 	Integrations *integrationsClient
+	Products     *productsClient
 	ProxyDB      *proxyDBClient
 	RoomTypes    *roomTypesClient
 }
