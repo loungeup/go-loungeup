@@ -16,7 +16,9 @@ func (c *productsClient) ReadProducts(selector *models.ProductsSelector) ([]*mod
 		return cachedResult, nil
 	}
 
-	references, err := transport.GetRESCollection[res.Ref](c.baseClient.resClient, selector.RID(), resprot.Request{})
+	references, err := transport.GetRESCollection[res.Ref](c.baseClient.resClient, selector.RID(), resprot.Request{
+		Query: selector.EncodedQuery(),
+	})
 	if err != nil {
 		return nil, err
 	}

@@ -2,23 +2,24 @@ package models
 
 import (
 	"net/url"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/loungeup/go-loungeup/pkg/translations"
 )
 
 type Product struct {
-	ID            string                               `json:"id"`
-	EntityID      string                               `json:"entityId"`
+	ID            uuid.UUID                            `json:"id"`
+	EntityID      uuid.UUID                            `json:"entityId"`
 	Category      string                               `json:"category"`
 	Name          DataValue[translations.Translations] `json:"name"`
 	Description   DataValue[translations.Translations] `json:"description"`
 	Image         string                               `json:"image"`
 	Configuration DataValue[any]                       `json:"configuration"`
-	CreatedAt     string                               `json:"createdAt"`
-	DisabledAt    string                               `json:"disabledAt"`
-	EnabledAt     string                               `json:"enabledAt"`
-	UpdatedAt     string                               `json:"updatedAt"`
+	CreatedAt     time.Time                            `json:"createdAt"`
+	DisabledAt    time.Time                            `json:"disabledAt"`
+	EnabledAt     time.Time                            `json:"enabledAt"`
+	UpdatedAt     time.Time                            `json:"updatedAt"`
 }
 
 type ProductSelector struct {
