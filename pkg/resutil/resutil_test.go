@@ -81,3 +81,35 @@ func TestHandleCollectionQueryRequest(t *testing.T) {
 		]
 	}`))
 }
+
+func TestMapRefs(t *testing.T) {
+	tests := map[string]struct {
+		in   []string
+		want []res.Ref
+	}{
+		"empty": {
+			in:   []string{},
+			want: []res.Ref{},
+		},
+		"simple reference": {
+			in: []string{"foo"},
+			want: []res.Ref{
+				res.Ref("foo"),
+			},
+		},
+		"ignore invalid reference": {
+			in: []string{"foo", "."},
+			want: []res.Ref{
+				res.Ref("foo"),
+			},
+		},
+	}
+
+	for test, tt := range tests {
+		t.Run(test, func(t *testing.T) {
+			assert.Equal(t, tt.want, MapRefs(tt.in, func(e string) res.Ref {
+				return res.Ref(e)
+			}))
+		})
+	}
+}

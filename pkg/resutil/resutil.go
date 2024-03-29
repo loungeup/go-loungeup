@@ -85,3 +85,20 @@ func handleQueryRequest(
 		})
 	})
 }
+
+// MapRefs from a slice of elements.
+// The function f is called for each element in the slice, and the resulting reference is added to the result.
+func MapRefs[E any, S []E](s S, f func(e E) res.Ref) []res.Ref {
+	result := []res.Ref{}
+
+	for _, e := range s {
+		ref := f(e)
+		if !ref.IsValid() {
+			continue
+		}
+
+		result = append(result, ref)
+	}
+
+	return result
+}
