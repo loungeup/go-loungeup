@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	defaultRistrettoCacheCost = 0
-	defaultRistrettoCacheTTL  = 5 * time.Minute
+	defaultRistrettoCacheCost     = 0
+	defaultRistrettoCacheDuration = 5 * time.Minute
 )
 
 // RistrettoCacheSize provides an abstraction to simplify the configuration of the cache. A medium cache can hold
@@ -66,8 +66,8 @@ func (s RistrettoCacheSize) Config() *ristretto.Config {
 type Ristretto struct{ baseCache *ristretto.Cache }
 
 // NewRistretto creates a new ristretto cache with the given size.
-func NewRistretto(s RistrettoCacheSize) (*Ristretto, error) {
-	baseCache, err := ristretto.NewCache(s.Config())
+func NewRistretto(size RistrettoCacheSize) (*Ristretto, error) {
+	baseCache, err := ristretto.NewCache(size.Config())
 	if err != nil {
 		return nil, err
 	}
@@ -83,19 +83,23 @@ func (r *Ristretto) Read(key string) any {
 	return result
 }
 
-func (r *Ristretto) Write(key string, v any) {
-	if v == nil {
+func (r *Ristretto) Write(key string, value any) {
+	r.WriteWithDuration(key, value, defaultRistrettoCacheDuration)
+}
+
+func (r *Ristretto) WriteWithDuration(key string, value any, duration time.Duration) {
+	if value == nil {
 		r.baseCache.Del(key)
 		return
 	}
 
-	r.baseCache.SetWithTTL(key, v, getRistrettoValueCost(v), defaultRistrettoCacheTTL)
+	r.baseCache.SetWithTTL(key, value, getRistrettoValueCost(value), duration)
 }
 
-func getRistrettoValueCost(v any) int64 {
-	var b bytes.Buffer
+func getRistrettoValueCost(value any) int64 {
+	var buffer bytes.Buffer
 
-	_ = gob.NewEncoder(&b).Encode(v)
+	_ = gob.NewEncoder(&buffer).Encode(value)
 
-	return int64(len(b.Bytes()))
+	return int64(len(buffer.Bytes()))
 }
