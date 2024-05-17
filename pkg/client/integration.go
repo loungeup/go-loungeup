@@ -111,6 +111,17 @@ func (c *integrationsClient) FetchLatestEntityIntegrationRoomTypes(
 	)
 }
 
+func (c *integrationsClient) CreateTicket(
+	selector *models.EntityIntegrationSelector,
+	params any,
+) (json.RawMessage, error) {
+	return transport.CallRESResult[json.RawMessage](
+		c.baseClient.resClient,
+		selector.RID()+".tickets.create",
+		resprot.Request{Params: params},
+	)
+}
+
 func (c *integrationsClient) SendToProvider(
 	selector *models.EntityIntegrationSelector,
 	params any,

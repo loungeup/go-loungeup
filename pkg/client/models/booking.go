@@ -9,15 +9,23 @@ import (
 
 const aDay = 24 * time.Hour
 
+type CustomField struct {
+	Value string `json:"value"`
+	From  string `json:"from"`
+}
+
+type CustomFields map[string]CustomField
+
 type Booking struct {
-	ID                 int       `json:"id"`
-	EntityID           uuid.UUID `json:"entityId"`
-	GuestID            uuid.UUID `json:"guestId"`
-	Arrival            time.Time `json:"arrival"`
-	Departure          time.Time `json:"departure"`
-	RoomType           string    `json:"roomType"`
-	PMSBookingID       string    `json:"pmsBookingId"`
-	PMSBookingParentID string    `json:"pmsBookingParentId"`
+	ID                 int          `json:"id"`
+	EntityID           uuid.UUID    `json:"entityId"`
+	GuestID            uuid.UUID    `json:"guestId"`
+	Arrival            time.Time    `json:"arrival"`
+	Departure          time.Time    `json:"departure"`
+	RoomType           string       `json:"roomType"`
+	PMSBookingID       string       `json:"pmsBookingId"`
+	PMSBookingParentID string       `json:"pmsBookingParentId"`
+	CustomFields       CustomFields `json:"customFields"`
 }
 
 func (b *Booking) InStayDates() []time.Time {
@@ -46,4 +54,12 @@ type BookingSelector struct {
 
 func (s *BookingSelector) RID() string {
 	return "proxy-db.entities." + s.EntityID.String() + ".bookings." + strconv.Itoa(s.BookingID)
+}
+
+func (c CustomFields) Get(key string) string {
+	if field, ok := c[key]; ok {
+		return field.Value
+	}
+
+	return ""
 }
