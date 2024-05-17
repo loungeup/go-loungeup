@@ -3,6 +3,8 @@ package client
 import (
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res/resprot"
+	"github.com/loungeup/go-loungeup/pkg/client/models"
+	"github.com/loungeup/go-loungeup/pkg/transport"
 )
 
 type guestsClient struct{ baseClient *Client }
@@ -24,4 +26,23 @@ func (c *guestsClient) AnonymizeGuests(entityID uuid.UUID, guestIDs []uuid.UUID)
 	}
 
 	return nil
+}
+
+func (c *guestsClient) ReadGuest(selector *models.GuestSelector) (*models.Guest, error) {
+	return c.readGuestByRID(selector.RID())
+}
+
+func (c *guestsClient) readGuestByRID(rid string) (*models.Guest, error) {
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(rid).(*models.Guest); ok {
+		return cachedResult, nil
+	}
+
+	guest, err := transport.GetRESModel[*models.Guest](c.baseClient.resClient, rid)
+	if err != nil {
+		return nil, err
+	}
+
+	defer c.baseClient.eventuallyWriteCache(rid, guest)
+
+	return guest, nil
 }

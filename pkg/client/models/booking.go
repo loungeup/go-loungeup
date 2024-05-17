@@ -12,6 +12,7 @@ const aDay = 24 * time.Hour
 type Booking struct {
 	ID                 int       `json:"id"`
 	EntityID           uuid.UUID `json:"entityId"`
+	GuestID            uuid.UUID `json:"guestId"`
 	Arrival            time.Time `json:"arrival"`
 	Departure          time.Time `json:"departure"`
 	RoomType           string    `json:"roomType"`
