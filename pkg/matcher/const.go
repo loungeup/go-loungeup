@@ -9,19 +9,19 @@ type wellKnownMatchers struct {
 }
 
 const (
-	ProductsMatcher        = "productsMatcher"
-	RoomTypesMatcher       = "roomTypesMatcher"
-	ticketLocationsMatcher = "ticketLocationsMatcher"
-	ticketTypesMatcher     = "ticketTypesMatcher"
-	ticketTargetsMatcher   = "ticketTargetsMatcher"
+	Products        = "productsMatcher"
+	RoomTypes       = "roomTypesMatcher"
+	TicketLocations = "ticketLocationsMatcher"
+	TicketTypes     = "ticketTypesMatcher"
+	TicketTargets   = "ticketTargetsMatcher"
 )
 
 var WellKnownMatchers = wellKnownMatchers{
-	Products:        ProductsMatcher,
-	RoomTypes:       RoomTypesMatcher,
-	TicketLocations: ticketLocationsMatcher,
-	TicketTypes:     ticketTypesMatcher,
-	TicketTargets:   ticketTargetsMatcher,
+	Products:        Products,
+	RoomTypes:       RoomTypes,
+	TicketLocations: TicketLocations,
+	TicketTypes:     TicketTypes,
+	TicketTargets:   TicketTargets,
 }
 
 type wellKnownMatcherKeys struct {
