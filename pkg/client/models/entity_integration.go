@@ -65,10 +65,20 @@ type EntityIntegrationsSelector struct {
 
 	EnabledFeatures []string
 	EntityID        uuid.UUID
+	Matchers        map[string][]string
 }
 
 func (s EntityIntegrationsSelector) EncodedQuery() string {
-	return "category=" + s.Category + "&enabledFeatures=" + strings.Join(s.EnabledFeatures, ",")
+	query := "category=" + s.Category + "&enabledFeatures=" + strings.Join(s.EnabledFeatures, ",")
+
+	if len(s.Matchers) > 0 {
+		encoded, _ := json.Marshal(s.Matchers)
+		if len(encoded) > 0 {
+			query += "&matchers=" + string(encoded)
+		}
+	}
+
+	return query
 }
 
 func (s EntityIntegrationsSelector) RID() string {
