@@ -2,6 +2,7 @@ package errors
 
 import (
 	"io"
+	"log/slog"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,12 +11,12 @@ import (
 func TestLogAndWriteRESError(t *testing.T) {
 	tests := map[string]struct {
 		in          error
-		assertLog   func(t *testing.T, msg string, args ...any)
+		assertLog   func(t *testing.T, msg string, args ...slog.Attr)
 		assertWrite func(t *testing.T, err error)
 	}{
 		"no error": {
 			in: nil,
-			assertLog: func(t *testing.T, msg string, args ...any) {
+			assertLog: func(t *testing.T, msg string, args ...slog.Attr) {
 				assert.Equal(t, "", msg)
 				assert.Empty(t, args)
 			},
@@ -25,10 +26,9 @@ func TestLogAndWriteRESError(t *testing.T) {
 		},
 		"unknown error": {
 			in: io.EOF,
-			assertLog: func(t *testing.T, msg string, args ...any) {
+			assertLog: func(t *testing.T, msg string, args ...slog.Attr) {
 				assert.Equal(t, io.EOF.Error(), msg)
-				assert.Len(t, args, 2)
-				assert.Contains(t, args, "logId")
+				assert.Len(t, args, 1)
 			},
 			assertWrite: func(t *testing.T, err error) {
 				assert.EqualError(t, err, internalErrorMessage)
@@ -36,12 +36,9 @@ func TestLogAndWriteRESError(t *testing.T) {
 		},
 		"LoungeUp error": {
 			in: &Error{Code: CodeNotFound, Message: "Could not find the resource", UnderlyingError: io.EOF},
-			assertLog: func(t *testing.T, msg string, args ...any) {
+			assertLog: func(t *testing.T, msg string, args ...slog.Attr) {
 				assert.Equal(t, io.EOF.Error(), msg)
-				assert.Len(t, args, 4)
-				assert.Contains(t, args, "logId")
-				assert.Contains(t, args, "underlyingMessage")
-				assert.Contains(t, args, io.EOF.Error())
+				assert.Len(t, args, 2)
 			},
 			assertWrite: func(t *testing.T, err error) {
 				assert.EqualError(t, err, "Could not find the resource")
@@ -63,10 +60,10 @@ func TestLogAndWriteRESError(t *testing.T) {
 
 type errorLoggerMock struct {
 	msg  string
-	args []any
+	args []slog.Attr
 }
 
-func (m *errorLoggerMock) Error(msg string, args ...any) { m.msg, m.args = msg, args }
+func (m *errorLoggerMock) Error(msg string, args ...slog.Attr) { m.msg, m.args = msg, args }
 
 type errorWriterMock struct {
 	err error

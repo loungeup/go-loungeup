@@ -1,12 +1,14 @@
 package errors
 
 import (
+	"log/slog"
+
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
 )
 
 type errorLogger interface {
-	Error(msg string, args ...any) // https://pkg.go.dev/log/slog#Error
+	Error(message string, attributes ...slog.Attr)
 }
 
 type errorWriter interface {
@@ -18,10 +20,10 @@ type logContext struct {
 	UnderlyingMessage string `json:"underlyingMessage,omitempty"`
 }
 
-func (c *logContext) Attributes() []any {
-	result := []any{"logId", c.LogID}
+func (c *logContext) Attributes() []slog.Attr {
+	result := []slog.Attr{slog.String("logId", c.LogID)}
 	if c.UnderlyingMessage != "" {
-		result = append(result, "underlyingMessage", c.UnderlyingMessage)
+		result = append(result, slog.String("underlyingMessage", c.UnderlyingMessage))
 	}
 
 	return result
