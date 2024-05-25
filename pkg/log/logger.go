@@ -16,7 +16,7 @@ const (
 	timestampKey        = "timestamp"
 )
 
-var defaultLogger atomic.Pointer[logger]
+var defaultLogger atomic.Pointer[Logger]
 
 //nolint:gochecknoinits
 func init() {
@@ -24,38 +24,38 @@ func init() {
 }
 
 // Default returns the default logger.
-func Default() *logger { return defaultLogger.Load() }
+func Default() *Logger { return defaultLogger.Load() }
 
-// logger used by LoungeUp applications based on the official log/slog package.
-type logger struct {
+// Logger used by LoungeUp applications based on the official log/slog package.
+type Logger struct {
 	// Adapter for external libraries.
-	Adapter *adapter
+	Adapter *Adapter
 
 	underlyingLogger *slog.Logger
 }
 
-// Debug logs a debug message.
-func (l *logger) Debug(message string, attributes ...slog.Attr) {
+// Debug logs a debug message with the given attributes.
+func (l *Logger) Debug(message string, attributes ...slog.Attr) {
 	l.underlyingLogger.LogAttrs(context.TODO(), slog.LevelDebug, message, attributes...)
 }
 
-// Error logs an error message.
-func (l *logger) Error(message string, attributes ...slog.Attr) {
+// Error logs an error message with the given attributes.
+func (l *Logger) Error(message string, attributes ...slog.Attr) {
 	l.underlyingLogger.LogAttrs(context.TODO(), slog.LevelError, message, attributes...)
 }
 
-// FormattedDebug logs a debug message and automatically generates a formatted message attribute.
+// FormattedDebug logs a debug message with the given attributes and automatically adds a formatted message attribute.
 // The formatted message attribute is used to send logs to Datadog.
-func (l *logger) FormattedDebug(message string, attributes ...slog.Attr) {
+func (l *Logger) FormattedDebug(message string, attributes ...slog.Attr) {
 	l.Debug(message, append(
 		attributes,
 		slog.String(formattedMessageKey, formatMessage(message)),
 	)...)
 }
 
-// FormattedError logs an error message and automatically generates a formatted message attribute.
+// FormattedError logs an error message with the given attributes and automatically adds a formatted message attribute.
 // The formatted message attribute is used to send logs to Datadog.
-func (l *logger) FormattedError(message string, attributes ...slog.Attr) {
+func (l *Logger) FormattedError(message string, attributes ...slog.Attr) {
 	l.Error(message, append(
 		attributes,
 		slog.String(formattedMessageKey, formatMessage(message)),
@@ -66,15 +66,15 @@ func formatMessage(message string) string {
 	return strings.ToLower(strings.ReplaceAll(message, " ", "-"))
 }
 
-func newDefaultLogger() *logger {
-	result := &logger{
+func newDefaultLogger() *Logger {
+	result := &Logger{
 		underlyingLogger: slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 			AddSource:   false,
 			Level:       slog.LevelDebug,
 			ReplaceAttr: replaceLogAttribute,
 		})),
 	}
-	result.Adapter = &adapter{underlyingLogger: result}
+	result.Adapter = &Adapter{underlyingLogger: result}
 
 	return result
 }

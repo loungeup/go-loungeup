@@ -7,33 +7,33 @@ import (
 	resLogger "github.com/jirenius/go-res/logger"
 )
 
-// adapter for external libraries.
+// Adapter for external libraries.
 // It is used to adapt the logger by implementing interfaces required by external libraries.
 // It is not intended to be used directly by the application.
-type adapter struct{ underlyingLogger *logger }
+type Adapter struct{ underlyingLogger *Logger }
 
 // Interfaces implemented by the adapter.
 var (
-	_ resLogger.Logger = (*adapter)(nil)
-	_ badger.Logger    = (*adapter)(nil)
+	_ resLogger.Logger = (*Adapter)(nil)
+	_ badger.Logger    = (*Adapter)(nil)
 )
 
-func (a *adapter) Debugf(message string, attributes ...any) {
+func (a *Adapter) Debugf(message string, attributes ...any) {
 	a.underlyingLogger.Debug(fmt.Sprintf(message, attributes...))
 }
 
-func (a *adapter) Errorf(message string, attributes ...any) {
+func (a *Adapter) Errorf(message string, attributes ...any) {
 	a.underlyingLogger.Error(fmt.Sprintf(message, attributes...))
 }
 
-func (a *adapter) Infof(message string, attributes ...any) {
+func (a *Adapter) Infof(message string, attributes ...any) {
 	a.underlyingLogger.Debug(fmt.Sprintf(message, attributes...))
 }
 
-func (a *adapter) Tracef(message string, attributes ...any) {
+func (a *Adapter) Tracef(message string, attributes ...any) {
 	a.underlyingLogger.Debug(fmt.Sprintf(message, attributes...))
 }
 
-func (a *adapter) Warningf(message string, attributes ...any) {
+func (a *Adapter) Warningf(message string, attributes ...any) {
 	a.underlyingLogger.Debug(fmt.Sprintf(message, attributes...))
 }
