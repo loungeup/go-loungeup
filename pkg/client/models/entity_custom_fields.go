@@ -27,5 +27,5 @@ type EntityCustomFieldsSelector struct {
 }
 
 func (s EntityCustomFieldsSelector) RID() string {
-	return "authority.entities." + s.EntityID.String() + ".custom-fields"
+	return "proxy-db.entities." + s.EntityID.String() + ".custom-fields"
 }
