@@ -3,7 +3,13 @@
 package resutil
 
 import (
+	"encoding/json"
+	"log/slog"
+	"reflect"
+	"slices"
+
 	"github.com/jirenius/go-res"
+	"github.com/loungeup/go-loungeup/pkg/log"
 	"github.com/nats-io/nats.go"
 )
 
@@ -35,6 +41,106 @@ func AddNATSMessageHandler(
 	}()
 
 	return nil
+}
+
+// CompareModels and returns a map of the differences between them.
+// The result can be used with the https://pkg.go.dev/github.com/jirenius/go-res#Request.ChangeEvent method.
+func CompareModels[T any](previous, current T) map[string]any {
+	mapFromPrevious, err := convertToMap(previous)
+	if err != nil {
+		log.Default().Error("Could not convert previous model to a map",
+			slog.String("error", err.Error()),
+			slog.Any("previous", previous),
+		)
+
+		return nil
+	}
+
+	mapFromCurrent, err := convertToMap(current)
+	if err != nil {
+		log.Default().Error("Could not convert current model to a map",
+			slog.Any("current", current),
+			slog.String("error", err.Error()),
+		)
+
+		return nil
+	}
+
+	return compareMaps(mapFromPrevious, mapFromCurrent)
+}
+
+// convertToMap converts a value to a map[string]any.
+func convertToMap[T any](value T) (map[string]any, error) {
+	encodedValue, err := json.Marshal(value)
+	if err != nil {
+		return nil, err
+	}
+
+	result := map[string]any{}
+	if err := json.Unmarshal(encodedValue, &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// compareMaps and returns a map of the differences between them.
+// The result can be used with the https://pkg.go.dev/github.com/jirenius/go-res#Request.ChangeEvent method.
+func compareMaps(previous, current map[string]any) map[string]any {
+	result := map[string]any{}
+
+	for key := range previous {
+		if _, found := current[key]; !found {
+			result[key] = res.DeleteAction
+		}
+	}
+
+	for key, value := range current {
+		previousValue, found := previous[key]
+		if !found {
+			result[key] = mapValue(value)
+			continue
+		}
+
+		if reflect.DeepEqual(value, previousValue) {
+			continue
+		}
+
+		result[key] = mapValue(value)
+	}
+
+	return result
+}
+
+// mapValue for the RES protocol.
+func mapValue[T any](value T) any {
+	reflectedValue := reflect.ValueOf(value)
+
+	if !isDataValueKind(reflectedValue) {
+		return value
+	}
+
+	return &res.DataValue{Data: value}
+}
+
+// dataValueKinds that will be wrapped into a RES data value.
+//
+// Reference: https://resgate.io/docs/specification/res-protocol/#data-values
+var dataValueKinds = []reflect.Kind{
+	reflect.Array,
+	reflect.Map,
+	reflect.Slice,
+	reflect.Struct,
+}
+
+// isDataValueKind returns true if the given value kind should be wrapped into a RES data value.
+// It unwraps pointers until it reaches a non-pointer value.
+func isDataValueKind(value reflect.Value) bool {
+	for value.Kind() == reflect.Ptr {
+		value = value.Elem()
+	}
+
+	return slices.Contains(dataValueKinds, value.Kind())
 }
 
 func HandleCollectionQueryRequest[T any](

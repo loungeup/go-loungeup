@@ -25,6 +25,107 @@ func TestAddNATSMessageHandler(t *testing.T) {
 	session.SendMessage("test.foo", "", nil)
 }
 
+func TestCompareModels(t *testing.T) {
+	type UserAddress struct {
+		City   string `json:"city,omitempty"`
+		Street string `json:"street,omitempty"`
+	}
+
+	type UserPhone struct {
+		Type   string `json:"type,omitempty"`
+		Number string `json:"number,omitempty"`
+	}
+
+	type User struct {
+		ID        string       `json:"id"`
+		FirstName string       `json:"firstName,omitempty"`
+		LastName  string       `json:"lastName,omitempty"`
+		Emails    []string     `json:"emails,omitempty"`
+		Phones    []*UserPhone `json:"phones,omitempty"`
+		Address   *UserAddress `json:"address,omitempty"`
+		Tags      []string     `json:"tags,omitempty"`
+	}
+
+	tests := map[string]struct {
+		previous, current *User
+		want              string
+	}{
+		"simple": {
+			previous: &User{
+				ID:        "u-1",
+				FirstName: "John",
+				LastName:  "Doe",
+				Emails: []string{
+					"john.doe@loungeup.com",
+					"john@doe.com",
+				},
+				Phones: []*UserPhone{
+					{
+						Type:   "landline",
+						Number: "+33 512345678",
+					},
+				},
+				Address: &UserAddress{
+					City: "Paris",
+				},
+				Tags: []string{"tag1", "tag2"},
+			},
+			current: &User{
+				ID:        "u-1",
+				FirstName: "Jane",
+				LastName:  "",
+				Emails: []string{
+					"john.doe@gmail.com",
+					"john@doe.com",
+				},
+				Phones: []*UserPhone{
+					{
+						Type:   "mobile",
+						Number: "+33 612345678",
+					},
+				},
+				Address: &UserAddress{
+					City:   "Ramonville-Saint-Agne",
+					Street: "12 avenue de l'Europe",
+				},
+			},
+			want: `{
+				"firstName": "Jane",
+				"lastName": {"action": "delete"},
+				"emails": {
+					"data": [
+						"john.doe@gmail.com",
+						"john@doe.com"
+					]
+				},
+				"phones": {
+					"data": [
+						{
+							"type": "mobile",
+							"number": "+33 612345678"
+						}
+					]
+				},
+				"address": {
+					"data": {
+						"city": "Ramonville-Saint-Agne",
+						"street": "12 avenue de l'Europe"
+					}
+				},
+				"tags": {"action": "delete"}
+			}`,
+		},
+	}
+
+	for test, tt := range tests {
+		t.Run(test, func(t *testing.T) {
+			got, err := json.Marshal(CompareModels(tt.previous, tt.current))
+			assert.NoError(t, err)
+			assert.JSONEq(t, tt.want, string(got))
+		})
+	}
+}
+
 func TestHandleCollectionQueryRequest(t *testing.T) {
 	const testQuery = "foo=bar"
 
