@@ -92,3 +92,20 @@ func (d Document) UUIDs(path string) []uuid.UUID {
 
 	return result
 }
+
+func (d Document) RootUUIDs() []uuid.UUID {
+	children := gjson.Parse(d.String()).Array()
+
+	result := []uuid.UUID{}
+
+	for _, child := range children {
+		parsed, err := uuid.Parse(child.String())
+		if err != nil {
+			continue
+		}
+
+		result = append(result, parsed)
+	}
+
+	return result
+}
