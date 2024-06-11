@@ -11,6 +11,7 @@ require (
 	github.com/nats-io/nats.go v1.29.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/gjson v1.17.1
+	golang.org/x/text v0.12.0
 )
 
 require (
