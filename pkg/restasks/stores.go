@@ -27,6 +27,7 @@ type inMemoryStore struct {
 const defaultInMemoryStoreCapacity = 1000
 
 // NewInMemoryStore create a new in-memory tasks store with the given capacity.
+// The store implements the [TaskReadWriter] interface.
 // If the capacity is 0, the default capacity will be used.
 func NewInMemoryStore(capacity int) *inMemoryStore {
 	if capacity == 0 {

@@ -6,16 +6,15 @@ import (
 	"github.com/loungeup/go-loungeup/pkg/log"
 )
 
-// Server used to handle tasks for a RES service.
 type Server struct {
 	service *res.Service
 	tasks   TaskReadWriter
 }
 
-// Option is a function that can be used to configure a server.
+// Option is a function type that can be used to configure a [Server].
 type Option func(*Server)
 
-// NewServer creates a new server with the given service and task read writer.
+// NewServer creates a new server with the given service and [TaskReadWriter].
 func NewServer(service *res.Service, tasks TaskReadWriter) *Server {
 	result := &Server{service, tasks}
 	result.addRESHandlers()
@@ -23,7 +22,7 @@ func NewServer(service *res.Service, tasks TaskReadWriter) *Server {
 	return result
 }
 
-// CreateTask creates a new task and returns its RID.
+// CreateTask and returns its RID.
 func (s *Server) CreateTask() (string, error) {
 	task := newTask(s.service.FullPath())
 	if err := s.tasks.WriteTask(task); err != nil {
@@ -33,7 +32,7 @@ func (s *Server) CreateTask() (string, error) {
 	return task.rid(), nil
 }
 
-// CompleteTask completes a task with the given result.
+// CompleteTask with the given result.
 func (s *Server) CompleteTask(rid string, result any) error {
 	task, err := s.tasks.ReadTask(rid)
 	if err != nil {
@@ -46,7 +45,7 @@ func (s *Server) CompleteTask(rid string, result any) error {
 	return s.sendTaskChangeEvent(task)
 }
 
-// FailTask fails a task with the given error.
+// FailTask with the given error.
 func (s *Server) FailTask(rid string, err error) error {
 	task, readError := s.tasks.ReadTask(rid)
 	if readError != nil {
