@@ -5,7 +5,7 @@ go 1.21.0
 require (
 	github.com/dgraph-io/badger/v3 v3.2103.5
 	github.com/dgraph-io/ristretto v0.1.1
-	github.com/google/uuid v1.3.1
+	github.com/google/uuid v1.6.0
 	github.com/jirenius/go-res v0.4.7
 	github.com/lib/pq v1.10.9
 	github.com/nats-io/nats.go v1.29.0
