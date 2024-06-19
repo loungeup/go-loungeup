@@ -1,6 +1,7 @@
 package restasks
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -31,8 +32,7 @@ func newTask(serviceName string) *task {
 	}
 }
 
-// toModel converts the task to a RES model.
-func (t *task) toModel() map[string]any {
+func (t *task) toChangeEventProperties() map[string]any {
 	result := map[string]any{
 		"status": t.status(),
 	}
@@ -43,6 +43,22 @@ func (t *task) toModel() map[string]any {
 
 	if t.Result != nil {
 		result["result"] = &res.DataValue{Data: t.Result}
+	}
+
+	return result
+}
+
+func (t *task) toModel() *taskModel {
+	result := &taskModel{
+		Status: t.status(),
+	}
+
+	if t.Error != nil {
+		result.Error = errors.ErrorMessage(t.Error)
+	}
+
+	if t.Result != nil {
+		result.Result = &res.DataValue{Data: t.Result}
 	}
 
 	return result
@@ -64,3 +80,32 @@ func (t *task) status() string {
 		return taskStatusStarted
 	}
 }
+
+type taskModel struct {
+	Status string         `json:"status"`
+	Error  string         `json:"error,omitempty"`
+	Result *res.DataValue `json:"result,omitempty"`
+}
+
+func (m *taskModel) decodeResult(value any) error {
+	if m.Result == nil {
+		return nil
+	}
+
+	encodedResult, err := json.Marshal(m.Result.Data)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(encodedResult, value)
+}
+
+func (m *taskModel) err() error {
+	if m.Error == "" {
+		return nil
+	}
+
+	return &errors.Error{Code: errors.CodeInternal, Message: m.Error}
+}
+
+func (m *taskModel) isRunning() bool { return m.Status == taskStatusStarted }

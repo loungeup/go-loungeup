@@ -74,6 +74,6 @@ func (s *Server) addRESHandlers() {
 // sendTaskChangeEvent for the given task.
 func (s *Server) sendTaskChangeEvent(task *task) error {
 	return s.service.With(task.rid(), func(resource res.Resource) {
-		resource.ChangeEvent(task.toModel())
+		resource.ChangeEvent(task.toChangeEventProperties())
 	})
 }
