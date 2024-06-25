@@ -22,6 +22,7 @@ type Booking struct {
 	GuestID            uuid.UUID    `json:"guestId"`
 	Arrival            time.Time    `json:"arrival"`
 	Departure          time.Time    `json:"departure"`
+	Room               string       `json:"room"`
 	RoomType           string       `json:"roomType"`
 	PMSBookingID       string       `json:"pmsBookingId"`
 	PMSBookingParentID string       `json:"pmsBookingParentId"`
