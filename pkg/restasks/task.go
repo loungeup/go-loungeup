@@ -20,6 +20,7 @@ type task struct {
 	ID          uuid.UUID
 	Error       error
 	Result      any
+	CompletedAt time.Time
 	CreatedAt   time.Time
 }
 
@@ -74,7 +75,7 @@ func (t *task) status() string {
 	switch {
 	case t.Error != nil:
 		return taskStatusFailed
-	case t.Result != nil:
+	case !t.CompletedAt.IsZero():
 		return taskStatusCompleted
 	default:
 		return taskStatusStarted

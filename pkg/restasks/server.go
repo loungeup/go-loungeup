@@ -1,6 +1,8 @@
 package restasks
 
 import (
+	"time"
+
 	"github.com/jirenius/go-res"
 	"github.com/loungeup/go-loungeup/pkg/errors"
 	"github.com/loungeup/go-loungeup/pkg/log"
@@ -39,6 +41,7 @@ func (s *Server) CompleteTask(rid string, result any) error {
 		return err
 	}
 
+	task.CompletedAt = time.Now()
 	task.Error = nil
 	task.Result = result
 
