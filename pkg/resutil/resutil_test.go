@@ -186,21 +186,21 @@ func TestHandleCollectionQueryRequest(t *testing.T) {
 func TestMapRefs(t *testing.T) {
 	tests := map[string]struct {
 		in   []string
-		want []res.Ref
+		want RefSlice
 	}{
 		"empty": {
 			in:   []string{},
-			want: []res.Ref{},
+			want: RefSlice{},
 		},
 		"simple reference": {
 			in: []string{"foo"},
-			want: []res.Ref{
+			want: RefSlice{
 				res.Ref("foo"),
 			},
 		},
 		"ignore invalid reference": {
 			in: []string{"foo", "."},
-			want: []res.Ref{
+			want: RefSlice{
 				res.Ref("foo"),
 			},
 		},

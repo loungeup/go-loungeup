@@ -15,6 +15,17 @@ import (
 
 const natsMessagesChannelSize = 64
 
+type RefSlice []res.Ref
+
+func (s RefSlice) Strings() []string {
+	result := []string{}
+	for _, ref := range s {
+		result = append(result, string(ref))
+	}
+
+	return result
+}
+
 // AddNATSMessageHandler to a RES service. The handler will be called for each message received on the given subject.
 func AddNATSMessageHandler(
 	service *res.Service,
@@ -194,8 +205,8 @@ func handleQueryRequest(
 
 // MapRefs from a slice of elements.
 // The function f is called for each element in the slice, and the resulting reference is added to the result.
-func MapRefs[E any, S []E](s S, f func(e E) res.Ref) []res.Ref {
-	result := []res.Ref{}
+func MapRefs[S ~[]E, E any](s S, f func(e E) res.Ref) RefSlice {
+	result := RefSlice{}
 
 	for _, e := range s {
 		ref := f(e)
