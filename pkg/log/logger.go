@@ -62,6 +62,22 @@ func (l *Logger) FormattedError(message string, attributes ...slog.Attr) {
 	)...)
 }
 
+// With works like the With method of the official log/slog package.
+func (l *Logger) With(attributes ...slog.Attr) *Logger {
+	return &Logger{
+		Adapter:          l.Adapter,
+		underlyingLogger: slog.New(l.underlyingLogger.Handler().WithAttrs(attributes)),
+	}
+}
+
+// WithGroup works like the WithGroup method of the official log/slog package.
+func (l *Logger) WithGroup(name string) *Logger {
+	return &Logger{
+		Adapter:          l.Adapter,
+		underlyingLogger: slog.New(l.underlyingLogger.Handler().WithGroup(name)),
+	}
+}
+
 func formatMessage(message string) string {
 	return strings.ToLower(strings.ReplaceAll(message, " ", "-"))
 }

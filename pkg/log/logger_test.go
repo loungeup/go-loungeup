@@ -14,6 +14,10 @@ func TestDefaultLogger(t *testing.T) {
 	assert.NotPanics(t, func() { Default().Error("An error message") })
 	assert.NotPanics(t, func() { Default().FormattedDebug("A formatted debug message") })
 	assert.NotPanics(t, func() { Default().FormattedError("A formatted error message") })
+
+	l1 := Default().WithGroup("test")
+	l2 := l1.With(slog.String("key", "value"))
+	assert.NotPanics(t, func() { l2.Debug("A debug message") })
 }
 
 func TestReplaceLogAttribute(t *testing.T) {
