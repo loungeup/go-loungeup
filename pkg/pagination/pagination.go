@@ -39,13 +39,18 @@ func (p *Pager[S, E]) Err() error { return p.lastErr }
 // is no next page or an error happened while preparing it. [Pager.Err] should be called to distinguish between the two
 // cases.
 func (p *Pager[S, E]) Next() bool {
+	// If the last page is shorter than the limit, there are no more pages.
+	if len(p.lastPage) != 0 && len(p.lastPage) < p.limit {
+		return false
+	}
+
 	page, err := p.reader(p.limit, p.offset)
 	if err != nil {
 		p.lastErr = err
 		return false
 	}
 
-	if len(page) < p.limit {
+	if len(page) == 0 {
 		return false
 	}
 

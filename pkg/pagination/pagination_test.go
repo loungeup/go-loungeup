@@ -23,6 +23,25 @@ func TestPager(t *testing.T) {
 		assert.Equal(t, 3, pagesCount)
 	})
 
+	t.Run("first page is shorter than the limit", func(t *testing.T) {
+		pagesCount := 0
+
+		pager := pagination.NewPager(func(limit, offset int) (uuid.UUIDs, error) {
+			if offset != 0 {
+				return nil, nil
+			}
+
+			return uuid.UUIDs{uuid.New()}, nil
+		}, pagination.WithLimit(2))
+
+		for pager.Next() {
+			pagesCount++
+		}
+
+		assert.NoError(t, pager.Err())
+		assert.Equal(t, 1, pagesCount)
+	})
+
 	t.Run("with error", func(t *testing.T) {
 		pager := pagination.NewPager(func(limit, offset int) (uuid.UUIDs, error) {
 			return nil, assert.AnError
