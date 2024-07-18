@@ -45,12 +45,12 @@ func (p *Pager[S, E]) Next() bool {
 		return false
 	}
 
-	if len(page) == 0 {
+	if len(page) < p.limit {
 		return false
 	}
 
 	p.lastPage = page
-	p.offset += len(page)
+	p.offset += p.limit
 
 	return true
 }
