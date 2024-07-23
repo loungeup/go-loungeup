@@ -15,8 +15,8 @@ type Pager[S ~[]E, E any] struct {
 }
 
 // NewPager creates a pager with the given function to read pages of type S.
-func NewPager[S ~[]E, E any](reader PageReaderFunc[S, E], options ...option) *Pager[S, E] {
-	configuration := &configuration{
+func NewPager[S ~[]E, E any](reader PageReaderFunc[S, E], options ...pagerOption) *Pager[S, E] {
+	configuration := &pagerConfiguration{
 		limit: defaultLimit,
 	}
 	for _, option := range options {
@@ -29,8 +29,8 @@ func NewPager[S ~[]E, E any](reader PageReaderFunc[S, E], options ...option) *Pa
 	}
 }
 
-// WithLimit sets the maximum number of elements to read per page.
-func WithLimit(limit int) option { return func(c *configuration) { c.limit = limit } }
+// WithPagerLimit sets the maximum number of elements to read per page.
+func WithPagerLimit(limit int) pagerOption { return func(c *pagerConfiguration) { c.limit = limit } }
 
 // Err returns the error, if any, that was encountered during pagination.
 func (p *Pager[S, E]) Err() error { return p.lastErr }
@@ -63,8 +63,43 @@ func (p *Pager[S, E]) Next() bool {
 // Page returns the last page read by the [Pager.Next] method.
 func (p *Pager[S, E]) Page() S { return p.lastPage }
 
-type configuration struct {
+type pagerConfiguration struct {
 	limit int
 }
 
-type option func(*configuration)
+type pagerOption func(*pagerConfiguration)
+
+const (
+	minLimit  = 0
+	minOffset = 0
+)
+
+// Limit of a page.
+type Limit int
+
+// NewLimit creates a new limit from the provided value.
+func NewLimit(limit int) Limit { return Limit(limit) }
+
+// Bound the limit to the minimum value (zero) and the provided maximum value.
+func (l Limit) Bound(max int) int {
+	if l > minLimit && int(l) < max {
+		return int(l)
+	}
+
+	return max
+}
+
+// Offset of a page.
+type Offset int
+
+// NewOffset creates a new offset from the provided value.
+func NewOffset(offset int) Offset { return Offset(offset) }
+
+// Bound the offset to the minimum value (zero).
+func (o Offset) Bound() int {
+	if o > minOffset {
+		return int(o)
+	}
+
+	return minOffset
+}
