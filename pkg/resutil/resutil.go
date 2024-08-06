@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"log/slog"
 	"reflect"
-	"slices"
 
 	"github.com/jirenius/go-res"
 	"github.com/loungeup/go-loungeup/pkg/log"
@@ -109,7 +108,7 @@ func compareMaps(previous, current map[string]any) map[string]any {
 	for key, value := range current {
 		previousValue, found := previous[key]
 		if !found {
-			result[key] = mapValue(value)
+			result[key] = value
 			continue
 		}
 
@@ -117,41 +116,10 @@ func compareMaps(previous, current map[string]any) map[string]any {
 			continue
 		}
 
-		result[key] = mapValue(value)
+		result[key] = value
 	}
 
 	return result
-}
-
-// mapValue for the RES protocol.
-func mapValue[T any](value T) any {
-	reflectedValue := reflect.ValueOf(value)
-
-	if !isDataValueKind(reflectedValue) {
-		return value
-	}
-
-	return &res.DataValue{Data: value}
-}
-
-// dataValueKinds that will be wrapped into a RES data value.
-//
-// Reference: https://resgate.io/docs/specification/res-protocol/#data-values
-var dataValueKinds = []reflect.Kind{
-	reflect.Array,
-	reflect.Map,
-	reflect.Slice,
-	reflect.Struct,
-}
-
-// isDataValueKind returns true if the given value kind should be wrapped into a RES data value.
-// It unwraps pointers until it reaches a non-pointer value.
-func isDataValueKind(value reflect.Value) bool {
-	for value.Kind() == reflect.Ptr {
-		value = value.Elem()
-	}
-
-	return slices.Contains(dataValueKinds, value.Kind())
 }
 
 func HandleCollectionQueryRequest[T any](

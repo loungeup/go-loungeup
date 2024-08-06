@@ -26,24 +26,16 @@ func TestAddNATSMessageHandler(t *testing.T) {
 }
 
 func TestCompareModels(t *testing.T) {
-	type UserAddress struct {
-		City   string `json:"city,omitempty"`
-		Street string `json:"street,omitempty"`
-	}
-
 	type UserPhone struct {
-		Type   string `json:"type,omitempty"`
 		Number string `json:"number,omitempty"`
 	}
 
 	type User struct {
-		ID        string       `json:"id"`
-		FirstName string       `json:"firstName,omitempty"`
-		LastName  string       `json:"lastName,omitempty"`
-		Emails    []string     `json:"emails,omitempty"`
-		Phones    []*UserPhone `json:"phones,omitempty"`
-		Address   *UserAddress `json:"address,omitempty"`
-		Tags      []string     `json:"tags,omitempty"`
+		ID        string         `json:"id"`
+		FirstName string         `json:"firstName,omitempty"`
+		LastName  string         `json:"lastName,omitempty"`
+		Emails    *res.DataValue `json:"emails,omitempty"`
+		Phones    *res.DataValue `json:"phones,omitempty"`
 	}
 
 	tests := map[string]struct {
@@ -52,41 +44,38 @@ func TestCompareModels(t *testing.T) {
 	}{
 		"simple": {
 			previous: &User{
-				ID:        "u-1",
-				FirstName: "John",
-				LastName:  "Doe",
-				Emails: []string{
-					"john.doe@loungeup.com",
-					"john@doe.com",
-				},
-				Phones: []*UserPhone{
-					{
-						Type:   "landline",
-						Number: "+33 512345678",
+				ID:       "u-1",
+				LastName: "Doe",
+				Emails: &res.DataValue{
+					Data: []string{
+						"john.doe@loungeup.com",
+						"john@doe.com",
 					},
 				},
-				Address: &UserAddress{
-					City: "Paris",
+				Phones: &res.DataValue{
+					Data: []*UserPhone{
+						{
+							Number: "+33 612345678",
+						},
+					},
 				},
-				Tags: []string{"tag1", "tag2"},
 			},
 			current: &User{
 				ID:        "u-1",
 				FirstName: "Jane",
 				LastName:  "",
-				Emails: []string{
-					"john.doe@gmail.com",
-					"john@doe.com",
-				},
-				Phones: []*UserPhone{
-					{
-						Type:   "mobile",
-						Number: "+33 612345678",
+				Emails: &res.DataValue{
+					Data: []string{
+						"john.doe@gmail.com",
+						"john@doe.com",
 					},
 				},
-				Address: &UserAddress{
-					City:   "Ramonville-Saint-Agne",
-					Street: "12 avenue de l'Europe",
+				Phones: &res.DataValue{
+					Data: []*UserPhone{
+						{
+							Number: "+33 512345678",
+						},
+					},
 				},
 			},
 			want: `{
@@ -101,18 +90,10 @@ func TestCompareModels(t *testing.T) {
 				"phones": {
 					"data": [
 						{
-							"type": "mobile",
-							"number": "+33 612345678"
+							"number": "+33 512345678"
 						}
 					]
-				},
-				"address": {
-					"data": {
-						"city": "Ramonville-Saint-Agne",
-						"street": "12 avenue de l'Europe"
-					}
-				},
-				"tags": {"action": "delete"}
+				}
 			}`,
 		},
 	}
