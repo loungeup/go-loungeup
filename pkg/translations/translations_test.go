@@ -9,21 +9,30 @@ import (
 )
 
 func TestTranslationsGet(t *testing.T) {
-	testTranslations := Translations{"en": "Hello", "fr": "Bonjour"}
+	t.Run("exising key", func(t *testing.T) {
+		translations := Translations{"en": "Hello", "fr": "Bonjour"}
+		assert.Equal(t, TranslationValue("Hello"), translations.Get("en"))
+	})
 
-	tests := map[string]struct {
-		in   TranslationKey
-		want TranslationValue
-	}{
-		"existing key": {in: "en", want: "Hello"},
-		"unknown key":  {in: "de", want: ""},
-	}
+	t.Run("unknown key", func(t *testing.T) {
+		translations := Translations{"fr": "Bonjour"}
+		assert.Equal(t, TranslationValue(""), translations.Get("de"))
+	})
 
-	for test, tt := range tests {
-		t.Run(test, func(t *testing.T) {
-			assert.Equal(t, tt.want, testTranslations.Get(tt.in))
-		})
-	}
+	t.Run("default to en", func(t *testing.T) {
+		translations := Translations{"en": "Hello"}
+		assert.Equal(t, TranslationValue("Hello"), translations.Get("foo"))
+	})
+
+	t.Run("default to fr", func(t *testing.T) {
+		translations := Translations{"fr": "Bonjour"}
+		assert.Equal(t, TranslationValue("Bonjour"), translations.Get("foo", DefaultKey("fr")))
+	})
+
+	t.Run("get first by default", func(t *testing.T) {
+		translations := Translations{"de": "Hallo", "fr": "Bonjour"}
+		assert.Equal(t, TranslationValue("Hallo"), translations.Get("foo", GetFirstByDefault()))
+	})
 }
 
 func TestTranslationsIsZero(t *testing.T) {

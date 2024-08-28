@@ -16,7 +16,39 @@ type (
 	TranslationValue string
 )
 
-func (t Translations) Get(k TranslationKey) TranslationValue { return t[k] }
+func (t Translations) Get(k TranslationKey, options ...GetOption) TranslationValue {
+	config := &getConfig{
+		defaultKey:        "en",
+		getFirstByDefault: false,
+	}
+	for _, option := range options {
+		option(config)
+	}
+
+	if result := t[k]; result != "" {
+		return result
+	}
+
+	if result := t[config.defaultKey]; result != "" {
+		return result
+	}
+
+	if config.getFirstByDefault {
+		return t.first()
+	}
+
+	return ""
+}
+
+type GetOption func(*getConfig)
+
+type getConfig struct {
+	defaultKey        TranslationKey
+	getFirstByDefault bool
+}
+
+func DefaultKey(key TranslationKey) GetOption { return func(c *getConfig) { c.defaultKey = key } }
+func GetFirstByDefault() GetOption            { return func(c *getConfig) { c.getFirstByDefault = true } }
 
 var _ (sql.Scanner) = (Translations)(nil)
 
@@ -48,3 +80,11 @@ func (t Translations) Validate() error {
 var _ (driver.Valuer) = (Translations)(nil)
 
 func (t Translations) Value() (driver.Value, error) { return json.Marshal(t) }
+
+func (t Translations) first() TranslationValue {
+	for _, v := range t {
+		return v
+	}
+
+	return ""
+}
