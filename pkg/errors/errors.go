@@ -11,7 +11,10 @@ const (
 	CodeInvalid  = "invalid"
 	CodeNotFound = "notFound"
 
-	internalErrorMessage = "An internal error has occurred. Please contact technical support."
+	errorMessageConflict = "Conflict"
+	errorMessageInternal = "An internal error has occurred. Please contact technical support."
+	errorMessageInvalid  = "Invalid"
+	errorMessageNotFound = "Not found"
 )
 
 type Error struct {
@@ -48,6 +51,19 @@ func (e *Error) Error() string {
 	return result
 }
 
+func (e *Error) defaultMessage() string {
+	switch e.Code {
+	case CodeConflict:
+		return errorMessageConflict
+	case CodeInvalid:
+		return errorMessageInvalid
+	case CodeNotFound:
+		return errorMessageNotFound
+	default:
+		return errorMessageInternal
+	}
+}
+
 func ErrorCode(err error) string {
 	if err == nil {
 		return ""
@@ -67,13 +83,16 @@ func ErrorMessage(err error) string {
 		return ""
 	}
 
-	if err, ok := err.(*Error); ok && err.Message != "" {
+	switch err, ok := err.(*Error); {
+	case ok && err.Message != "":
 		return err.Message
-	} else if ok && err.UnderlyingError != nil {
+	case ok && err.Code != "":
+		return err.defaultMessage()
+	case ok && err.UnderlyingError != nil:
 		return ErrorMessage(err.UnderlyingError)
+	default:
+		return errorMessageInternal
 	}
-
-	return internalErrorMessage
 }
 
 func As(err error, target any) bool { return errors.As(err, target) }

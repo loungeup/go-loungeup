@@ -31,7 +31,7 @@ func TestLogAndWriteRESError(t *testing.T) {
 				assert.Len(t, args, 1)
 			},
 			assertWrite: func(t *testing.T, err error) {
-				assert.EqualError(t, err, internalErrorMessage)
+				assert.EqualError(t, err, errorMessageInternal)
 			},
 		},
 		"LoungeUp error": {
