@@ -19,6 +19,18 @@ func NewXLSXFile() *XLSXFile {
 	}
 }
 
+func (f *XLSXFile) AddSheet(name string) (*XLSXSheet, error) {
+	if _, err := f.baseFile.NewSheet(name); err != nil {
+		return nil, fmt.Errorf("could not add sheet to file: %w", err)
+	}
+
+	return &XLSXSheet{
+		baseFile:        f.baseFile,
+		currentRowIndex: 1,
+		name:            name,
+	}, nil
+}
+
 func (f *XLSXFile) Bytes() ([]byte, error) {
 	if err := f.deleteDefaultSheet(); err != nil {
 		return nil, err
@@ -32,17 +44,7 @@ func (f *XLSXFile) Bytes() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func (f *XLSXFile) AddSheet(name string) (*XLSXSheet, error) {
-	if _, err := f.baseFile.NewSheet(name); err != nil {
-		return nil, fmt.Errorf("could not add sheet to file: %w", err)
-	}
-
-	return &XLSXSheet{
-		baseFile:        f.baseFile,
-		currentRowIndex: 1,
-		name:            name,
-	}, nil
-}
+func (f *XLSXFile) Close() error { return f.baseFile.Close() }
 
 func (f *XLSXFile) deleteDefaultSheet() error {
 	if err := f.baseFile.DeleteSheet("Sheet1"); err != nil {

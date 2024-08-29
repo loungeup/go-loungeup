@@ -25,6 +25,8 @@ func TestXLSXFile(t *testing.T) {
 	data, err := file.Bytes()
 	assert.NoError(t, err)
 
+	assert.NoError(t, file.Close())
+
 	t.Run("validate file content", func(t *testing.T) {
 		rawFile, err := excelize.OpenReader(bytes.NewReader(data))
 		assert.NoError(t, err)
@@ -35,5 +37,4 @@ func TestXLSXFile(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, rows, rawRows)
 	})
-
 }
