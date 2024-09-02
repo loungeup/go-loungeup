@@ -1,5 +1,5 @@
 // This package provides a structured error type and functions to work with it. It is largely based on the work of
-// Ben Johnson. Reference: https://middlemost.com/failure-is-your-domain/failure-is-your-domain.pdf.
+// Ben Johnson. Reference: https://www.gobeyond.dev/failure-is-your-domain/.
 package errors
 
 import "errors"
