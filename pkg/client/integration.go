@@ -18,6 +18,20 @@ func (c *integrationsClient) ReadEntityIntegration(
 	return c.readEntityIntegrationByRID(selector.RID())
 }
 
+func (c *integrationsClient) UpdateEntityIntegration(
+	selector *models.EntityIntegrationSelector,
+	params any,
+) (resprot.Response, error) {
+	response := c.baseClient.resClient.Request("call."+selector.RID()+".patch",
+		resprot.Request{Params: params})
+
+	if response.HasError() {
+		return resprot.Response{}, response.Error
+	}
+
+	return response, nil
+}
+
 func (c *integrationsClient) ReadEntityIntegrations(
 	selector *models.EntityIntegrationsSelector,
 ) ([]*models.EntityIntegration, error) {
@@ -117,7 +131,7 @@ func (c *integrationsClient) CreateTicket(
 ) (json.RawMessage, error) {
 	return transport.CallRESResult[json.RawMessage](
 		c.baseClient.resClient,
-		selector.RID()+".tickets.create",
+		selector.RID()+".create-ticket",
 		resprot.Request{Params: params},
 	)
 }
