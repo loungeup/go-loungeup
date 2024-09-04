@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"io"
 	"log/slog"
 	"os"
 	"strings"
@@ -20,7 +21,7 @@ var defaultLogger atomic.Pointer[Logger]
 
 //nolint:gochecknoinits
 func init() {
-	defaultLogger.Store(newDefaultLogger())
+	defaultLogger.Store(NewLogger())
 }
 
 // Default returns the default logger.
@@ -32,6 +33,30 @@ type Logger struct {
 	Adapter *Adapter
 
 	underlyingLogger *slog.Logger
+}
+
+// LoggerOption is a type of function that configures a Logger.
+type LoggerOption func(*Logger)
+
+// NewLogger creates a new Logger with the given options.
+func NewLogger(options ...LoggerOption) *Logger {
+	result := &Logger{
+		underlyingLogger: newUnderlyingLoggerWithWriter(os.Stdout),
+	}
+	for _, option := range options {
+		option(result)
+	}
+
+	result.Adapter = &Adapter{underlyingLogger: result}
+
+	return result
+}
+
+// WithLoggerWriter sets the writer of the logger.
+func WithLoggerWriter(w io.Writer) LoggerOption {
+	return func(l *Logger) {
+		l.underlyingLogger = newUnderlyingLoggerWithWriter(w)
+	}
 }
 
 // Debug logs a debug message with the given attributes.
@@ -82,17 +107,12 @@ func formatMessage(message string) string {
 	return strings.ToLower(strings.ReplaceAll(message, " ", "-"))
 }
 
-func newDefaultLogger() *Logger {
-	result := &Logger{
-		underlyingLogger: slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-			AddSource:   false,
-			Level:       slog.LevelDebug,
-			ReplaceAttr: replaceLogAttribute,
-		})),
-	}
-	result.Adapter = &Adapter{underlyingLogger: result}
-
-	return result
+func newUnderlyingLoggerWithWriter(w io.Writer) *slog.Logger {
+	return slog.New(slog.NewJSONHandler(w, &slog.HandlerOptions{
+		AddSource:   false,
+		Level:       slog.LevelDebug,
+		ReplaceAttr: replaceLogAttribute,
+	}))
 }
 
 // replaceLogAttribute to match LoungeUp format.
