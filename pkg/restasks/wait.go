@@ -18,7 +18,16 @@ type Requester interface {
 }
 
 // Wait for the task with the given RID to complete.
-func Wait[T any](requester Requester, taskRID string) (T, error) {
+func Wait[T any](requester Requester, taskRID string, options ...waitOption) (T, error) {
+	config := &waitConfig{
+		interval: defaultWaiterInterval,
+		timeout:  defaultWaiterTimeout,
+	}
+
+	for _, option := range options {
+		option(config)
+	}
+
 	var result T
 
 	ticker := time.NewTicker(defaultWaiterInterval)
@@ -52,4 +61,19 @@ func Wait[T any](requester Requester, taskRID string) (T, error) {
 			return result, nil
 		}
 	}
+}
+
+func WithWaitInterval(interval time.Duration) waitOption {
+	return func(config *waitConfig) { config.interval = interval }
+}
+
+func WithWaitTimeout(timeout time.Duration) waitOption {
+	return func(config *waitConfig) { config.timeout = timeout }
+}
+
+type waitOption func(*waitConfig)
+
+type waitConfig struct {
+	interval time.Duration
+	timeout  time.Duration
 }
