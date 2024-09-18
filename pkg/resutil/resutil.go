@@ -3,6 +3,7 @@
 package resutil
 
 import (
+	"bytes"
 	"encoding/json"
 	"log/slog"
 	"reflect"
@@ -13,6 +14,21 @@ import (
 )
 
 const natsMessagesChannelSize = 64
+
+type Deletable[T any] struct {
+	Deleted bool
+	Value   T
+}
+
+func (d *Deletable[T]) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, res.DeleteAction.RawMessage) {
+		d.Deleted = true
+
+		return nil
+	}
+
+	return json.Unmarshal(data, &d.Value)
+}
 
 type RefSlice []res.Ref
 

@@ -12,6 +12,30 @@ import (
 
 var testAccessHandler = res.Access(res.AccessGranted)
 
+func TestDeletable(t *testing.T) {
+	tests := map[string]struct {
+		in   []byte
+		want *Deletable[string]
+	}{
+		"delete": {
+			in:   res.DeleteAction.RawMessage,
+			want: &Deletable[string]{Deleted: true},
+		},
+		"string": {
+			in:   []byte(`"foo"`),
+			want: &Deletable[string]{Value: "foo"},
+		},
+	}
+
+	for test, tt := range tests {
+		t.Run(test, func(t *testing.T) {
+			got := &Deletable[string]{}
+			assert.NoError(t, json.Unmarshal(tt.in, got))
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestAddNATSMessageHandler(t *testing.T) {
 	service := res.NewService("test")
 	service.Handle("test.foo", testAccessHandler)
