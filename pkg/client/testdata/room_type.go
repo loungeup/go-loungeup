@@ -1,4 +1,4 @@
-//nolint:gomnd
+//nolint:gomnd,mnd
 package testdata
 
 import (

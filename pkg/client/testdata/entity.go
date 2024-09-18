@@ -1,4 +1,4 @@
-//nolint:goconst,gomnd
+//nolint:gomnd,mnd
 package testdata
 
 import (
@@ -11,22 +11,23 @@ import (
 
 var (
 	Entity = &models.Entity{
-		ID:         uuid.New(),
-		LegacyID:   1,
-		Type:       models.EntityTypeAccount,
-		Name:       "Test Account",
-		Slug:       "testaccount",
-		Image:      "https://example.com/image.jpg",
-		Languages:  models.NewDataValue([]string{"en"}),
-		Timezone:   "Europe/Paris",
-		Country:    "FR",
-		PostalCode: "31520",
-		City:       "Ramonville-Saint-Agne",
-		Address:    "12 avenue de l'Europe",
-		Rooms:      100,
-		Currency:   res.SoftRef("authority.currencies.eur"),
-		CreatedAt:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
-		UpdatedAt:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+		ID:             uuid.New(),
+		LegacyID:       1,
+		Type:           models.EntityTypeAccount,
+		Name:           "Test Account",
+		Slug:           "testaccount",
+		Image:          "https://example.com/image.jpg",
+		Languages:      models.NewDataValue([]string{"en"}),
+		Timezone:       "Europe/Paris",
+		Country:        "FR",
+		PostalCode:     "31520",
+		City:           "Ramonville-Saint-Agne",
+		Address:        "12 avenue de l'Europe",
+		Rooms:          100,
+		Currency:       res.SoftRef("authority.currencies.eur"),
+		ConvertAmounts: true,
+		CreatedAt:      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+		UpdatedAt:      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 	}
 
 	EntityAccountsSelector = &models.EntityAccountsSelector{
@@ -56,6 +57,7 @@ var (
 		"currency": {
 			"rid": "authority.currencies.eur"
 		},
+		"convertAmounts": true,
 		"createdAt": "2020-01-01T00:00:00Z",
 		"updatedAt": "2020-01-01T00:00:00Z"
 	}`

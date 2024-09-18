@@ -37,7 +37,7 @@ func (c *guestsClient) readGuestByRID(rid string) (*models.Guest, error) {
 		return cachedResult, nil
 	}
 
-	guest, err := transport.GetRESModel[*models.Guest](c.baseClient.resClient, rid)
+	guest, err := transport.GetRESModel[*models.Guest](c.baseClient.resClient, rid, resprot.Request{})
 	if err != nil {
 		return nil, err
 	}

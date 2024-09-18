@@ -58,6 +58,7 @@ func (c *entitiesClient) ReadEntityCustomFields(
 	result, err := transport.GetRESModel[*models.EntityCustomFields](
 		c.baseClient.resClient,
 		selector.RID(),
+		resprot.Request{},
 	)
 	if err != nil {
 		return nil, err
@@ -73,7 +74,7 @@ func (c *entitiesClient) readEntityByRID(resourceID string) (*models.Entity, err
 		return cachedResult, nil
 	}
 
-	result, err := transport.GetRESModel[*models.Entity](c.baseClient.resClient, resourceID)
+	result, err := transport.GetRESModel[*models.Entity](c.baseClient.resClient, resourceID, resprot.Request{})
 	if err != nil {
 		return nil, err
 	}

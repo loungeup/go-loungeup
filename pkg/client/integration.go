@@ -152,7 +152,7 @@ func (c *integrationsClient) readEntityIntegrationByRID(resourceID string) (*mod
 		return cachedResult, nil
 	}
 
-	result, err := transport.GetRESModel[*models.EntityIntegration](c.baseClient.resClient, resourceID)
+	result, err := transport.GetRESModel[*models.EntityIntegration](c.baseClient.resClient, resourceID, resprot.Request{})
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func (c *integrationsClient) readIntegrationByRID(resourceID string) (*models.In
 		return cachedResult, nil
 	}
 
-	result, err := transport.GetRESModel[*models.Integration](c.baseClient.resClient, resourceID)
+	result, err := transport.GetRESModel[*models.Integration](c.baseClient.resClient, resourceID, resprot.Request{})
 	if err != nil {
 		return nil, err
 	}

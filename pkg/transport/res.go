@@ -60,10 +60,10 @@ func GetRESCollection[T any](client RESRequester, resourceID string, request res
 }
 
 // GetRESModel from the resource ID.
-func GetRESModel[T any](client RESRequester, resourceID string) (T, error) {
+func GetRESModel[T any](client RESRequester, resourceID string, request resprot.Request) (T, error) {
 	var result T
 
-	response := client.Request("get."+resourceID, resprot.Request{})
+	response := client.Request("get."+resourceID, request)
 
 	if response.HasError() {
 		return result, response.Error

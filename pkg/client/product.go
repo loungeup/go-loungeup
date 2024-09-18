@@ -48,7 +48,7 @@ func (c *productsClient) readProductByRID(rid string) (*models.Product, error) {
 		return cachedResult, nil
 	}
 
-	product, err := transport.GetRESModel[*models.Product](c.baseClient.resClient, rid)
+	product, err := transport.GetRESModel[*models.Product](c.baseClient.resClient, rid, resprot.Request{})
 	if err != nil {
 		return nil, err
 	}

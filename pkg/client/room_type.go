@@ -22,7 +22,11 @@ func (c *roomTypesClient) ReadRoomTypes(selector *models.RoomTypesSelector) ([]*
 	result := []*models.RoomType{}
 
 	for _, reference := range references {
-		relatedRoomType, err := transport.GetRESModel[*models.RoomType](c.baseClient.resClient, string(reference))
+		relatedRoomType, err := transport.GetRESModel[*models.RoomType](
+			c.baseClient.resClient,
+			string(reference),
+			resprot.Request{},
+		)
 		if err != nil {
 			return nil, err
 		}
