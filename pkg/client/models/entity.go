@@ -2,6 +2,7 @@ package models
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,6 +31,14 @@ type Entity struct {
 	Teams          res.SoftRef         `json:"teams,omitempty"`
 	CreatedAt      time.Time           `json:"createdAt"`
 	UpdatedAt      time.Time           `json:"updatedAt"`
+}
+
+func (e Entity) CurrencyCode() string {
+	if e.Currency == "" {
+		return ""
+	}
+
+	return strings.TrimPrefix(string(e.Currency), "authority.currencies.")
 }
 
 type EntityType string
