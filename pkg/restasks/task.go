@@ -2,6 +2,7 @@ package restasks
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,14 +14,17 @@ const (
 	taskStatusCompleted = "completed"
 	taskStatusFailed    = "failed"
 	taskStatusStarted   = "started"
+
+	taskMinProgress = 0
+	taskMaxProgress = 100
 )
 
 type task struct {
 	ServiceName string
 	ID          uuid.UUID
+	Progress    int
 	Error       error
 	Result      any
-	CompletedAt time.Time
 	CreatedAt   time.Time
 }
 
@@ -29,13 +33,46 @@ func newTask(serviceName string) *task {
 	return &task{
 		ServiceName: serviceName,
 		ID:          uuid.New(),
+		Progress:    taskMinProgress,
 		CreatedAt:   time.Now(),
+	}
+}
+
+// rid of the task for the given service.
+func (t *task) rid() string {
+	return t.ServiceName + ".tasks." + t.ID.String()
+}
+
+// setProgress of the task. It must be between taskMinProgress and taskMaxProgress.
+func (t *task) setProgress(progress int) error {
+	if progress < taskMinProgress || progress > taskMaxProgress {
+		return &errors.Error{
+			Code:    errors.CodeInvalid,
+			Message: fmt.Sprintf("Progress must be between %d and %d", taskMinProgress, taskMaxProgress),
+		}
+	}
+
+	t.Progress = progress
+
+	return nil
+}
+
+// status of the task.
+func (t *task) status() string {
+	switch {
+	case t.Error != nil:
+		return taskStatusFailed
+	case t.Progress == taskMaxProgress:
+		return taskStatusCompleted
+	default:
+		return taskStatusStarted
 	}
 }
 
 func (t *task) toChangeEventProperties() map[string]any {
 	result := map[string]any{
-		"status": t.status(),
+		"progress": t.Progress,
+		"status":   t.status(),
 	}
 
 	if t.Error != nil {
@@ -51,7 +88,8 @@ func (t *task) toChangeEventProperties() map[string]any {
 
 func (t *task) toModel() *taskModel {
 	result := &taskModel{
-		Status: t.status(),
+		Progress: t.Progress,
+		Status:   t.status(),
 	}
 
 	if t.Error != nil {
@@ -65,27 +103,11 @@ func (t *task) toModel() *taskModel {
 	return result
 }
 
-// rid of the task for the given service.
-func (t *task) rid() string {
-	return t.ServiceName + ".tasks." + t.ID.String()
-}
-
-// status of the task.
-func (t *task) status() string {
-	switch {
-	case t.Error != nil:
-		return taskStatusFailed
-	case !t.CompletedAt.IsZero():
-		return taskStatusCompleted
-	default:
-		return taskStatusStarted
-	}
-}
-
 type taskModel struct {
-	Status string         `json:"status"`
-	Error  string         `json:"error,omitempty"`
-	Result *res.DataValue `json:"result,omitempty"`
+	Progress int            `json:"progress"`
+	Status   string         `json:"status"`
+	Error    string         `json:"error,omitempty"`
+	Result   *res.DataValue `json:"result,omitempty"`
 }
 
 func (m *taskModel) decodeResult(value any) error {

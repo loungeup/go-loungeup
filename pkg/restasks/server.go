@@ -1,8 +1,6 @@
 package restasks
 
 import (
-	"time"
-
 	"github.com/jirenius/go-res"
 	"github.com/loungeup/go-loungeup/pkg/errors"
 	"github.com/loungeup/go-loungeup/pkg/log"
@@ -41,7 +39,7 @@ func (s *Server) CompleteTask(rid string, result any) error {
 		return err
 	}
 
-	task.CompletedAt = time.Now()
+	task.Progress = taskMaxProgress
 	task.Error = nil
 	task.Result = result
 
@@ -55,8 +53,22 @@ func (s *Server) FailTask(rid string, err error) error {
 		return readError
 	}
 
+	task.Progress = taskMinProgress
 	task.Error = err
 	task.Result = nil
+
+	return s.sendTaskChangeEvent(task)
+}
+
+func (s *Server) SetTaskProgress(rid string, progress int) error {
+	task, err := s.tasks.ReadTask(rid)
+	if err != nil {
+		return err
+	}
+
+	if err := task.setProgress(progress); err != nil {
+		return err
+	}
 
 	return s.sendTaskChangeEvent(task)
 }
