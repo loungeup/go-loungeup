@@ -25,7 +25,7 @@ func GetOrCreateDefaultStream(js jetstream.JetStream, ctx context.Context) (jets
 
 func createDefaultStream(js jetstream.JetStream, ctx context.Context) (jetstream.Stream, error) {
 	const (
-		streamSubject    = "stream.>"
+		streamSubject    = "stream.default.>"
 		streamDuplicates = 100 * time.Millisecond
 	)
 
