@@ -78,3 +78,7 @@ func (s EntityAccountsSelector) EncodedQuery() string {
 func (s EntityAccountsSelector) RID() string {
 	return "authority.entities." + s.EntityID.String() + ".accounts"
 }
+
+type EntityUpdates struct {
+	ConvertAmountsTaskRID string `json:"convertAmountsTaskRid"`
+}

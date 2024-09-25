@@ -1,6 +1,9 @@
 package client
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/jirenius/go-res"
 	"github.com/jirenius/go-res/resprot"
 	"github.com/loungeup/go-loungeup/pkg/client/models"
@@ -67,6 +70,22 @@ func (c *entitiesClient) ReadEntityCustomFields(
 	defer c.baseClient.eventuallyWriteCache(selector.RID(), result)
 
 	return result, nil
+}
+
+func (c *entitiesClient) PatchEntity(selector *models.EntitySelector, updates *models.EntityUpdates) error {
+	encodedUpdates, err := json.Marshal(updates)
+	if err != nil {
+		return fmt.Errorf("could not encode updates: %w", err)
+	}
+
+	if response := c.baseClient.resClient.Request(
+		"call."+selector.RID()+".patch",
+		resprot.Request{Params: json.RawMessage(encodedUpdates)},
+	); response.HasError() {
+		return response.Error
+	}
+
+	return nil
 }
 
 func (c *entitiesClient) readEntityByRID(resourceID string) (*models.Entity, error) {
