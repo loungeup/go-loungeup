@@ -80,7 +80,7 @@ func (t *task) toChangeEventProperties() map[string]any {
 	}
 
 	if t.Result != nil {
-		result["result"] = &res.DataValue{Data: t.Result}
+		result["result"] = &res.DataValue[any]{Data: t.Result}
 	}
 
 	return result
@@ -97,17 +97,17 @@ func (t *task) toModel() *taskModel {
 	}
 
 	if t.Result != nil {
-		result.Result = &res.DataValue{Data: t.Result}
+		result.Result = &res.DataValue[any]{Data: t.Result}
 	}
 
 	return result
 }
 
 type taskModel struct {
-	Progress int            `json:"progress"`
-	Status   string         `json:"status"`
-	Error    string         `json:"error,omitempty"`
-	Result   *res.DataValue `json:"result,omitempty"`
+	Progress int                 `json:"progress"`
+	Status   string              `json:"status"`
+	Error    string              `json:"error,omitempty"`
+	Result   *res.DataValue[any] `json:"result,omitempty"`
 }
 
 func (m *taskModel) decodeResult(value any) error {

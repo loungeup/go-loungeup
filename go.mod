@@ -6,7 +6,7 @@ require (
 	github.com/dgraph-io/badger/v3 v3.2103.5
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/google/uuid v1.6.0
-	github.com/jirenius/go-res v0.4.7
+	github.com/jirenius/go-res v0.5.0
 	github.com/lib/pq v1.10.9
 	github.com/nats-io/nats.go v1.37.0
 	github.com/stretchr/testify v1.8.4
@@ -27,7 +27,7 @@ require (
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/google/flatbuffers v1.12.1 // indirect
 	github.com/jirenius/timerqueue v1.0.0 // indirect
-	github.com/klauspost/compress v1.17.9 // indirect
+	github.com/klauspost/compress v1.17.10 // indirect
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/nats-io/jwt/v2 v2.5.0 // indirect
