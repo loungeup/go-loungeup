@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"net/url"
 	"strings"
 	"time"
 
@@ -73,11 +74,29 @@ type Guest struct {
 }
 
 type GuestSelector struct {
-	EntityID, GuestID uuid.UUID
+	ID       uuid.UUID `json:"id"`
+	EntityID uuid.UUID `json:"entityId"`
 }
 
 func (s GuestSelector) RID() string {
-	return "guestprofile.entities." + s.EntityID.String() + ".guests." + s.GuestID.String()
+	return "guestprofile.entities." + s.EntityID.String() + ".guests." + s.ID.String()
+}
+
+type IndexableGuestsSelector struct {
+	EntityID      uuid.UUID
+	Limit, Offset int
+}
+
+func (s *IndexableGuestsSelector) EncodedQuery() string {
+	query := url.Values{}
+	query.Set("limit", string(s.Limit))
+	query.Set("offset", string(s.Offset))
+
+	return query.Encode()
+}
+
+func (s *IndexableGuestsSelector) RID() string {
+	return "guestprofile.entities." + s.EntityID.String() + ".indexable-guest-selectors"
 }
 
 type StructuredValue[T any] struct {

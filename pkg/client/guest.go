@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/google/uuid"
+	"github.com/jirenius/go-res"
 	"github.com/jirenius/go-res/resprot"
 	"github.com/loungeup/go-loungeup/pkg/client/models"
 	"github.com/loungeup/go-loungeup/pkg/transport"
@@ -26,6 +27,18 @@ func (c *guestsClient) AnonymizeGuests(entityID uuid.UUID, guestIDs []uuid.UUID)
 	}
 
 	return nil
+}
+
+func (c *guestsClient) ReadIndexableGuestSelectors(
+	selector *models.IndexableGuestsSelector,
+) ([]*res.DataValue[*models.GuestSelector], error) {
+	return transport.GetRESCollection[*res.DataValue[*models.GuestSelector]](
+		c.baseClient.resClient,
+		selector.RID(),
+		resprot.Request{
+			Query: selector.EncodedQuery(),
+		},
+	)
 }
 
 func (c *guestsClient) ReadGuest(selector *models.GuestSelector) (*models.Guest, error) {
