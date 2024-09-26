@@ -45,6 +45,10 @@ func (t *task) rid() string {
 
 // setProgress of the task. It must be between taskMinProgress and taskMaxProgress.
 func (t *task) setProgress(progress int) error {
+	if progress == t.Progress {
+		return nil
+	}
+
 	if progress < taskMinProgress || progress > taskMaxProgress {
 		return &errors.Error{
 			Code:    errors.CodeInvalid,
