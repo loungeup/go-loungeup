@@ -55,11 +55,11 @@ func TestCompareModels(t *testing.T) {
 	}
 
 	type User struct {
-		ID        string         `json:"id"`
-		FirstName string         `json:"firstName,omitempty"`
-		LastName  string         `json:"lastName,omitempty"`
-		Emails    *res.DataValue `json:"emails,omitempty"`
-		Phones    *res.DataValue `json:"phones,omitempty"`
+		ID        string                       `json:"id"`
+		FirstName string                       `json:"firstName,omitempty"`
+		LastName  string                       `json:"lastName,omitempty"`
+		Emails    *res.DataValue[[]string]     `json:"emails,omitempty"`
+		Phones    *res.DataValue[[]*UserPhone] `json:"phones,omitempty"`
 	}
 
 	tests := map[string]struct {
@@ -70,13 +70,13 @@ func TestCompareModels(t *testing.T) {
 			previous: &User{
 				ID:       "u-1",
 				LastName: "Doe",
-				Emails: &res.DataValue{
+				Emails: &res.DataValue[[]string]{
 					Data: []string{
 						"john.doe@loungeup.com",
 						"john@doe.com",
 					},
 				},
-				Phones: &res.DataValue{
+				Phones: &res.DataValue[[]*UserPhone]{
 					Data: []*UserPhone{
 						{
 							Number: "+33 612345678",
@@ -88,13 +88,13 @@ func TestCompareModels(t *testing.T) {
 				ID:        "u-1",
 				FirstName: "Jane",
 				LastName:  "",
-				Emails: &res.DataValue{
+				Emails: &res.DataValue[[]string]{
 					Data: []string{
 						"john.doe@gmail.com",
 						"john@doe.com",
 					},
 				},
-				Phones: &res.DataValue{
+				Phones: &res.DataValue[[]*UserPhone]{
 					Data: []*UserPhone{
 						{
 							Number: "+33 512345678",
