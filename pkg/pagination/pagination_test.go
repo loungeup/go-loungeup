@@ -12,7 +12,7 @@ func TestPager(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
 		pagesCount := 0
 
-		pager := pagination.NewPager(readIDsPage, pagination.WithPagerLimit(1))
+		pager := pagination.NewPager(pagination.NewOffsetPageReader(readIDsPage), pagination.WithPageSize(1))
 
 		for pager.Next() {
 			assert.Len(t, pager.Page(), 1)
@@ -23,16 +23,16 @@ func TestPager(t *testing.T) {
 		assert.Equal(t, 3, pagesCount)
 	})
 
-	t.Run("first page is shorter than the limit", func(t *testing.T) {
+	t.Run("first page is shorter than the size", func(t *testing.T) {
 		pagesCount := 0
 
-		pager := pagination.NewPager(func(limit, offset int) (uuid.UUIDs, error) {
+		pager := pagination.NewPager(pagination.NewOffsetPageReader(func(size, offset int) (uuid.UUIDs, error) {
 			if offset != 0 {
 				return nil, nil
 			}
 
 			return uuid.UUIDs{uuid.New()}, nil
-		}, pagination.WithPagerLimit(2))
+		}), pagination.WithPageSize(2))
 
 		for pager.Next() {
 			pagesCount++
@@ -43,9 +43,9 @@ func TestPager(t *testing.T) {
 	})
 
 	t.Run("with error", func(t *testing.T) {
-		pager := pagination.NewPager(func(limit, offset int) (uuid.UUIDs, error) {
+		pager := pagination.NewPager(pagination.NewOffsetPageReader(func(size, offset int) (uuid.UUIDs, error) {
 			return nil, assert.AnError
-		})
+		}))
 
 		assert.False(t, pager.Next())
 		assert.ErrorIs(t, pager.Err(), assert.AnError)
@@ -84,7 +84,7 @@ func TestBoundOffset(t *testing.T) {
 	}
 }
 
-func readIDsPage(limit, offset int) (uuid.UUIDs, error) {
+func readIDsPage(_, offset int) (uuid.UUIDs, error) {
 	if offset >= 3 {
 		return nil, nil
 	}

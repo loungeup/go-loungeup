@@ -1,23 +1,20 @@
 package pagination
 
-const defaultLimit = 25
-
-// PageReaderFunc is a function that reads a page of elements of type S with the given limit and offset.
-type PageReaderFunc[S ~[]E, E any] func(limit, offset int) (S, error)
-
 type Pager[S ~[]E, E any] struct {
-	reader PageReaderFunc[S, E]
+	reader pageReader[S, E]
 
 	lastErr  error // The last error that happened while reading a page.
 	lastPage S     // The most recent page read.
 
-	limit, offset int
+	size int
 }
 
 // NewPager creates a pager with the given function to read pages of type S.
-func NewPager[S ~[]E, E any](reader PageReaderFunc[S, E], options ...pagerOption) *Pager[S, E] {
+func NewPager[S ~[]E, E any](reader pageReader[S, E], options ...pagerOption) *Pager[S, E] {
+	const defaultSize = 25
+
 	configuration := &pagerConfiguration{
-		limit: defaultLimit,
+		size: defaultSize,
 	}
 	for _, option := range options {
 		option(configuration)
@@ -25,12 +22,12 @@ func NewPager[S ~[]E, E any](reader PageReaderFunc[S, E], options ...pagerOption
 
 	return &Pager[S, E]{
 		reader: reader,
-		limit:  configuration.limit,
+		size:   configuration.size,
 	}
 }
 
-// WithPagerLimit sets the maximum number of elements to read per page.
-func WithPagerLimit(limit int) pagerOption { return func(c *pagerConfiguration) { c.limit = limit } }
+// WithPageSize sets the size of the pages to be read by the pager.
+func WithPageSize(size int) pagerOption { return func(c *pagerConfiguration) { c.size = size } }
 
 // Err returns the error, if any, that was encountered during pagination.
 func (p *Pager[S, E]) Err() error { return p.lastErr }
@@ -39,12 +36,12 @@ func (p *Pager[S, E]) Err() error { return p.lastErr }
 // is no next page or an error happened while preparing it. [Pager.Err] should be called to distinguish between the two
 // cases.
 func (p *Pager[S, E]) Next() bool {
-	// If the last page is shorter than the limit, there are no more pages.
-	if len(p.lastPage) != 0 && len(p.lastPage) < p.limit {
+	// If the last page is shorter than the size, there are no more pages.
+	if len(p.lastPage) != 0 && len(p.lastPage) < p.size {
 		return false
 	}
 
-	page, err := p.reader(p.limit, p.offset)
+	page, err := p.reader.readPage(p.size)
 	if err != nil {
 		p.lastErr = err
 		return false
@@ -55,7 +52,6 @@ func (p *Pager[S, E]) Next() bool {
 	}
 
 	p.lastPage = page
-	p.offset += p.limit
 
 	return true
 }
@@ -64,10 +60,60 @@ func (p *Pager[S, E]) Next() bool {
 func (p *Pager[S, E]) Page() S { return p.lastPage }
 
 type pagerConfiguration struct {
-	limit int
+	size int
 }
 
 type pagerOption func(*pagerConfiguration)
+
+type pageReader[S ~[]E, E any] interface {
+	readPage(size int) (S, error)
+}
+
+type keysetPageReader[S ~[]E, E any] struct {
+	readPageFunc func(size int, lastKey string) (S, string, error)
+	lastKey      string
+}
+
+func NewKeysetPageReader[S ~[]E, E any](
+	readPageFunc func(size int, lastKey string) (S, string, error),
+) *keysetPageReader[S, E] {
+	return &keysetPageReader[S, E]{readPageFunc: readPageFunc}
+}
+
+var _ pageReader[[]any, any] = (*keysetPageReader[[]any, any])(nil)
+
+func (r *keysetPageReader[S, E]) readPage(size int) (S, error) {
+	result, lastKey, err := r.readPageFunc(size, r.lastKey)
+	if err != nil {
+		return nil, err
+	}
+
+	r.lastKey = lastKey
+
+	return result, nil
+}
+
+type offsetPagerReader[S ~[]E, E any] struct {
+	readPageFunc func(size, offset int) (S, error)
+	offset       int
+}
+
+func NewOffsetPageReader[S ~[]E, E any](readPageFunc func(size, offset int) (S, error)) *offsetPagerReader[S, E] {
+	return &offsetPagerReader[S, E]{readPageFunc: readPageFunc}
+}
+
+var _ pageReader[[]any, any] = (*offsetPagerReader[[]any, any])(nil)
+
+func (r *offsetPagerReader[S, E]) readPage(size int) (S, error) {
+	result, err := r.readPageFunc(size, r.offset)
+	if err != nil {
+		return nil, err
+	}
+
+	r.offset += size
+
+	return result, nil
+}
 
 const (
 	minLimit  = 0
