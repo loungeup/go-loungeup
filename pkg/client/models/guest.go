@@ -99,6 +99,44 @@ func (s *IndexableGuestsSelector) RID() string {
 	return "guestprofile.entities." + s.EntityID.String() + ".indexable-guest-selectors"
 }
 
+type SearchGuestsRequest struct {
+	Query *SearchGuestsQuery `json:"query"`
+}
+
+type SearchGuestsQuery struct {
+	Logic    SearchGuestsLogic       `json:"logic"`
+	Criteria []*SearchGuestsCriteria `json:"criteria"`
+}
+
+type SearchGuestsCriteria struct {
+	Logic    SearchGuestsLogic          `json:"logic"`
+	Criteria []*SearchGuestsSubCriteria `json:"criteria"`
+}
+
+type SearchGuestsSubCriteria struct {
+	Logic    SearchGuestsLogic          `json:"logic,omitempty"`
+	Criteria []*SearchGuestsSubCriteria `json:"criteria,omitempty"`
+	Field    string                     `json:"field,omitempty"`
+	Operator SearchGuestOperator        `json:"operator,omitempty"`
+	Value    any                        `json:"value,omitempty"`
+}
+
+type SearchGuestsLogic string
+
+const (
+	SearchGuestsLogicAnd SearchGuestsLogic = "AND"
+	SearchGuestsLogicOr  SearchGuestsLogic = "OR"
+)
+
+type SearchGuestOperator string
+
+const SearchGuestOperatorEqual SearchGuestOperator = "="
+
+type CountGuestsResponse struct {
+	Count    int64 `json:"count"`
+	Accurate bool  `json:"accurate"`
+}
+
 type StructuredValue[T any] struct {
 	Preferred bool      `json:"preferred"`
 	Value     T         `json:"value"`

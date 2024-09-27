@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
 	"github.com/jirenius/go-res/resprot"
@@ -27,6 +29,22 @@ func (c *guestsClient) AnonymizeGuests(entityID uuid.UUID, guestIDs []uuid.UUID)
 	}
 
 	return nil
+}
+
+func (c *guestsClient) CountGuests(
+	entityID uuid.UUID,
+	request *models.SearchGuestsRequest,
+) (*models.CountGuestsResponse, error) {
+	result, err := transport.CallRESResult[*models.CountGuestsResponse](
+		c.baseClient.resClient,
+		"guestprofile.entities."+entityID.String()+".guests.count",
+		resprot.Request{Params: request},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("could not execute request: %w", err)
+	}
+
+	return result, nil
 }
 
 func (c *guestsClient) ReadIndexableGuestSelectors(
