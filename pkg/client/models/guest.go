@@ -2,7 +2,7 @@ package models
 
 import (
 	"encoding/json"
-	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -88,11 +88,7 @@ type IndexableGuestsSelector struct {
 }
 
 func (s *IndexableGuestsSelector) EncodedQuery() string {
-	query := url.Values{}
-	query.Set("limit", string(s.Limit))
-	query.Set("offset", string(s.Offset))
-
-	return query.Encode()
+	return "limit=" + strconv.Itoa(s.Limit) + "&offset=" + strconv.Itoa(s.Offset)
 }
 
 func (s *IndexableGuestsSelector) RID() string {
