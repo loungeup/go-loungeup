@@ -10,8 +10,11 @@ type Client struct {
 	Internal *internalClient
 
 	// The following fields are used internally by sub-clients.
-	cache     cache.ReadWriter
-	resClient transport.RESRequester
+	cache      cache.ReadWriter
+	httpAPIKey string
+	httpClient transport.HTTPDoer
+	httpAPIURL string
+	resClient  transport.RESRequester
 }
 
 // Option used to configure a Client.
@@ -20,10 +23,12 @@ type Option func(*Client)
 // NewWithTransport returns a Client with the given transport and options.
 func NewWithTransport(transport *transport.Transport, options ...Option) *Client {
 	result := &Client{
-		resClient: transport.RESClient,
+		httpClient: transport.HTTPClient,
+		resClient:  transport.RESClient,
 	}
 
 	result.Internal = &internalClient{
+		Bookings:     &bookingsClient{baseClient: result},
 		Currency:     &currencyClient{baseClient: result},
 		Entities:     &entitiesClient{baseClient: result},
 		Guests:       &guestsClient{baseClient: result},
@@ -41,6 +46,8 @@ func NewWithTransport(transport *transport.Transport, options ...Option) *Client
 }
 
 func WithCache(cache cache.ReadWriter) Option { return func(c *Client) { c.cache = cache } }
+func WithHTTPAPIKey(key string) Option        { return func(c *Client) { c.httpAPIKey = key } }
+func WithHTTPAPIURL(url string) Option        { return func(c *Client) { c.httpAPIURL = url } }
 
 func (c *Client) eventuallyReadCache(key string) any {
 	if c.cache == nil {

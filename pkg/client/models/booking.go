@@ -1,7 +1,10 @@
 package models
 
 import (
+	"encoding/json"
+	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -63,4 +66,63 @@ func (c CustomFields) Get(key string) string {
 	}
 
 	return ""
+}
+
+type IndexableBookingResponse struct {
+	Booking RawIndexableBooking `json:"booking"`
+}
+
+type RawIndexableBooking struct {
+	ID        int
+	EntityID  uuid.UUID
+	Departure time.Time
+
+	Full json.RawMessage
+}
+
+var _ json.Marshaler = (*RawIndexableBooking)(nil)
+
+func (b *RawIndexableBooking) MarshalJSON() ([]byte, error) {
+	return b.Full, nil
+}
+
+var _ json.Unmarshaler = (*RawIndexableBooking)(nil)
+
+func (b *RawIndexableBooking) UnmarshalJSON(data []byte) error {
+	minimalBooking := &struct {
+		ID        int       `json:"id"`
+		EntityID  uuid.UUID `json:"entityId"`
+		Departure time.Time `json:"departure"`
+	}{}
+	if err := json.Unmarshal(data, minimalBooking); err != nil {
+		return fmt.Errorf("could not decode minimal booking: %w", err)
+	}
+
+	b.ID = minimalBooking.ID
+	b.EntityID = minimalBooking.EntityID
+	b.Departure = minimalBooking.Departure
+	b.Full = data
+
+	return nil
+}
+
+type IndexBookingRequest struct {
+	Booking             RawIndexableBooking `json:"booking"`
+	CampaignStats       json.RawMessage     `json:"campaignStats,omitempty"`
+	ComputeAggregations bool                `json:"computeAggregations,omitempty"`
+	ReindexGuest        *bool               `json:"reindexGuest,omitempty"`
+	SurveyAnswers       json.RawMessage     `json:"surveyAnswers,omitempty"`
+	UpdateGuestExtra    *bool               `json:"updateGuestExtra,omitempty"`
+	UserDevice          json.RawMessage     `json:"userDevice,omitempty"`
+}
+
+func (r *IndexBookingRequest) RID() string {
+	return strings.Join([]string{
+		"indexer",
+		"entities",
+		r.Booking.EntityID.String(),
+		"guest-bookings",
+		strconv.Itoa(r.Booking.ID),
+		"index",
+	}, ".")
 }
