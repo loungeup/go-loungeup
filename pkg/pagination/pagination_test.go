@@ -50,6 +50,12 @@ func TestPager(t *testing.T) {
 		assert.False(t, pager.Next())
 		assert.ErrorIs(t, pager.Err(), assert.AnError)
 	})
+
+	t.Run("keyset", func(t *testing.T) {
+		pagination.NewPager(pagination.NewKeysetPageReader(func(size int, lastKey string) (uuid.UUIDs, string, error) {
+			return nil, "", nil
+		}))
+	})
 }
 
 func TestBoundLimit(t *testing.T) {

@@ -69,20 +69,20 @@ type pageReader[S ~[]E, E any] interface {
 	readPage(size int) (S, error)
 }
 
-type keysetPageReader[S ~[]E, E any] struct {
-	readPageFunc func(size int, lastKey string) (S, string, error)
-	lastKey      string
+type keysetPageReader[S ~[]E, E, K any] struct {
+	readPageFunc func(size int, lastKey K) (S, K, error)
+	lastKey      K
 }
 
-func NewKeysetPageReader[S ~[]E, E any](
-	readPageFunc func(size int, lastKey string) (S, string, error),
-) *keysetPageReader[S, E] {
-	return &keysetPageReader[S, E]{readPageFunc: readPageFunc}
+func NewKeysetPageReader[S ~[]E, E, K any](
+	readPageFunc func(size int, lastKey K) (S, K, error),
+) *keysetPageReader[S, E, K] {
+	return &keysetPageReader[S, E, K]{readPageFunc: readPageFunc}
 }
 
-var _ pageReader[[]any, any] = (*keysetPageReader[[]any, any])(nil)
+var _ pageReader[[]any, any] = (*keysetPageReader[[]any, any, any])(nil)
 
-func (r *keysetPageReader[S, E]) readPage(size int) (S, error) {
+func (r *keysetPageReader[S, E, K]) readPage(size int) (S, error) {
 	result, lastKey, err := r.readPageFunc(size, r.lastKey)
 	if err != nil {
 		return nil, err
