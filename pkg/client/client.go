@@ -1,6 +1,9 @@
 package client
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/loungeup/go-loungeup/pkg/cache"
 	"github.com/loungeup/go-loungeup/pkg/transport"
 )
@@ -63,4 +66,19 @@ func (c *Client) eventuallyWriteCache(key string, value any) {
 	}
 
 	c.cache.Write(key, value)
+}
+
+func (c *Client) executeHTTPRequest(request *http.Request) (*http.Response, error) {
+	request.Header.Set("Authorization", "Bearer "+c.httpAPIKey)
+
+	response, err := c.httpClient.Do(request)
+	if err != nil {
+		return nil, fmt.Errorf("could not send request: %w", err)
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("invalid status code: %s", response.Status)
+	}
+
+	return response, nil
 }

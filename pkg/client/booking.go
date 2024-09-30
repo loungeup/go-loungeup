@@ -6,11 +6,60 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/jirenius/go-res/resprot"
 	"github.com/loungeup/go-loungeup/pkg/client/models"
 )
 
 type bookingsClient struct{ baseClient *Client }
+
+func (c *bookingsClient) CountBookings(entityID uuid.UUID) (int64, error) {
+	request, err := http.NewRequest(
+		http.MethodPost,
+		c.baseClient.httpAPIURL+"/entities/"+entityID.String()+"/bookings/count",
+		http.NoBody,
+	)
+	if err != nil {
+		return 0, fmt.Errorf("could not create request: %w", err)
+	}
+
+	response, err := c.baseClient.executeHTTPRequest(request)
+	if err != nil {
+		return 0, fmt.Errorf("could not send request: %w", err)
+	}
+	defer response.Body.Close()
+
+	var result int64
+	if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
+		return 0, fmt.Errorf("could not decode response body: %w", err)
+	}
+
+	return result, nil
+}
+
+func (c *bookingsClient) ReadBookingIDs(selector *models.BookingIDsSelector) (models.BookingIDSlice, error) {
+	request, err := http.NewRequest(
+		http.MethodGet,
+		c.baseClient.httpAPIURL+"/entities/"+selector.EntityID.String()+"/booking-ids?"+selector.EncodedQuery(),
+		http.NoBody,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("could not create request: %w", err)
+	}
+
+	response, err := c.baseClient.executeHTTPRequest(request)
+	if err != nil {
+		return nil, fmt.Errorf("could not send request: %w", err)
+	}
+	defer response.Body.Close()
+
+	result := models.BookingIDSlice{}
+	if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("could not decode response body: %w", err)
+	}
+
+	return result, nil
+}
 
 func (c *bookingsClient) ReadIndexableBookingByID(bookingID int) (*models.IndexableBookingResponse, error) {
 	request, err := http.NewRequest(
@@ -22,17 +71,11 @@ func (c *bookingsClient) ReadIndexableBookingByID(bookingID int) (*models.Indexa
 		return nil, fmt.Errorf("could not create request: %w", err)
 	}
 
-	request.Header.Set("Authorization", "Bearer "+c.baseClient.httpAPIKey)
-
-	response, err := c.baseClient.httpClient.Do(request)
+	response, err := c.baseClient.executeHTTPRequest(request)
 	if err != nil {
 		return nil, fmt.Errorf("could not send request: %w", err)
 	}
 	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", response.StatusCode)
-	}
 
 	result := &models.IndexableBookingResponse{}
 	if err := json.NewDecoder(response.Body).Decode(result); err != nil {

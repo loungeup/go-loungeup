@@ -126,3 +126,30 @@ func (r *IndexBookingRequest) RID() string {
 		"index",
 	}, ".")
 }
+
+type BookingIDsSelector struct {
+	EntityID    uuid.UUID
+	Size        int
+	LastGuestID uuid.UUID
+}
+
+func (s *BookingIDsSelector) EncodedQuery() string {
+	result := "entityId=" + s.EntityID.String()
+
+	if s.LastGuestID != uuid.Nil {
+		result += "&lastGuestId=" + s.LastGuestID.String()
+	}
+
+	if s.Size > 0 {
+		result += "&size=" + strconv.Itoa(s.Size)
+	}
+
+	return result
+}
+
+type BookingIDSlice []*BookingID
+
+type BookingID struct {
+	ID      int       `json:"id"`
+	GuestID uuid.UUID `json:"guestId"`
+}
