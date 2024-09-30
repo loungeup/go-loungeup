@@ -37,7 +37,7 @@ func (c *bookingsClient) CountBookings(entityID uuid.UUID) (int64, error) {
 	return result, nil
 }
 
-func (c *bookingsClient) ReadBookingIDs(selector *models.BookingIDsSelector) (models.BookingIDSlice, error) {
+func (c *bookingsClient) ReadBookingIDs(selector *models.BookingIDsSelector) (models.ReadBookingIDsResponse, error) {
 	request, err := http.NewRequest(
 		http.MethodGet,
 		c.baseClient.httpAPIURL+"/entities/"+selector.EntityID.String()+"/booking-ids?"+selector.EncodedQuery(),
@@ -53,7 +53,7 @@ func (c *bookingsClient) ReadBookingIDs(selector *models.BookingIDsSelector) (mo
 	}
 	defer response.Body.Close()
 
-	result := models.BookingIDSlice{}
+	result := models.ReadBookingIDsResponse{}
 	if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("could not decode response body: %w", err)
 	}

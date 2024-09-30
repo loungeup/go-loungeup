@@ -58,7 +58,7 @@ func TestReadBookingIDs(t *testing.T) {
 	tests := map[string]struct {
 		selector    *models.BookingIDsSelector
 		handlerFunc http.HandlerFunc
-		assertFunc  func(t *testing.T, got models.BookingIDSlice, err error)
+		assertFunc  func(t *testing.T, got models.ReadBookingIDsResponse, err error)
 	}{
 		"simple": {
 			selector: &models.BookingIDsSelector{
@@ -92,9 +92,9 @@ func TestReadBookingIDs(t *testing.T) {
 					}
 				]`))
 			},
-			assertFunc: func(t *testing.T, got models.BookingIDSlice, err error) {
+			assertFunc: func(t *testing.T, got models.ReadBookingIDsResponse, err error) {
 				require.NoError(t, err)
-				require.Equal(t, models.BookingIDSlice{
+				require.Equal(t, models.ReadBookingIDsResponse{
 					{
 						ID:      22206329,
 						GuestID: uuid.MustParse("02c774a6-71e8-94db-4961-28ce29f0e729"),
@@ -117,7 +117,7 @@ func TestReadBookingIDs(t *testing.T) {
 		"invalid status code": {
 			selector:    &models.BookingIDsSelector{EntityID: uuid.MustParse("0ce1e959-57e3-4ebb-b8d9-6126a05afee2")},
 			handlerFunc: func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusNotFound) },
-			assertFunc:  func(t *testing.T, _ models.BookingIDSlice, err error) { require.Error(t, err) },
+			assertFunc:  func(t *testing.T, _ models.ReadBookingIDsResponse, err error) { require.Error(t, err) },
 		},
 	}
 

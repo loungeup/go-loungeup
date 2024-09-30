@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,6 +36,37 @@ func TestBookingInStayDates(t *testing.T) {
 	for test, tt := range tests {
 		t.Run(test, func(t *testing.T) {
 			assert.Equal(t, tt.want, tt.in.InStayDates())
+		})
+	}
+}
+
+func TestReadBookingIDsResponse(t *testing.T) {
+	tests := map[string]struct {
+		in              *ReadBookingIDsResponse
+		wantBookingIDs  []int
+		wantLastGuestID uuid.UUID
+	}{
+		"simple": {
+			in: &ReadBookingIDsResponse{
+				{
+					ID:      1,
+					GuestID: uuid.MustParse("51645cef-29a0-4eac-bc65-a5102acfbb29"),
+				},
+			},
+			wantBookingIDs:  []int{1},
+			wantLastGuestID: uuid.MustParse("51645cef-29a0-4eac-bc65-a5102acfbb29"),
+		},
+		"empty": {
+			in:              &ReadBookingIDsResponse{},
+			wantBookingIDs:  []int{},
+			wantLastGuestID: uuid.Nil,
+		},
+	}
+
+	for test, tt := range tests {
+		t.Run(test, func(t *testing.T) {
+			assert.Equal(t, tt.wantBookingIDs, tt.in.BookingIDs())
+			assert.Equal(t, tt.wantLastGuestID, tt.in.LastGuestID())
 		})
 	}
 }

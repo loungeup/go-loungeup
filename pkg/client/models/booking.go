@@ -147,9 +147,24 @@ func (s *BookingIDsSelector) EncodedQuery() string {
 	return result
 }
 
-type BookingIDSlice []*BookingID
-
-type BookingID struct {
+type ReadBookingIDsResponse []struct {
 	ID      int       `json:"id"`
 	GuestID uuid.UUID `json:"guestId"`
+}
+
+func (s ReadBookingIDsResponse) BookingIDs() []int {
+	result := []int{}
+	for _, bookingID := range s {
+		result = append(result, bookingID.ID)
+	}
+
+	return result
+}
+
+func (s ReadBookingIDsResponse) LastGuestID() uuid.UUID {
+	if len(s) == 0 {
+		return uuid.Nil
+	}
+
+	return s[len(s)-1].GuestID
 }
