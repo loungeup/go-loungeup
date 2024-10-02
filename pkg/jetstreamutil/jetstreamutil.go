@@ -43,16 +43,9 @@ func NewConsumerConfigWithDefaults(name, subject string) jetstream.ConsumerConfi
 	return jetstream.ConsumerConfig{
 		Name:          name,
 		Durable:       name,
-		FilterSubject: subject,
+		AckWait:       30 * time.Second,
 		MaxDeliver:    10,
-		BackOff: []time.Duration{
-			100 * time.Millisecond,
-			500 * time.Millisecond,
-			1 * time.Second,
-			5 * time.Second,
-			10 * time.Second,
-			time.Minute,
-		},
+		FilterSubject: subject,
 	}
 }
 
