@@ -3,6 +3,7 @@ package jetstreamutil
 import (
 	"encoding/json"
 	"log/slog"
+	"strings"
 	"sync"
 	"time"
 
@@ -50,22 +51,23 @@ func WithThrottlerProgressInterval(progressInterval time.Duration) throttlerOpti
 
 func (t *Throttler) Handle(next func(msg jetstream.Msg)) func(msg jetstream.Msg) {
 	return func(msg jetstream.Msg) {
+		key := strings.Join([]string{msg.Subject(), string(msg.Data())}, "-")
+
 		l1 := t.logger.With(
 			slog.Any("data", json.RawMessage(msg.Data())),
+			slog.String("key", key),
 			slog.String("subject", msg.Subject()),
 			slog.String("traceId", uuid.NewString()),
 		)
 
-		dataAsString := string(msg.Data())
-
-		if t.isLocked(dataAsString) {
+		if t.isLocked(key) {
 			l1.Debug("Terminating duplicated message")
 			msg.Term()
 
 			return
 		}
 
-		t.lock(dataAsString)
+		t.lock(key)
 
 		timer := time.NewTimer(t.interval)
 		ticker := time.NewTicker(t.progressInterval)
@@ -75,7 +77,7 @@ func (t *Throttler) Handle(next func(msg jetstream.Msg)) func(msg jetstream.Msg)
 				select {
 				case <-timer.C:
 					next(msg)
-					t.release(dataAsString)
+					t.release(key)
 					ticker.Stop()
 				case <-ticker.C:
 					l1.Debug("Message in progress")
