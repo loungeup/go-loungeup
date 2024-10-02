@@ -39,13 +39,20 @@ func createDefaultStream(js jetstream.JetStream, ctx context.Context) (jetstream
 
 // NewConsumerConfigWithDefaults creates a new consumer config with default values.
 func NewConsumerConfigWithDefaults(name, subject string) jetstream.ConsumerConfig {
-	const maxDeliver = 10
-
+	//nolint:gomnd,mnd
 	return jetstream.ConsumerConfig{
 		Name:          name,
 		Durable:       name,
 		FilterSubject: subject,
-		MaxDeliver:    maxDeliver,
+		MaxDeliver:    10,
+		BackOff: []time.Duration{
+			100 * time.Millisecond,
+			500 * time.Millisecond,
+			1 * time.Second,
+			5 * time.Second,
+			10 * time.Second,
+			time.Minute,
+		},
 	}
 }
 
