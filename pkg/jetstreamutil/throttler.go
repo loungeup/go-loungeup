@@ -20,18 +20,18 @@ type Throttler struct {
 }
 
 func NewThrottler(options ...throttlerOption) *Throttler {
-	const defaultInterval = time.Second
+	const (
+		defaultInterval         = time.Second
+		defaultProgressInterval = 500 * time.Millisecond
+	)
 
 	result := &Throttler{
-		interval: defaultInterval,
-		logger:   log.Default(),
+		interval:         defaultInterval,
+		progressInterval: defaultProgressInterval,
+		logger:           log.Default(),
 	}
 	for _, option := range options {
 		option(result)
-	}
-
-	if result.progressInterval == 0 {
-		result.progressInterval = result.interval / 2 //nolint:gomnd,mnd
 	}
 
 	result.logger.Debug("Throttler created",
