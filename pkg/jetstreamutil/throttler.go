@@ -20,18 +20,18 @@ type Throttler struct {
 }
 
 func NewThrottler(options ...throttlerOption) *Throttler {
-	const (
-		defaultInterval         = time.Second
-		defaultProgressInterval = 500 * time.Millisecond
-	)
+	const defaultInterval = time.Second
 
 	result := &Throttler{
-		interval:         defaultInterval,
-		progressInterval: defaultProgressInterval,
-		logger:           log.Default(),
+		interval: defaultInterval,
+		logger:   log.Default(),
 	}
 	for _, option := range options {
 		option(result)
+	}
+
+	if result.progressInterval == 0 {
+		result.progressInterval = result.interval / 2 //nolint:gomnd,mnd
 	}
 
 	result.logger.Debug("Throttler created",
@@ -63,7 +63,6 @@ func (t *Throttler) Handle(next func(msg jetstream.Msg)) func(msg jetstream.Msg)
 			slog.String("key", key),
 			slog.String("subject", msg.Subject()),
 			slog.String("traceId", uuid.NewString()),
-			slog.Int("throttledMsgsCount", t.throttledMsgsCount()),
 		)
 
 		if t.isLocked(key) {
@@ -82,6 +81,7 @@ func (t *Throttler) Handle(next func(msg jetstream.Msg)) func(msg jetstream.Msg)
 			for {
 				select {
 				case <-timer.C:
+					l1.Debug("Processing message")
 					next(msg)
 					t.release(key)
 					ticker.Stop()
@@ -102,16 +102,5 @@ func (t *Throttler) isLocked(key string) bool {
 func (t *Throttler) lock(key string) { t.throttledMsgs.Store(key, time.Now()) }
 
 func (t *Throttler) release(key string) { t.throttledMsgs.Delete(key) }
-
-func (t *Throttler) throttledMsgsCount() int {
-	result := 0
-
-	t.throttledMsgs.Range(func(_, _ any) bool {
-		result++
-		return true
-	})
-
-	return result
-}
 
 type throttlerOption func(*Throttler)
