@@ -1,6 +1,8 @@
 package transport
 
 import (
+	"time"
+
 	"github.com/jirenius/go-res"
 	"github.com/jirenius/go-res/resprot"
 )
@@ -16,19 +18,35 @@ type RESRequester interface {
 // RESClient used to interact with NATS services using the RES protocol.
 type RESClient struct {
 	natsConnection res.Conn
+	natsTimeout    time.Duration
 }
 
+type resClientOption func(*RESClient)
+
 // NewRESClient returns a client to interact with NATS services using the RES protocol.
-func NewRESClient(natsConnection res.Conn) *RESClient {
-	return &RESClient{
+func NewRESClient(natsConnection res.Conn, options ...resClientOption) *RESClient {
+	const defaultNATSTimeout = 4 * time.Second
+
+	result := &RESClient{
 		natsConnection: natsConnection,
+		natsTimeout:    defaultNATSTimeout,
 	}
+
+	for _, option := range options {
+		option(result)
+	}
+
+	return result
+}
+
+func WithRESClientNATSTimeout(natsTimeout time.Duration) func(*RESClient) {
+	return func(c *RESClient) { c.natsTimeout = natsTimeout }
 }
 
 var _ (RESRequester) = (*RESClient)(nil)
 
 func (c *RESClient) Request(resourceID string, request resprot.Request) resprot.Response {
-	return resprot.SendRequest(c.natsConnection, resourceID, request, defaultNATSTimeout)
+	return resprot.SendRequest(c.natsConnection, resourceID, request, c.natsTimeout)
 }
 
 // CallRESResult from the resource ID.

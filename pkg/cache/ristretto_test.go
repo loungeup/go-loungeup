@@ -8,10 +8,10 @@ import (
 )
 
 func TestRistrettoCache(t *testing.T) {
-	cache, err := NewRistretto(tooSmallRistrettoCache)
-	require.NoError(t, err)
-
 	t.Run("simple", func(t *testing.T) {
+		cache, err := NewRistretto(0)
+		require.NoError(t, err)
+
 		cache.Write("foo", "bar")
 		waitForCache()
 
@@ -24,6 +24,9 @@ func TestRistrettoCache(t *testing.T) {
 	})
 
 	t.Run("too large item", func(t *testing.T) {
+		cache, err := NewRistretto(tooSmallRistrettoCache)
+		require.NoError(t, err)
+
 		cache.Write("baz", "this item is too large")
 		waitForCache()
 

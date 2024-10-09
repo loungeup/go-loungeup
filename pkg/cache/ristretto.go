@@ -18,7 +18,7 @@ const (
 type RistrettoCacheSize int
 
 const (
-	tooSmallRistrettoCache RistrettoCacheSize = iota // Used to test the case where the item is too large.
+	tooSmallRistrettoCache RistrettoCacheSize = iota + 1 // Used to test the case where the item is too large.
 	MediumRistrettoCache
 	LargeRistrettoCache
 )
