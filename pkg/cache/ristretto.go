@@ -84,7 +84,9 @@ func (r *Ristretto) Read(key string) any {
 	return result
 }
 
-func (r *Ristretto) Size() uint64 { return r.baseCache.Metrics.CostAdded() }
+func (r *Ristretto) Size() uint64 {
+	return r.baseCache.Metrics.CostAdded() - r.baseCache.Metrics.CostEvicted()
+}
 
 func (r *Ristretto) Write(key string, value any) {
 	r.WriteWithDuration(key, value, defaultRistrettoCacheDuration)
