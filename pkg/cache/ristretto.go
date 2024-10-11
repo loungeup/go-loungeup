@@ -60,6 +60,7 @@ func (s RistrettoCacheSize) Config() *ristretto.Config {
 			}
 		}(),
 		BufferItems: bufferItems,
+		Metrics:     true,
 	}
 }
 
@@ -82,6 +83,8 @@ func (r *Ristretto) Read(key string) any {
 
 	return result
 }
+
+func (r *Ristretto) Size() uint64 { return r.baseCache.Metrics.CostAdded() }
 
 func (r *Ristretto) Write(key string, value any) {
 	r.WriteWithDuration(key, value, defaultRistrettoCacheDuration)
