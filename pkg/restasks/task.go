@@ -3,7 +3,6 @@ package restasks
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
@@ -25,17 +24,6 @@ type task struct {
 	Progress    int
 	Error       error
 	Result      any
-	CreatedAt   time.Time
-}
-
-// newTask creates a new task for the service with the given name.
-func newTask(serviceName string) *task {
-	return &task{
-		ServiceName: serviceName,
-		ID:          uuid.New(),
-		Progress:    taskMinProgress,
-		CreatedAt:   time.Now(),
-	}
 }
 
 // rid of the task.

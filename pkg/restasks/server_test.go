@@ -20,7 +20,7 @@ func TestInMemoryServer(t *testing.T) {
 	session := restest.NewSession(t, server.service)
 	defer session.Close()
 
-	taskRID, err := server.CreateTask()
+	taskRID := server.CreateTask()
 	require.NoError(t, err)
 	session.Get(taskRID).Response().AssertModel(json.RawMessage(`{
 		"status": "started",

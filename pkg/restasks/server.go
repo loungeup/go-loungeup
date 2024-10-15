@@ -1,6 +1,7 @@
 package restasks
 
 import (
+	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
 	"github.com/loungeup/go-loungeup/pkg/cache"
 	"github.com/loungeup/go-loungeup/pkg/errors"
@@ -21,11 +22,15 @@ func NewServer(cache cache.ReadWriter, service *res.Service) *Server {
 }
 
 // CreateTask and returns its RID.
-func (s *Server) CreateTask() (string, error) {
-	task := newTask(s.service.FullPath())
+func (s *Server) CreateTask() string {
+	task := &task{
+		ServiceName: s.service.FullPath(),
+		ID:          uuid.New(),
+		Progress:    taskMinProgress,
+	}
 	cacheTask(s.cache, task)
 
-	return task.rid(), nil
+	return task.rid()
 }
 
 // CompleteTask with the given result.
