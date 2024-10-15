@@ -3,14 +3,12 @@ Package restasks provides a [Server] to handle asynchronous tasks with a RES ser
 
 The [Server] is designed to be used as a standalone service or as part of a larger application.
 
-You can create a server by providing a RES service and a [TaskReadWriter] implementation:
+You can create a server by providing a cache implementation and a RES service:
 
 	server := restasks.NewServer(
-		res.NewService("test"),			// Create a RES service or use an existing one.
-		restasks.NewInMemoryStore(0),	// Create a store.
+		cache.NewRistretto(cache.MediumRistrettoCache),	// Create a cache or use an existing one.
+		res.NewService("test"),							// Create a RES service or use an existing one.
 	)
-
-You can replace the in-memory store with your own implementation of the [TaskReadWriter] interface.
 
 Then, you can manage tasks using the [Server].
 Let's imagine that we have a RES handler that does some heavy work and we want to run it asynchronously:

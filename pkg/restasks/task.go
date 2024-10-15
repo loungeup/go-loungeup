@@ -38,10 +38,8 @@ func newTask(serviceName string) *task {
 	}
 }
 
-// rid of the task for the given service.
-func (t *task) rid() string {
-	return t.ServiceName + ".tasks." + t.ID.String()
-}
+// rid of the task.
+func (t *task) rid() string { return t.ServiceName + ".tasks." + t.ID.String() }
 
 // setProgress of the task. It must be between taskMinProgress and taskMaxProgress.
 func (t *task) setProgress(progress int) error {
