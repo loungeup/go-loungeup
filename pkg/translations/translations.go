@@ -50,17 +50,17 @@ type getConfig struct {
 func DefaultKey(key TranslationKey) GetOption { return func(c *getConfig) { c.defaultKey = key } }
 func GetFirstByDefault() GetOption            { return func(c *getConfig) { c.getFirstByDefault = true } }
 
-var _ (sql.Scanner) = (Translations)(nil)
+var _ (sql.Scanner) = (*Translations)(nil)
 
 func (t Translations) IsZero() bool { return len(t) == 0 }
 
-func (t Translations) Scan(v any) error {
+func (t *Translations) Scan(v any) error {
 	vAsBytes, ok := v.([]byte)
 	if !ok {
 		return fmt.Errorf("could not convert value to []byte")
 	}
 
-	return json.Unmarshal(vAsBytes, &t)
+	return json.Unmarshal(vAsBytes, t)
 }
 
 func (t Translations) Validate() error {
