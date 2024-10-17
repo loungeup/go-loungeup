@@ -9,6 +9,7 @@ import (
 	"reflect"
 
 	"github.com/jirenius/go-res"
+	"github.com/loungeup/go-loungeup/pkg/errors"
 	"github.com/loungeup/go-loungeup/pkg/log"
 	"github.com/nats-io/nats.go"
 )
@@ -138,15 +139,15 @@ func compareMaps(previous, current map[string]any) map[string]any {
 	return result
 }
 
-func HandleCollectionQueryRequest[T any](
+func HandleCollectionQueryRequest[Collection ~[]Model, Model any](
 	service *res.Service,
 	rid string,
-	handler func(request res.QueryRequest) ([]T, error),
+	handler func(request res.QueryRequest) (Collection, error),
 ) error {
 	return handleQueryRequest(service, rid, func(request res.QueryRequest) {
 		response, err := handler(request)
 		if err != nil {
-			request.Error(err)
+			errors.LogAndWriteRESError(log.Default(), request, err)
 			return
 		}
 
@@ -154,15 +155,15 @@ func HandleCollectionQueryRequest[T any](
 	})
 }
 
-func HandleModelQueryRequest[T any](
+func HandleModelQueryRequest[Model any](
 	service *res.Service,
 	rid string,
-	handler func(request res.QueryRequest) (T, error),
+	handler func(request res.QueryRequest) (Model, error),
 ) error {
 	return handleQueryRequest(service, rid, func(request res.QueryRequest) {
 		response, err := handler(request)
 		if err != nil {
-			request.Error(err)
+			errors.LogAndWriteRESError(log.Default(), request, err)
 			return
 		}
 
