@@ -1,5 +1,13 @@
 package pagination
 
+import (
+	"fmt"
+	"net/url"
+	"strconv"
+
+	"github.com/loungeup/go-loungeup/pkg/errors"
+)
+
 type Pager[S ~[]E, E any] struct {
 	reader pageReader[S, E]
 
@@ -116,6 +124,59 @@ func (r *offsetPagerReader[S, E]) readPage(size int) (S, error) {
 }
 
 const (
+	keysetSelectorLastKeyQuery = "lastKey"
+	keysetSelectorSizeQuery    = "size"
+)
+
+type KeysetSelector[T any] struct {
+	LastKey T
+	Size    int
+}
+
+func (s *KeysetSelector[T]) Query() url.Values {
+	result := url.Values{}
+	result.Add(keysetSelectorLastKeyQuery, fmt.Sprint(s.LastKey))
+	result.Add(keysetSelectorSizeQuery, strconv.Itoa(s.Size))
+
+	return result
+}
+
+func ParseKeysetSelector[T any](
+	query url.Values,
+	parseLastKeyFunc func(key string) (T, error),
+) (*KeysetSelector[T], error) {
+	result := &KeysetSelector[T]{}
+
+	if lastKeyQuery := query.Get(keysetSelectorLastKeyQuery); lastKeyQuery != "" {
+		lastKey, err := parseLastKeyFunc(lastKeyQuery)
+		if err != nil {
+			return nil, &errors.Error{
+				Code:            errors.CodeInvalid,
+				Message:         "Invalid '" + keysetSelectorLastKeyQuery + "' query parameter",
+				UnderlyingError: err,
+			}
+		}
+
+		result.LastKey = lastKey
+	}
+
+	if sizeQuery := query.Get(keysetSelectorSizeQuery); sizeQuery != "" {
+		size, err := strconv.Atoi(sizeQuery)
+		if err != nil {
+			return nil, &errors.Error{
+				Code:            errors.CodeInvalid,
+				Message:         "Invalid '" + keysetSelectorSizeQuery + "' query parameter",
+				UnderlyingError: err,
+			}
+		}
+
+		result.Size = size
+	}
+
+	return result, nil
+}
+
+const (
 	minLimit  = 0
 	minOffset = 0
 )
@@ -127,12 +188,12 @@ type Limit int
 func NewLimit(limit int) Limit { return Limit(limit) }
 
 // Bound the limit to the minimum value (zero) and the provided maximum value.
-func (l Limit) Bound(max int) int {
-	if l > minLimit && int(l) < max {
+func (l Limit) Bound(maxLimit int) int {
+	if l > minLimit && int(l) < maxLimit {
 		return int(l)
 	}
 
-	return max
+	return maxLimit
 }
 
 // Offset of a page.

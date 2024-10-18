@@ -33,6 +33,10 @@ type Entity struct {
 	UpdatedAt      time.Time           `json:"updatedAt"`
 }
 
+func (e Entity) ChainID() uuid.UUID    { return getEntityIDFromRID(string(e.Chain)) }
+func (e Entity) GroupID() uuid.UUID    { return getEntityIDFromRID(string(e.Group)) }
+func (e Entity) ResellerID() uuid.UUID { return getEntityIDFromRID(string(e.Reseller)) }
+
 func (e Entity) CurrencyCode() string {
 	if e.Currency == "" {
 		return ""
@@ -81,4 +85,17 @@ func (s EntityAccountsSelector) RID() string {
 
 type EntityUpdates struct {
 	ConvertAmountsTaskRID string `json:"convertAmountsTaskRid"`
+}
+
+func getEntityIDFromRID(rid string) uuid.UUID {
+	if rid == "" {
+		return uuid.Nil
+	}
+
+	result, err := uuid.Parse(strings.TrimPrefix(string(rid), "authority.entities."))
+	if err != nil {
+		return uuid.Nil
+	}
+
+	return result
 }

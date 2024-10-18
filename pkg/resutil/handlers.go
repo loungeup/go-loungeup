@@ -22,17 +22,18 @@ type (
 		ReadModel(selector Selector) (Model, error)
 	}
 
-	CreateModelProvider[Model, Params, Selector any] interface {
-		CreateModel(selector Selector, params Params) (Model, error)
+	CreateModelProvider[Model, Params any] interface {
+		CreateModel(params Params) (Model, error)
 		MakeModelRID(model Model) string
-		ParseCollectionSelector(resource res.Resource) (Selector, error)
+		ParseModelParams(request res.CallRequest) (Params, error)
 	}
 
-	UpdateModelProvider[Model, Selector, Updates any] interface {
+	UpdateModelProvider[Model, Selector, Params any] interface {
 		MakeModelRID(model Model) string
+		ParseModelParams(request res.CallRequest) (Params, error)
 		ParseModelSelector(resource res.Resource) (Selector, error)
 		ReadModel(selector Selector) (Model, error)
-		UpdateModel(existingModel Model, updates Updates) (Model, error)
+		UpdateModel(existingModel Model, params Params) (Model, error)
 	}
 
 	DeleteModelProvider[Selector any] interface {
@@ -85,20 +86,15 @@ func UseGetModelHandler[Model, Selector any](provider GetModelProvider[Model, Se
 	}
 }
 
-func UseCreateModelHandler[Model, Params, Selector any](
-	provider CreateModelProvider[Model, Params, Selector],
-) res.CallHandler {
+func UseCreateModelHandler[Model, Params any](provider CreateModelProvider[Model, Params]) res.CallHandler {
 	return func(request res.CallRequest) {
-		selector, err := provider.ParseCollectionSelector(request)
+		params, err := provider.ParseModelParams(request)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
 			return
 		}
 
-		var params Params
-		request.ParseParams(&params) //nolint:wsl
-
-		model, err := provider.CreateModel(selector, params)
+		model, err := provider.CreateModel(params)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
 			return
@@ -112,14 +108,17 @@ func UseUpdateModelHandler[Model, Selector, Updates any](
 	provider UpdateModelProvider[Model, Selector, Updates],
 ) res.CallHandler {
 	return func(request res.CallRequest) {
-		selector, err := provider.ParseModelSelector(request)
+		params, err := provider.ParseModelParams(request)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
 			return
 		}
 
-		var updates Updates
-		request.ParseParams(&updates) //nolint:wsl
+		selector, err := provider.ParseModelSelector(request)
+		if err != nil {
+			errors.LogAndWriteRESError(log.Default(), request, err)
+			return
+		}
 
 		existingModel, err := provider.ReadModel(selector)
 		if err != nil {
@@ -127,7 +126,7 @@ func UseUpdateModelHandler[Model, Selector, Updates any](
 			return
 		}
 
-		updatedModel, err := provider.UpdateModel(existingModel, updates)
+		updatedModel, err := provider.UpdateModel(existingModel, params)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
 			return

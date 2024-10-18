@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"reflect"
 
+	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
 	"github.com/loungeup/go-loungeup/pkg/errors"
 	"github.com/loungeup/go-loungeup/pkg/log"
@@ -203,4 +204,18 @@ func MapRefs[S ~[]E, E any](s S, f func(e E) res.Ref) RefSlice {
 	}
 
 	return result
+}
+
+// ParseUUIDPathParam from the resource with the given key.
+func ParseUUIDPathParam(resource res.Resource, key string) (uuid.UUID, error) {
+	result, err := uuid.Parse(resource.PathParam(key))
+	if err != nil {
+		return uuid.Nil, &errors.Error{
+			Code:            errors.CodeInvalid,
+			Message:         "Invalid '" + key + "' path parameter",
+			UnderlyingError: err,
+		}
+	}
+
+	return result, nil
 }
