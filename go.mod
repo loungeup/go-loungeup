@@ -3,6 +3,7 @@ module github.com/loungeup/go-loungeup
 go 1.21.0
 
 require (
+	github.com/SparkPost/gosparkpost v0.2.0
 	github.com/dgraph-io/badger/v3 v3.2103.5
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/google/uuid v1.6.0
