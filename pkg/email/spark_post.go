@@ -55,7 +55,7 @@ func makeSparkPostTransmission(email *Email) *gosparkpost.Transmission {
 
 	return &gosparkpost.Transmission{
 		Recipients: mapSparkPostRecipients(email.Recipients),
-		Content: &gosparkpost.Content{
+		Content: gosparkpost.Content{
 			From:        email.Sender,
 			Subject:     email.Subject,
 			HTML:        string(email.HTMLBody),
