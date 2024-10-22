@@ -7,32 +7,35 @@ import (
 	"github.com/loungeup/go-loungeup/pkg/translations"
 )
 
-func Int(value, defaultValue int) int {
-	return getValueOrDefault(value, defaultValue, func(value int) bool { return value != 0 })
+type optionalValue[T any] struct {
+	valid bool
+	value T
 }
 
-func String(value, defaultValue string) string {
-	return getValueOrDefault(value, defaultValue, func(value string) bool { return value != "" })
-}
-
-func Time(value, defaultValue time.Time) time.Time {
-	return getValueOrDefault(value, defaultValue, func(v time.Time) bool { return !v.IsZero() })
-}
-
-func Translations(value, defaultValue translations.Translations) translations.Translations {
-	return getValueOrDefault(value, defaultValue, func(value translations.Translations) bool {
-		return value != nil && !value.IsZero()
-	})
-}
-
-func UUID(value, defaultValue uuid.UUID) uuid.UUID {
-	return getValueOrDefault(value, defaultValue, func(value uuid.UUID) bool { return value != uuid.Nil })
-}
-
-func getValueOrDefault[T any](value, defaultValue T, f func(value T) bool) T {
-	if f(value) {
-		return value
+func (v *optionalValue[T]) Or(value T) T {
+	if v.valid {
+		return v.value
 	}
 
-	return defaultValue
+	return value
+}
+
+func Int(value int) *optionalValue[int] {
+	return &optionalValue[int]{valid: value != 0, value: value}
+}
+
+func String(value string) *optionalValue[string] {
+	return &optionalValue[string]{valid: value != "", value: value}
+}
+
+func Time(value time.Time) *optionalValue[time.Time] {
+	return &optionalValue[time.Time]{valid: !value.IsZero(), value: value}
+}
+
+func Translations(value translations.Translations) *optionalValue[translations.Translations] {
+	return &optionalValue[translations.Translations]{valid: value != nil && !value.IsZero(), value: value}
+}
+
+func UUID(value uuid.UUID) *optionalValue[uuid.UUID] {
+	return &optionalValue[uuid.UUID]{valid: value != uuid.Nil, value: value}
 }
