@@ -16,6 +16,20 @@ type (
 	TranslationValue string
 )
 
+func (t Translations) Equal(other Translations) bool {
+	if len(t) != len(other) {
+		return false
+	}
+
+	for key, value := range t {
+		if otherValue, ok := other[key]; !ok || value != otherValue {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (t Translations) Get(k TranslationKey, options ...GetOption) TranslationValue {
 	config := &getConfig{
 		defaultKey:        "en",

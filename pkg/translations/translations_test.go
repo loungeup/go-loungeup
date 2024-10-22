@@ -8,6 +8,45 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestTranslationsEqual(t *testing.T) {
+	tests := map[string]struct {
+		a, b Translations
+		want bool
+	}{
+		"empty": {
+			a:    Translations{},
+			b:    Translations{},
+			want: true,
+		},
+		"equal": {
+			a:    Translations{"en": "Hello", "fr": "Bonjour"},
+			b:    Translations{"fr": "Bonjour", "en": "Hello"},
+			want: true,
+		},
+		"extra key in b": {
+			a:    Translations{"en": "Hello"},
+			b:    Translations{"en": "Hello", "fr": "Bonjour"},
+			want: false,
+		},
+		"extra key in a": {
+			a:    Translations{"en": "Hello", "fr": "Bonjour"},
+			b:    Translations{"en": "Hello"},
+			want: false,
+		},
+		"not equal": {
+			a:    Translations{"en": "Hello", "fr": "Bonjour"},
+			b:    Translations{"en": "Hello", "fr": "Salut"},
+			want: false,
+		},
+	}
+
+	for test, tt := range tests {
+		t.Run(test, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.a.Equal(tt.b))
+		})
+	}
+}
+
 func TestTranslationsGet(t *testing.T) {
 	t.Run("exising key", func(t *testing.T) {
 		translations := Translations{"en": "Hello", "fr": "Bonjour"}
