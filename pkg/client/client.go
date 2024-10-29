@@ -39,6 +39,7 @@ func NewWithTransport(transport *transport.Transport, options ...Option) *Client
 		Products:     &productsClient{baseClient: result},
 		ProxyDB:      &proxyDBClient{baseClient: result},
 		RoomTypes:    &roomTypesClient{baseClient: result},
+		Segments:     &segmentsClient{baseClient: result},
 	}
 
 	for _, option := range options {

@@ -11,4 +11,5 @@ type internalClient struct {
 	Products     *productsClient
 	ProxyDB      *proxyDBClient
 	RoomTypes    *roomTypesClient
+	Segments     *segmentsClient
 }
