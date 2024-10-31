@@ -1,10 +1,9 @@
-package pagination_test
+package pagination
 
 import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/loungeup/go-loungeup/pkg/pagination"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,7 +11,8 @@ func TestPager(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
 		pagesCount := 0
 
-		pager := pagination.NewPager(pagination.NewOffsetPageReader(readIDsPage), pagination.WithPageSize(1))
+		pageReader := NewOffsetPageReader(readIDsPage)
+		pager := NewPager(pageReader, WithPageSize(1))
 
 		for pager.Next() {
 			assert.Len(t, pager.Page(), 1)
@@ -21,18 +21,23 @@ func TestPager(t *testing.T) {
 
 		assert.NoError(t, pager.Err())
 		assert.Equal(t, 3, pagesCount)
+
+		pager.Reset()
+		assert.Equal(t, 0, pageReader.offset)
+		assert.Nil(t, pager.lastErr)
+		assert.Nil(t, pager.lastPage)
 	})
 
 	t.Run("first page is shorter than the size", func(t *testing.T) {
 		pagesCount := 0
 
-		pager := pagination.NewPager(pagination.NewOffsetPageReader(func(size, offset int) (uuid.UUIDs, error) {
+		pager := NewPager(NewOffsetPageReader(func(size, offset int) (uuid.UUIDs, error) {
 			if offset != 0 {
 				return nil, nil
 			}
 
 			return uuid.UUIDs{uuid.New()}, nil
-		}), pagination.WithPageSize(2))
+		}), WithPageSize(2))
 
 		for pager.Next() {
 			pagesCount++
@@ -43,7 +48,7 @@ func TestPager(t *testing.T) {
 	})
 
 	t.Run("with error", func(t *testing.T) {
-		pager := pagination.NewPager(pagination.NewOffsetPageReader(func(size, offset int) (uuid.UUIDs, error) {
+		pager := NewPager(NewOffsetPageReader(func(size, offset int) (uuid.UUIDs, error) {
 			return nil, assert.AnError
 		}))
 
@@ -52,9 +57,24 @@ func TestPager(t *testing.T) {
 	})
 
 	t.Run("keyset", func(t *testing.T) {
-		pagination.NewPager(pagination.NewKeysetPageReader(func(size int, lastKey string) (uuid.UUIDs, string, error) {
-			return nil, "", nil
-		}))
+		pageReader := NewKeysetPageReader(func(size int, lastKey string) (uuid.UUIDs, string, error) {
+			if lastKey != "" {
+				return nil, "", nil
+			}
+
+			return uuid.UUIDs{uuid.New()}, "foo", nil
+		})
+		pager := NewPager(pageReader)
+
+		for pager.Next() {
+		}
+
+		assert.NoError(t, pager.Err())
+
+		pager.Reset()
+		assert.Equal(t, "", pageReader.lastKey)
+		assert.Nil(t, pager.lastErr)
+		assert.Nil(t, pager.lastPage)
 	})
 }
 
@@ -70,7 +90,7 @@ func TestBoundLimit(t *testing.T) {
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tt.want, pagination.NewLimit(tt.in).Bound(10))
+			assert.Equal(t, tt.want, NewLimit(tt.in).Bound(10))
 		})
 	}
 }
@@ -85,7 +105,7 @@ func TestBoundOffset(t *testing.T) {
 
 	for test, tt := range tests {
 		t.Run(test, func(t *testing.T) {
-			assert.Equal(t, tt.want, pagination.NewOffset(tt.in).Bound())
+			assert.Equal(t, tt.want, NewOffset(tt.in).Bound())
 		})
 	}
 }

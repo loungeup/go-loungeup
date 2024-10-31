@@ -67,6 +67,13 @@ func (p *Pager[S, E]) Next() bool {
 // Page returns the last page read by the [Pager.Next] method.
 func (p *Pager[S, E]) Page() S { return p.lastPage }
 
+// Reset the pager to its initial state.
+func (p *Pager[S, E]) Reset() {
+	p.reader.reset()
+	p.lastErr = nil
+	p.lastPage = nil
+}
+
 type pagerConfiguration struct {
 	size int
 }
@@ -75,6 +82,7 @@ type pagerOption func(*pagerConfiguration)
 
 type pageReader[S ~[]E, E any] interface {
 	readPage(size int) (S, error)
+	reset()
 }
 
 type keysetPageReader[S ~[]E, E, K any] struct {
@@ -101,6 +109,11 @@ func (r *keysetPageReader[S, E, K]) readPage(size int) (S, error) {
 	return result, nil
 }
 
+func (r *keysetPageReader[S, E, K]) reset() {
+	var emptyKey K
+	r.lastKey = emptyKey
+}
+
 type offsetPagerReader[S ~[]E, E any] struct {
 	readPageFunc func(size, offset int) (S, error)
 	offset       int
@@ -122,6 +135,8 @@ func (r *offsetPagerReader[S, E]) readPage(size int) (S, error) {
 
 	return result, nil
 }
+
+func (r *offsetPagerReader[S, E]) reset() { r.offset = 0 }
 
 const (
 	keysetSelectorLastKeyQuery = "lastKey"

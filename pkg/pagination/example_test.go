@@ -3,7 +3,9 @@ package pagination
 func Example() {
 	// Create a pager. The pager will call the readIDsPage function to read pages. The readIDsPage function uses the
 	// size and offset parameters to read a page of IDs.
-	pager := NewPager(NewOffsetPageReader(readIDsPage))
+	pager := NewPager(NewOffsetPageReader(func(size, offset int) ([]int, error) {
+		return []int{}, nil // Read a page with the given size and offset.
+	}))
 
 	for pager.Next() { // Iterate over pages.
 		page := pager.Page() // Get the current page.
@@ -14,8 +16,4 @@ func Example() {
 	if err := pager.Err(); err != nil {
 		// Check for errors.
 	}
-}
-
-func readIDsPage(size, offset int) ([]int, error) {
-	return []int{}, nil // Read a page with the given size and offset.
 }
