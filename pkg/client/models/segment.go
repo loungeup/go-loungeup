@@ -30,5 +30,6 @@ type SegmentCriteria struct {
 }
 
 type BuildESQueryResponse struct {
-	Query json.RawMessage `json:"query"`
+	Query   json.RawMessage `json:"query"`
+	Version string          `json:"version"`
 }
