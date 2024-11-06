@@ -54,6 +54,8 @@ const (
 	EntityTypeReseller EntityType = "reseller"
 )
 
+func (t EntityType) String() string { return string(t) }
+
 type EntitySelector struct {
 	EntityID uuid.UUID
 }
