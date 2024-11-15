@@ -21,12 +21,16 @@ const (
 	tooSmallRistrettoCache RistrettoCacheSize = iota + 1 // Used to test the case where the item is too large.
 	MediumRistrettoCache
 	LargeRistrettoCache
+	VeryLargeRistrettoCache
 )
 
 // Config of the ristretto cache for the given size.
 func (s RistrettoCacheSize) Config() *ristretto.Config {
 	const (
 		bufferItems = 64 // The documentation recommends this value.
+
+		veryLargeRistrettoCacheMaxCost     = 128_000_000 // 128MB.
+		veryLargeRistrettoCacheNumCounters = 20_000_000  // To hold approximatively 2,000,000 keys.
 
 		largeRistrettoCacheMaxCost     = 64_000_000 // 64MB.
 		largeRistrettoCacheNumCounters = 10_000_000 // To hold approximatively 1,000,000 keys.
@@ -45,6 +49,8 @@ func (s RistrettoCacheSize) Config() *ristretto.Config {
 				return tooSmallRistrettoCacheNumCounters
 			case LargeRistrettoCache:
 				return largeRistrettoCacheNumCounters
+			case VeryLargeRistrettoCache:
+				return veryLargeRistrettoCacheNumCounters
 			default:
 				return mediumRistrettoCacheNumCounters
 			}
@@ -55,6 +61,8 @@ func (s RistrettoCacheSize) Config() *ristretto.Config {
 				return tooSmallRistrettoCacheMaxCost
 			case LargeRistrettoCache:
 				return largeRistrettoCacheMaxCost
+			case VeryLargeRistrettoCache:
+				return veryLargeRistrettoCacheMaxCost
 			default:
 				return mediumRistrettoCacheMaxCost
 			}
