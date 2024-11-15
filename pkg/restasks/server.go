@@ -1,8 +1,13 @@
 package restasks
 
 import (
+	"fmt"
+	"strings"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
+	"github.com/jirenius/go-res/resprot"
 	"github.com/loungeup/go-loungeup/pkg/cache"
 	"github.com/loungeup/go-loungeup/pkg/errors"
 	"github.com/loungeup/go-loungeup/pkg/log"
@@ -24,13 +29,25 @@ func NewServer(cache cache.ReadWriter, service *res.Service) *Server {
 // CreateTask and returns its RID.
 func (s *Server) CreateTask() string {
 	task := &task{
-		ServiceName: s.service.FullPath(),
-		ID:          uuid.New(),
-		Progress:    taskMinProgress,
+		serviceName: s.service.FullPath(),
+		id:          uuid.New(),
+		progress:    taskMinProgress,
 	}
 	cacheTask(s.cache, task)
 
 	return task.rid()
+}
+
+func (s *Server) CreateSubTask(parentRID string) (string, error) {
+	subTaskRID := s.CreateTask()
+
+	if response := resprot.SendRequest(s.service.Conn(), "call."+parentRID+".sub-tasks.new", &resprot.Request{
+		Params: res.Ref(subTaskRID),
+	}, time.Second); response.HasError() {
+		return "", fmt.Errorf("could not create sub-task: %w", response.Error)
+	}
+
+	return subTaskRID, nil
 }
 
 // CompleteTask with the given result.
@@ -40,9 +57,9 @@ func (s *Server) CompleteTask(rid string, result any) error {
 		return err
 	}
 
-	task.Progress = taskMaxProgress
-	task.Error = nil
-	task.Result = result
+	task.progress = taskMaxProgress
+	task.err = nil
+	task.result = result
 
 	return s.sendTaskChangeEvent(task)
 }
@@ -54,9 +71,9 @@ func (s *Server) FailTask(rid string, err error) error {
 		return readError
 	}
 
-	task.Progress = taskMinProgress
-	task.Error = err
-	task.Result = nil
+	task.progress = taskMinProgress
+	task.err = err
+	task.result = nil
 
 	return s.sendTaskChangeEvent(task)
 }
@@ -85,6 +102,38 @@ func (s *Server) addRESHandlers() {
 
 		request.Model(task.toModel())
 	}))
+
+	s.service.Handle("tasks.$taskID.sub-tasks",
+		res.Call("new", func(request res.CallRequest) {
+			parent, err := readCachedTask(s.cache, strings.TrimSuffix(request.ResourceName(), ".sub-tasks"))
+			if err != nil {
+				errors.LogAndWriteRESError(log.Default(), request, err)
+				return
+			}
+
+			subTaskRID := res.Ref("")
+			request.ParseParams(&subTaskRID)
+
+			parent.addSubTaskRID(string(subTaskRID))
+
+			request.Resource(string(subTaskRID))
+			request.Service().Reset([]string{request.ResourceName()}, nil)
+		}),
+		res.GetCollection(func(request res.CollectionRequest) {
+			task, err := readCachedTask(s.cache, strings.TrimSuffix(request.ResourceName(), ".sub-tasks"))
+			if err != nil {
+				errors.LogAndWriteRESError(log.Default(), request, err)
+				return
+			}
+
+			collection := []res.Ref{}
+			for _, subTaskRID := range task.subTaskRIDs {
+				collection = append(collection, res.Ref(subTaskRID))
+			}
+
+			request.Collection(collection)
+		}),
+	)
 }
 
 // sendTaskChangeEvent for the given task.

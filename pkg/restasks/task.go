@@ -9,6 +9,8 @@ import (
 	"github.com/loungeup/go-loungeup/pkg/errors"
 )
 
+// TODO: Set progress and status from sub-tasks.
+
 const (
 	taskStatusCompleted = "completed"
 	taskStatusFailed    = "failed"
@@ -19,19 +21,22 @@ const (
 )
 
 type task struct {
-	ServiceName string
-	ID          uuid.UUID
-	Progress    int
-	Error       error
-	Result      any
+	serviceName string
+	id          uuid.UUID
+	progress    int
+	err         error
+	result      any
+	subTaskRIDs []string
 }
 
-// rid of the task.
-func (t *task) rid() string { return t.ServiceName + ".tasks." + t.ID.String() }
+func (t *task) addSubTaskRID(rid string) { t.subTaskRIDs = append(t.subTaskRIDs, rid) }
+
+func (t *task) rid() string         { return t.serviceName + ".tasks." + t.id.String() }
+func (t *task) subTasksRID() string { return t.rid() + ".sub-tasks" }
 
 // setProgress of the task. It must be between taskMinProgress and taskMaxProgress.
 func (t *task) setProgress(progress int) error {
-	if progress == t.Progress {
+	if progress == t.progress {
 		return nil
 	}
 
@@ -42,7 +47,7 @@ func (t *task) setProgress(progress int) error {
 		}
 	}
 
-	t.Progress = progress
+	t.progress = progress
 
 	return nil
 }
@@ -50,9 +55,9 @@ func (t *task) setProgress(progress int) error {
 // status of the task.
 func (t *task) status() string {
 	switch {
-	case t.Error != nil:
+	case t.err != nil:
 		return taskStatusFailed
-	case t.Progress == taskMaxProgress:
+	case t.progress == taskMaxProgress:
 		return taskStatusCompleted
 	default:
 		return taskStatusStarted
@@ -61,16 +66,20 @@ func (t *task) status() string {
 
 func (t *task) toChangeEventProperties() map[string]any {
 	result := map[string]any{
-		"progress": t.Progress,
+		"progress": t.progress,
 		"status":   t.status(),
 	}
 
-	if t.Error != nil {
-		result["error"] = errors.ErrorMessage(t.Error)
+	if t.err != nil {
+		result["error"] = errors.ErrorMessage(t.err)
 	}
 
-	if t.Result != nil {
-		result["result"] = &res.DataValue[any]{Data: t.Result}
+	if t.result != nil {
+		result["result"] = &res.DataValue[any]{Data: t.result}
+	}
+
+	if len(t.subTaskRIDs) > 0 {
+		result["subTasks"] = res.SoftRef(t.subTasksRID())
 	}
 
 	return result
@@ -78,16 +87,20 @@ func (t *task) toChangeEventProperties() map[string]any {
 
 func (t *task) toModel() *taskModel {
 	result := &taskModel{
-		Progress: t.Progress,
+		Progress: t.progress,
 		Status:   t.status(),
 	}
 
-	if t.Error != nil {
-		result.Error = errors.ErrorMessage(t.Error)
+	if t.err != nil {
+		result.Error = errors.ErrorMessage(t.err)
 	}
 
-	if t.Result != nil {
-		result.Result = &res.DataValue[any]{Data: t.Result}
+	if t.result != nil {
+		result.Result = &res.DataValue[any]{Data: t.result}
+	}
+
+	if len(t.subTaskRIDs) > 0 {
+		result.SubTasks = res.SoftRef(t.subTasksRID())
 	}
 
 	return result
@@ -98,6 +111,7 @@ type taskModel struct {
 	Status   string              `json:"status"`
 	Error    string              `json:"error,omitempty"`
 	Result   *res.DataValue[any] `json:"result,omitempty"`
+	SubTasks res.SoftRef         `json:"subTasks,omitempty"`
 }
 
 func (m *taskModel) decodeResult(value any) error {
