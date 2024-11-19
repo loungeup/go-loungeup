@@ -78,13 +78,20 @@ func (t *Throttler) Handle(next func(msg jetstream.Msg)) func(msg jetstream.Msg)
 		ticker := time.NewTicker(t.progressInterval)
 
 		go func() {
+			defer func() {
+				l1.Debug("Message processed")
+				timer.Stop()
+				ticker.Stop()
+				t.release(key)
+			}()
+
 			for {
 				select {
 				case <-timer.C:
 					l1.Debug("Processing message")
 					next(msg)
-					t.release(key)
-					ticker.Stop()
+
+					return // Terminate the goroutine.
 				case <-ticker.C:
 					l1.Debug("Message in progress")
 					msg.InProgress()
