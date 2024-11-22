@@ -14,7 +14,7 @@ import (
 type MirrorModelProvider[Model, Selector any] interface {
 	MakeModelRID(model Model) string
 	ParseModelSelector(resource res.Resource) (Selector, error)
-	ReadMainModel(selector Selector) (Model, error)
+	ReadSourceModel(selector Selector) (Model, error)
 }
 
 func UseModelHandlerMirror[Model, Selector any](
@@ -28,25 +28,25 @@ func UseModelHandlerMirror[Model, Selector any](
 			return
 		}
 
-		main, err := provider.ReadMainModel(selector)
+		source, err := provider.ReadSourceModel(selector)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
 			return
 		}
 
-		if isEmptyValue(main) {
+		if isEmptyValue(source) {
 			next(request)
 			return
 		}
 
-		mainResource, err := request.Service().Resource(provider.MakeModelRID(main))
+		sourceResource, err := request.Service().Resource(provider.MakeModelRID(source))
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
 			return
 		}
 
 		next(&modelRequestMirror{
-			Resource:    mainResource,
+			Resource:    sourceResource,
 			baseRequest: request,
 		})
 	}
@@ -55,7 +55,7 @@ func UseModelHandlerMirror[Model, Selector any](
 type MirrorCallProvider[Model, Selector any] interface {
 	MakeMirrorModelRIDsPager(selector Selector) *pagination.Pager[[]string, string]
 	ParseModelSelector(resource res.Resource) (Selector, error)
-	ReadMainModel(selector Selector) (Model, error)
+	ReadSourceModel(selector Selector) (Model, error)
 }
 
 func UseCallHandlerMirror[Model, Selector any](
@@ -69,13 +69,13 @@ func UseCallHandlerMirror[Model, Selector any](
 			return
 		}
 
-		main, err := provider.ReadMainModel(selector)
+		source, err := provider.ReadSourceModel(selector)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
 			return
 		}
 
-		if isEmptyValue(main) {
+		if isEmptyValue(source) {
 			next(&callRequestMirror{
 				CallRequest:          request,
 				mirrorModelRIDsPager: provider.MakeMirrorModelRIDsPager(selector),
