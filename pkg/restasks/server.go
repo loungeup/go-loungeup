@@ -1,154 +1,213 @@
 package restasks
 
 import (
+	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
-	"github.com/jirenius/go-res/resprot"
-	"github.com/loungeup/go-loungeup/pkg/cache"
 	"github.com/loungeup/go-loungeup/pkg/errors"
-	"github.com/loungeup/go-loungeup/pkg/log"
 )
 
 type Server struct {
-	cache   cache.ReadWriter
 	service *res.Service
+	store   Store
 }
 
-// NewServer creates a new server.
-func NewServer(cache cache.ReadWriter, service *res.Service) *Server {
-	result := &Server{cache, service}
-	result.addRESHandlers()
+func NewServer(service *res.Service, store Store) *Server {
+	result := &Server{service, store}
+	result.addHandlers()
 
 	return result
 }
 
-// CreateTask and returns its RID.
-func (s *Server) CreateTask() string {
-	task := &task{
-		serviceName: s.service.FullPath(),
-		id:          uuid.New(),
-		progress:    taskMinProgress,
+func (s *Server) CreateTask() (string, error) {
+	newTask := &Task{
+		ID:        uuid.New(),
+		Progress:  taskMinProgress,
+		StartedAt: time.Now(),
 	}
-	cacheTask(s.cache, task)
-
-	return task.rid()
-}
-
-func (s *Server) CreateSubTask(parentRID string) (string, error) {
-	subTaskRID := s.CreateTask()
-
-	if response := resprot.SendRequest(s.service.Conn(), "call."+parentRID+".sub-tasks.new", &resprot.Request{
-		Params: res.Ref(subTaskRID),
-	}, time.Second); response.HasError() {
-		return "", fmt.Errorf("could not create sub-task: %w", response.Error)
+	if err := s.store.Write(newTask); err != nil {
+		return "", fmt.Errorf("could not write task: %w", err)
 	}
 
-	return subTaskRID, nil
+	return s.makeTaskRID(newTask), nil
 }
 
-// CompleteTask with the given result.
 func (s *Server) CompleteTask(rid string, result any) error {
-	task, err := readCachedTask(s.cache, rid)
-	if err != nil {
-		return err
-	}
+	return s.readAndWriteTaskFromRID(rid, func(task *Task) error {
+		task.setResult(result)
 
-	task.progress = taskMaxProgress
-	task.err = nil
-	task.result = result
-
-	return s.sendTaskChangeEvent(task)
-}
-
-// FailTask with the given error.
-func (s *Server) FailTask(rid string, err error) error {
-	task, readError := readCachedTask(s.cache, rid)
-	if readError != nil {
-		return readError
-	}
-
-	task.progress = taskMinProgress
-	task.err = err
-	task.result = nil
-
-	return s.sendTaskChangeEvent(task)
-}
-
-func (s *Server) SetTaskProgress(rid string, progress int) error {
-	task, err := readCachedTask(s.cache, rid)
-	if err != nil {
-		return err
-	}
-
-	if err := task.setProgress(progress); err != nil {
-		return err
-	}
-
-	return s.sendTaskChangeEvent(task)
-}
-
-// addRESHandlers to the server.
-func (s *Server) addRESHandlers() {
-	s.service.Handle("tasks.$taskID", res.GetModel(func(request res.ModelRequest) {
-		task, err := readCachedTask(s.cache, request.ResourceName())
-		if err != nil {
-			errors.LogAndWriteRESError(log.Default(), request, err)
-			return
-		}
-
-		request.Model(task.toModel())
-	}))
-
-	s.service.Handle("tasks.$taskID.sub-tasks",
-		res.Call("new", func(request res.CallRequest) {
-			parent, err := readCachedTask(s.cache, strings.TrimSuffix(request.ResourceName(), ".sub-tasks"))
-			if err != nil {
-				errors.LogAndWriteRESError(log.Default(), request, err)
-				return
-			}
-
-			subTaskRID := res.Ref("")
-			request.ParseParams(&subTaskRID)
-
-			parent.addSubTaskRID(string(subTaskRID))
-
-			request.Resource(string(subTaskRID))
-			request.Service().Reset([]string{request.ResourceName()}, nil)
-		}),
-		res.GetCollection(func(request res.CollectionRequest) {
-			task, err := readCachedTask(s.cache, strings.TrimSuffix(request.ResourceName(), ".sub-tasks"))
-			if err != nil {
-				errors.LogAndWriteRESError(log.Default(), request, err)
-				return
-			}
-
-			collection := []res.Ref{}
-			for _, subTaskRID := range task.subTaskRIDs {
-				collection = append(collection, res.Ref(subTaskRID))
-			}
-
-			request.Collection(collection)
-		}),
-	)
-}
-
-// sendTaskChangeEvent for the given task.
-func (s *Server) sendTaskChangeEvent(task *task) error {
-	return s.service.With(task.rid(), func(resource res.Resource) {
-		resource.ChangeEvent(task.toChangeEventProperties())
+		return nil
 	})
 }
 
-func cacheTask(cache cache.Writer, task *task) { cache.Write(task.rid(), task) }
+func (s *Server) FailTask(rid string, err error) error {
+	return s.readAndWriteTaskFromRID(rid, func(task *Task) error {
+		task.setError(err)
 
-func readCachedTask(cache cache.Reader, rid string) (*task, error) {
-	if task, ok := cache.Read(rid).(*task); ok {
-		return task, nil
+		return nil
+	})
+}
+
+func (s *Server) SetTaskProgress(rid string, progress int) error {
+	return s.readAndWriteTaskFromRID(rid, func(task *Task) error {
+		return task.setProgress(progress)
+	})
+}
+
+func (s *Server) addHandlers() {
+	s.service.Handle("tasks.$taskID", res.GetModel(func(request res.ModelRequest) {
+		id, err := uuid.Parse(request.PathParam("taskID"))
+		if err != nil {
+			request.Error(&res.Error{
+				Code:    res.CodeInvalidParams,
+				Message: "Invalid task ID",
+				Data:    err.Error(),
+			})
+		}
+
+		task, err := s.store.ReadByID(id)
+		if err != nil {
+			if errors.ErrorCode(err) == errors.CodeNotFound {
+				request.NotFound()
+			} else {
+				request.Error(&res.Error{
+					Code:    res.CodeInternalError,
+					Message: "Could not read task",
+					Data: map[string]string{
+						"errorMessage": err.Error(),
+						"id":           id.String(),
+					},
+				})
+			}
+
+			return
+		}
+
+		request.Model(mapTaskToRESModel(task))
+	}))
+}
+
+func (s *Server) makeTaskRID(task *Task) string {
+	return s.service.FullPath() + ".tasks." + task.ID.String()
+}
+
+func (s *Server) parseTaskIDFromRID(rid string) (uuid.UUID, error) {
+	values, _ := res.Pattern(s.service.FullPath() + ".tasks.$taskID").Values(rid)
+
+	rawID, ok := values["taskID"]
+	if !ok {
+		return uuid.Nil, fmt.Errorf("could not extract task ID from RID")
 	}
 
-	return nil, &errors.Error{Code: errors.CodeNotFound, Message: "Task not found"}
+	result, err := uuid.Parse(rawID)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("could not parse task ID: %w", err)
+	}
+
+	return result, nil
 }
+
+func (s *Server) readAndWriteTaskFromRID(rid string, modifyTaskFunc func(task *Task) error) error {
+	id, err := s.parseTaskIDFromRID(rid)
+	if err != nil {
+		return err
+	}
+
+	task, err := s.store.ReadByID(id)
+	if err != nil {
+		return fmt.Errorf("could not read task by ID: %w", err)
+	}
+
+	if err := modifyTaskFunc(task); err != nil {
+		return err
+	}
+
+	if err := s.store.Write(task); err != nil {
+		return fmt.Errorf("could not write task: %w", err)
+	}
+
+	if err := s.service.With(s.makeTaskRID(task), func(resource res.Resource) {
+		resource.ChangeEvent(mapTaskToRESChangeEventProperties(task))
+	}); err != nil {
+		return fmt.Errorf("could not send task change event: %w", err)
+	}
+
+	return nil
+}
+
+type taskRESModel struct {
+	Progress  int                 `json:"progress"`
+	Status    string              `json:"status"`
+	Error     string              `json:"error,omitempty"`
+	Result    *res.DataValue[any] `json:"result,omitempty"`
+	StartedAt string              `json:"startedAt"`
+	EndedAt   string              `json:"endedAt,omitempty"`
+}
+
+func (m *taskRESModel) decodeResult(value any) error {
+	if m.Result == nil {
+		return nil
+	}
+
+	encodedResult, err := json.Marshal(m.Result.Data)
+	if err != nil {
+		return fmt.Errorf("could not encode task RES model result: %w", err)
+	}
+
+	if err := json.Unmarshal(encodedResult, value); err != nil {
+		return fmt.Errorf("could not decode task RES model result: %w", err)
+	}
+
+	return nil
+}
+
+func (m *taskRESModel) isRunning() bool { return m.Progress < taskMaxProgress }
+
+func mapTaskToRESModel(task *Task) *taskRESModel {
+	result := &taskRESModel{
+		Progress:  task.Progress,
+		Status:    task.status().String(),
+		StartedAt: formatTime(task.StartedAt),
+	}
+
+	if err := task.Error; err != nil {
+		result.Error = err.Error()
+	}
+
+	if task.Result != nil {
+		result.Result = &res.DataValue[any]{Data: task.Result}
+	}
+
+	if endedAt := task.EndedAt; !endedAt.IsZero() {
+		result.EndedAt = formatTime(endedAt)
+	}
+
+	return result
+}
+
+func mapTaskToRESChangeEventProperties(task *Task) map[string]any {
+	result := map[string]any{
+		"progress":  task.Progress,
+		"status":    task.status(),
+		"startedAt": formatTime(task.StartedAt),
+	}
+
+	if err := task.Error; err != nil {
+		result["error"] = err.Error()
+	}
+
+	if task.Result != nil {
+		result["result"] = &res.DataValue[any]{Data: task.Result}
+	}
+
+	if endedAt := task.EndedAt; !endedAt.IsZero() {
+		result["endedAt"] = formatTime(endedAt)
+	}
+
+	return result
+}
+
+func formatTime(t time.Time) string { return t.Format(time.RFC3339) }
