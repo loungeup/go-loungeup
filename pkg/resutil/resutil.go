@@ -15,6 +15,16 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
+// RequestWithParams is a generic version of the resprot.Request structure.
+// See: https://github.com/jirenius/go-res/blob/30f62c293ba654bec3cbe4d55a4a07f0df4baf8f/resprot/resprot.go#L35
+type RequestWithParams[T any] struct {
+	Params T `json:"params"`
+}
+
+func NewRequestWithParams[T any](params T) *RequestWithParams[T] {
+	return &RequestWithParams[T]{Params: params}
+}
+
 const natsMessagesChannelSize = 64
 
 type Deletable[T any] struct {

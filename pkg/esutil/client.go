@@ -1,7 +1,10 @@
 package esutil
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -94,41 +97,83 @@ func (l *clientLogger) LogRoundTrip(
 	startedAt time.Time,
 	duration time.Duration,
 ) error {
-	logAttrs := []slog.Attr{
+	attrs := []slog.Attr{
 		slog.Int64("durationInMilliseconds", duration.Milliseconds()),
 		slog.String("duration", duration.String()),
 		slog.String("endedAt", startedAt.Add(duration).Format(time.RFC3339)),
 		slog.String("startedAt", startedAt.Format(time.RFC3339)),
 	}
 
-	if request != nil {
-		logAttrs = append(logAttrs, slog.Group("request",
-			slog.String("method", request.Method),
-			slog.String("url", request.URL.String()),
-		))
-	}
-
-	if response != nil {
-		logAttrs = append(logAttrs, slog.Group("response",
-			slog.Int("statusCode", response.StatusCode),
-		))
-	}
+	httpAttrs := makeHTTPLogAttrs(request, response)
+	attrs = append(attrs,
+		slog.Group("request", convertLogAttrsToAny(httpAttrs.Request)...),
+		slog.Group("response", convertLogAttrsToAny(httpAttrs.Response)...),
+	)
 
 	if err != nil {
-		logAttrs = append(logAttrs, slog.Any("error", err))
+		attrs = append(attrs, slog.Any("error", err))
 	}
 
 	switch {
 	case err != nil, response.StatusCode >= http.StatusInternalServerError:
-		l.baseLogger.Error("Could not execute request", logAttrs...)
+		l.baseLogger.Error("Could not execute request", attrs...)
 	case response != nil && response.StatusCode >= http.StatusBadRequest:
-		l.baseLogger.Debug("Could not execute invalid request", logAttrs...)
+		l.baseLogger.Debug("Could not execute invalid request", attrs...)
 	default:
-		l.baseLogger.Debug("Request executed", logAttrs...)
+		l.baseLogger.Debug("Request executed", attrs...)
 	}
 
 	return nil
 }
 
-func (*clientLogger) RequestBodyEnabled() bool  { return false }
-func (*clientLogger) ResponseBodyEnabled() bool { return false }
+func (*clientLogger) RequestBodyEnabled() bool  { return true }
+func (*clientLogger) ResponseBodyEnabled() bool { return true }
+
+type httpLogAttrs struct {
+	Request  []slog.Attr
+	Response []slog.Attr
+}
+
+func makeHTTPLogAttrs(request *http.Request, response *http.Response) *httpLogAttrs {
+	result := &httpLogAttrs{
+		Request: []slog.Attr{
+			slog.String("method", request.Method),
+			slog.String("url", request.URL.String()),
+		},
+		Response: []slog.Attr{},
+	}
+
+	if response == nil {
+		return result
+	}
+
+	result.Response = append(result.Response, slog.Int("statusCode", response.StatusCode))
+
+	if response.StatusCode >= http.StatusBadRequest {
+		if body := request.Body; body != nil {
+			result.Request = append(result.Request, slog.Any("body", convertReaderToJSON(body)))
+		}
+
+		if body := response.Body; body != nil {
+			result.Response = append(result.Response, slog.Any("body", convertReaderToJSON(body)))
+		}
+	}
+
+	return result
+}
+
+func convertLogAttrsToAny(attrs []slog.Attr) []any {
+	result := []any{}
+	for _, attr := range attrs {
+		result = append(result, attr)
+	}
+
+	return result
+}
+
+func convertReaderToJSON(reader io.Reader) json.RawMessage {
+	buffer := &bytes.Buffer{}
+	_, _ = io.Copy(buffer, reader)
+
+	return json.RawMessage(buffer.Bytes())
+}
