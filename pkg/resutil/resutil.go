@@ -25,6 +25,16 @@ func NewRequestWithParams[T any](params T) *RequestWithParams[T] {
 	return &RequestWithParams[T]{Params: params}
 }
 
+func ParseRequestParams[T any](data []byte) T {
+	request := &RequestWithParams[T]{}
+	if err := json.Unmarshal(data, request); err != nil {
+		var emptyResult T
+		return emptyResult
+	}
+
+	return request.Params
+}
+
 const natsMessagesChannelSize = 64
 
 type Deletable[T any] struct {

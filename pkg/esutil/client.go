@@ -2,7 +2,7 @@ package esutil
 
 import (
 	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -21,6 +21,19 @@ func NewClient(addresses []string, username, password string) (*elasticsearch.Cl
 	}
 
 	if _, err := result.Ping(); err != nil {
+		return nil, fmt.Errorf("could not ping Elasticsearch server: %w", err)
+	}
+
+	return result, nil
+}
+
+func NewTypedClient(addresses []string, username, password string) (*elasticsearch.TypedClient, error) {
+	result, err := elasticsearch.NewTypedClient(newClientConfig(addresses, username, password))
+	if err != nil {
+		return nil, fmt.Errorf("could not create Elasticsearch client: %w", err)
+	}
+
+	if _, err := result.API.Ping().Do(context.Background()); err != nil {
 		return nil, fmt.Errorf("could not ping Elasticsearch server: %w", err)
 	}
 
@@ -151,11 +164,11 @@ func makeHTTPLogAttrs(request *http.Request, response *http.Response) *httpLogAt
 
 	if response.StatusCode >= http.StatusBadRequest {
 		if body := request.Body; body != nil {
-			result.Request = append(result.Request, slog.Any("body", convertReaderToJSON(body)))
+			result.Request = append(result.Request, slog.String("body", convertReaderToString(body)))
 		}
 
 		if body := response.Body; body != nil {
-			result.Response = append(result.Response, slog.Any("body", convertReaderToJSON(body)))
+			result.Response = append(result.Response, slog.String("body", convertReaderToString(body)))
 		}
 	}
 
@@ -171,9 +184,9 @@ func convertLogAttrsToAny(attrs []slog.Attr) []any {
 	return result
 }
 
-func convertReaderToJSON(reader io.Reader) json.RawMessage {
+func convertReaderToString(reader io.Reader) string {
 	buffer := &bytes.Buffer{}
 	_, _ = io.Copy(buffer, reader)
 
-	return json.RawMessage(buffer.Bytes())
+	return buffer.String()
 }

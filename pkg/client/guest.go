@@ -2,9 +2,9 @@ package client
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/google/uuid"
-	"github.com/jirenius/go-res"
 	"github.com/jirenius/go-res/resprot"
 	"github.com/loungeup/go-loungeup/pkg/client/models"
 	"github.com/loungeup/go-loungeup/pkg/transport"
@@ -47,33 +47,49 @@ func (c *guestsClient) CountGuests(
 	return result, nil
 }
 
-func (c *guestsClient) ReadIndexableGuestSelectors(
-	selector *models.IndexableGuestsSelector,
-) ([]*res.DataValue[*models.GuestSelector], error) {
-	return transport.GetRESCollection[*res.DataValue[*models.GuestSelector]](
-		c.baseClient.resClient,
-		selector.RID(),
-		resprot.Request{
-			Query: selector.EncodedQuery(),
-		},
-	)
-}
+func (c *guestsClient) ReadOne(selector *GuestSelector) (*models.Guest, error) {
+	rid := selector.rid()
 
-func (c *guestsClient) ReadGuest(selector *models.GuestSelector) (*models.Guest, error) {
-	return c.readGuestByRID(selector.RID())
-}
-
-func (c *guestsClient) readGuestByRID(rid string) (*models.Guest, error) {
 	if cachedResult, ok := c.baseClient.eventuallyReadCache(rid).(*models.Guest); ok {
 		return cachedResult, nil
 	}
 
-	guest, err := transport.GetRESModel[*models.Guest](c.baseClient.resClient, rid, resprot.Request{})
+	result, err := transport.GetRESModel[*models.Guest](c.baseClient.resClient, rid, resprot.Request{})
 	if err != nil {
 		return nil, err
 	}
 
-	defer c.baseClient.eventuallyWriteCache(rid, guest)
+	defer c.baseClient.eventuallyWriteCache(rid, result)
 
-	return guest, nil
+	return result, nil
+}
+
+type GuestSelector struct {
+	GuestID  uuid.UUID
+	EntityID uuid.UUID
+
+	// Expand the composition of the guest.
+	Expand bool
+
+	// Redirect to the root guest.
+	Redirect bool
+}
+
+func (s *GuestSelector) rid() string {
+	query := url.Values{}
+
+	if s.Expand {
+		query.Add("expand", "true")
+	}
+
+	if s.Redirect {
+		query.Add("redirect", "true")
+	}
+
+	result := "guestprofile.entities." + s.EntityID.String() + ".guests." + s.GuestID.String()
+	if len(query) > 0 {
+		result += "?" + query.Encode()
+	}
+
+	return result
 }

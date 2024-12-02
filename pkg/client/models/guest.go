@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/json"
-	"strconv"
 	"strings"
 	"time"
 
@@ -71,28 +70,6 @@ type Guest struct {
 	AnonymizedAt time.Time `json:"anonymizedAt,omitempty"`
 	CreatedAt    time.Time `json:"createdAt,omitempty"`
 	UpdatedAt    time.Time `json:"updatedAt,omitempty"`
-}
-
-type GuestSelector struct {
-	ID       uuid.UUID `json:"id"`
-	EntityID uuid.UUID `json:"entityId"`
-}
-
-func (s GuestSelector) RID() string {
-	return "guestprofile.entities." + s.EntityID.String() + ".guests." + s.ID.String()
-}
-
-type IndexableGuestsSelector struct {
-	EntityID      uuid.UUID
-	Limit, Offset int
-}
-
-func (s *IndexableGuestsSelector) EncodedQuery() string {
-	return "limit=" + strconv.Itoa(s.Limit) + "&offset=" + strconv.Itoa(s.Offset)
-}
-
-func (s *IndexableGuestsSelector) RID() string {
-	return "guestprofile.entities." + s.EntityID.String() + ".indexable-guest-selectors"
 }
 
 type SearchGuestsRequest struct {
