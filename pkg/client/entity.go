@@ -13,6 +13,20 @@ import (
 // entitiesClient provides methods to interact with entities.
 type entitiesClient struct{ baseClient *Client }
 
+func (c *entitiesClient) BuildESQuery(
+	selector *models.EntitySelector,
+	params *models.BuildEntityESQueryParams,
+) (json.RawMessage, error) {
+	return transport.CallRESResult[json.RawMessage](
+		c.baseClient.resClient,
+		"guestprofile.entities."+selector.EntityID.String()+".build-elasticsearch-query",
+		resprot.Request{
+			Params: params,
+			Token:  json.RawMessage(`{"agentRoles": ["service"]}`),
+		},
+	)
+}
+
 func (c *entitiesClient) ReadEntity(selector *models.EntitySelector) (*models.Entity, error) {
 	return c.readEntityByRID(selector.RID())
 }

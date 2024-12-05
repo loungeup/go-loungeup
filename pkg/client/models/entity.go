@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 	"time"
@@ -103,4 +104,25 @@ func getEntityIDFromRID(rid string) uuid.UUID {
 	}
 
 	return result
+}
+
+type BuildEntityESQueryParams struct {
+	Conditions    *SearchConditions `json:"conditions,omitempty"`
+	RawConditions json.RawMessage   `json:"-"`
+	GuestIDs      uuid.UUIDs        `json:"guestIds"`
+}
+
+var _ (json.Marshaler) = (*BuildEntityESQueryParams)(nil)
+
+func (p *BuildEntityESQueryParams) MarshalJSON() ([]byte, error) {
+	if p.RawConditions != nil {
+		return json.Marshal(map[string]any{
+			"conditions": p.RawConditions,
+			"guestIds":   p.GuestIDs.Strings(),
+		})
+	}
+
+	type Alias BuildEntityESQueryParams
+
+	return json.Marshal((*Alias)(p))
 }

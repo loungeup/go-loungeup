@@ -3,10 +3,12 @@ package esutil
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
@@ -164,11 +166,15 @@ func makeHTTPLogAttrs(request *http.Request, response *http.Response) *httpLogAt
 
 	if response.StatusCode >= http.StatusBadRequest {
 		if body := request.Body; body != nil {
-			result.Request = append(result.Request, slog.String("body", convertReaderToString(body)))
+			result.Request = append(result.Request,
+				slog.Any("body", convertReaderToLogAttrValue(request.Header.Get("Content-Type"), body)),
+			)
 		}
 
 		if body := response.Body; body != nil {
-			result.Response = append(result.Response, slog.String("body", convertReaderToString(body)))
+			result.Response = append(result.Response,
+				slog.Any("body", convertReaderToLogAttrValue(response.Header.Get("Content-Type"), body)),
+			)
 		}
 	}
 
@@ -184,9 +190,14 @@ func convertLogAttrsToAny(attrs []slog.Attr) []any {
 	return result
 }
 
-func convertReaderToString(reader io.Reader) string {
+func convertReaderToLogAttrValue(contentType string, reader io.Reader) any {
 	buffer := &bytes.Buffer{}
 	_, _ = io.Copy(buffer, reader)
 
-	return buffer.String()
+	switch {
+	case strings.Contains(contentType, "json"):
+		return json.RawMessage(buffer.Bytes())
+	default:
+		return buffer.String()
+	}
 }

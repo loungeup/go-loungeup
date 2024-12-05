@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/jirenius/go-res/resprot"
 	"github.com/loungeup/go-loungeup/pkg/client/models"
@@ -12,13 +13,16 @@ type segmentsClient struct{ baseClient *Client }
 
 func (c *segmentsClient) BuildESQuery(
 	selector *models.SegmentSelector,
-	query *models.SegmentQuery,
-) (*models.BuildESQueryResponse, error) {
-	return transport.CallRESResult[*models.BuildESQueryResponse](
+	params *models.SearchCriterion,
+) (*models.BuildSegmentESQueryResponse, error) {
+	return transport.CallRESResult[*models.BuildSegmentESQueryResponse](
 		c.baseClient.resClient,
-		selector.RID(),
+		fmt.Sprintf("guestprofile.entities.%s.segments.%s.build-elasticsearch-query",
+			selector.EntityID.String(),
+			selector.SegmentID.String(),
+		),
 		resprot.Request{
-			Params: query,
+			Params: params,
 			Token:  json.RawMessage(`{"agentRoles": ["service"]}`),
 		},
 	)
