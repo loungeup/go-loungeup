@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/loungeup/go-loungeup/pkg/cache"
 	"github.com/loungeup/go-loungeup/pkg/transport"
@@ -68,6 +69,14 @@ func (c *Client) eventuallyWriteCache(key string, value any) {
 	}
 
 	c.cache.Write(key, value)
+}
+
+func (c *Client) eventuallyWriteCacheWithDuration(key string, value any, duration time.Duration) {
+	if c.cache == nil {
+		return
+	}
+
+	c.cache.WriteWithDuration(key, value, duration)
 }
 
 func (c *Client) executeHTTPRequest(request *http.Request) (*http.Response, error) {

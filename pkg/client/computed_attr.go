@@ -14,7 +14,20 @@ import (
 type computedAttrsClient struct{ baseClient *Client }
 
 func (c *computedAttrsClient) ReadOne(selector *ComputedAttrSelector) (*ComputedAttr, error) {
-	return transport.GetRESModel[*ComputedAttr](c.baseClient.resClient, selector.rid(), resprot.Request{})
+	cacheKey := selector.rid()
+
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).(*ComputedAttr); ok {
+		return cachedResult, nil
+	}
+
+	result, err := transport.GetRESModel[*ComputedAttr](c.baseClient.resClient, selector.rid(), resprot.Request{})
+	if err != nil {
+		return nil, err
+	}
+
+	defer c.baseClient.eventuallyWriteCacheWithDuration(cacheKey, result, time.Minute)
+
+	return result, nil
 }
 
 type ComputedAttr struct {
