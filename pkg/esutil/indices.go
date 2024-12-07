@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"github.com/loungeup/go-loungeup/pkg/platform"
+	"github.com/loungeup/go-loungeup"
 )
 
 const (
@@ -36,14 +36,14 @@ func (i *Indices) Strings() []string {
 }
 
 type indicesMaker struct {
-	platform platform.Platform
+	platform loungeup.Platform
 }
 
-func MakeIndices(platform platform.Platform) *indicesMaker { return &indicesMaker{platform} }
+func MakeIndices(platform loungeup.Platform) *indicesMaker { return &indicesMaker{platform} }
 
 func (m *indicesMaker) At(t time.Time) *Indices {
 	switch m.platform {
-	case platform.Development, platform.Studio:
+	case loungeup.PlatformDevelopment, loungeup.PlatformStudio:
 		return makeIndices(makeIndexPrefix(m.platform), globalIndexSuffix)
 	default:
 		return makeIndices(makeIndexPrefix(m.platform), formatIndexTime(t))
@@ -85,11 +85,11 @@ func makeIndices(prefix, suffix string) *Indices {
 	}
 }
 
-func makeIndexPrefix(p platform.Platform) string {
+func makeIndexPrefix(p loungeup.Platform) string {
 	switch p {
-	case platform.Development:
+	case loungeup.PlatformDevelopment:
 		return "development"
-	case platform.Studio:
+	case loungeup.PlatformStudio:
 		return "studio"
 	default:
 		return "production"
