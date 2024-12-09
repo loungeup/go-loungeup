@@ -18,7 +18,7 @@ var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
 		},
 		AggType: ComputedAttrAggTypeNumber,
 		MapValueFunc: func(aggregate estypes.Aggregate) any {
-			return aggregate.(*estypes.AvgAggregate).Value
+			return mapESFloat64(aggregate.(*estypes.AvgAggregate).Value)
 		},
 	},
 	"nextAccountId": {
@@ -36,7 +36,7 @@ var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
 		},
 		AggType: ComputedAttrAggTypeDate,
 		MapValueFunc: func(aggregate estypes.Aggregate) any {
-			return aggregate.(*estypes.MinAggregate).Value
+			return mapESFloat64(aggregate.(*estypes.MinAggregate).Value)
 		},
 	},
 	"previousAccountId": {
@@ -54,7 +54,7 @@ var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
 		},
 		AggType: ComputedAttrAggTypeDate,
 		MapValueFunc: func(aggregate estypes.Aggregate) any {
-			return aggregate.(*estypes.MaxAggregate).Value
+			return mapESFloat64(aggregate.(*estypes.MaxAggregate).Value)
 		},
 	},
 	"totalAccounts": {
@@ -65,7 +65,7 @@ var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
 		},
 		AggType: ComputedAttrAggTypeNumber,
 		MapValueFunc: func(aggregate estypes.Aggregate) any {
-			return aggregate.(*estypes.ValueCountAggregate).Value
+			return mapESFloat64(aggregate.(*estypes.ValueCountAggregate).Value)
 		},
 	},
 	"totalBookings": {
@@ -76,7 +76,7 @@ var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
 		},
 		AggType: ComputedAttrAggTypeNumber,
 		MapValueFunc: func(aggregate estypes.Aggregate) any {
-			return aggregate.(*estypes.ValueCountAggregate).Value
+			return mapESFloat64(aggregate.(*estypes.ValueCountAggregate).Value)
 		},
 	},
 	"totalDistinctBookings": {
@@ -100,7 +100,7 @@ var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
 		},
 		AggType: ComputedAttrAggTypeNumber,
 		MapValueFunc: func(aggregate estypes.Aggregate) any {
-			return aggregate.(*estypes.SumAggregate).Value
+			return mapESFloat64(aggregate.(*estypes.SumAggregate).Value)
 		},
 	},
 	"totalRevenue": {
@@ -111,7 +111,7 @@ var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
 		},
 		AggType: ComputedAttrAggTypeNumber,
 		MapValueFunc: func(aggregate estypes.Aggregate) any {
-			return aggregate.(*estypes.SumAggregate).Value
+			return mapESFloat64(aggregate.(*estypes.SumAggregate).Value)
 		},
 	},
 }
@@ -153,4 +153,12 @@ func MapEntityType[T ~string](v T) string {
 	default:
 		return "" // We are never using other types in ES (e.g. resellers).
 	}
+}
+
+func mapESFloat64(value *estypes.Float64) float64 {
+	if value == nil {
+		return 0
+	}
+
+	return float64(*value)
 }
