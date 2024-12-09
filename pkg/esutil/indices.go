@@ -13,7 +13,7 @@ import (
 
 const (
 	globalIndexSuffix   = "global"
-	wildcardIndexSuffix = "*"
+	wildcardIndexSuffix = "alias"
 )
 
 type Indices struct {
