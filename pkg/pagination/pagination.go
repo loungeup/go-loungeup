@@ -31,8 +31,9 @@ func NewPager[S ~[]E, E any](reader pageReader[S, E], options ...pagerOption) *P
 	}
 
 	return &Pager[S, E]{
-		reader: reader,
-		size:   configuration.size,
+		reader:            reader,
+		allowShorterPages: configuration.allowShorterPages,
+		size:              configuration.size,
 	}
 }
 
