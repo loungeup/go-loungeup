@@ -12,16 +12,23 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+const defaultLoadThreshold = 70
+
 type LoadTester struct {
-	client      *elasticsearch.Client
-	typedClient *elasticsearch.TypedClient
-	logger      *log.Logger
+	client        *elasticsearch.Client
+	typedClient   *elasticsearch.TypedClient
+	loadThreshold int
+	logger        *log.Logger
 }
 
 type LoadTesterOption func(*LoadTester)
 
 func NewLoadTesterWithClient(client *elasticsearch.Client, options ...LoadTesterOption) *LoadTester {
-	result := &LoadTester{client: client, logger: log.Default()}
+	result := &LoadTester{
+		client:        client,
+		loadThreshold: defaultLoadThreshold,
+		logger:        log.Default(),
+	}
 	for _, option := range options {
 		option(result)
 	}
@@ -30,12 +37,20 @@ func NewLoadTesterWithClient(client *elasticsearch.Client, options ...LoadTester
 }
 
 func NewLoadTesterWithTypedClient(client *elasticsearch.TypedClient, options ...LoadTesterOption) *LoadTester {
-	result := &LoadTester{typedClient: client, logger: log.Default()}
+	result := &LoadTester{
+		typedClient:   client,
+		loadThreshold: defaultLoadThreshold,
+		logger:        log.Default(),
+	}
 	for _, option := range options {
 		option(result)
 	}
 
 	return result
+}
+
+func WithLoadTesterThreshold(threshold int) LoadTesterOption {
+	return func(t *LoadTester) { t.loadThreshold = threshold }
 }
 
 func WithLoadTesterLogger(logger *log.Logger) LoadTesterOption {
@@ -55,6 +70,7 @@ func (t *LoadTester) Test() (bool, error) {
 
 	l1 := t.logger.With(
 		slog.Int("cpuUsage", cpuUsage),
+		slog.Int("loadThreshold", t.loadThreshold),
 		slog.Int("memoryUsage", memoryUsage),
 		slog.Int("nodesCount", metrics.nodesCount),
 		slog.Int("usedCpuPercent", metrics.usedCPUPercent),
@@ -62,12 +78,7 @@ func (t *LoadTester) Test() (bool, error) {
 		slog.Int64("usedMemoryBytes", metrics.usedMemoryBytes),
 	)
 
-	const (
-		cpuUsageThreshold    = 80
-		memoryUsageThreshold = 80
-	)
-
-	result := cpuUsage <= cpuUsageThreshold && memoryUsage <= memoryUsageThreshold
+	result := cpuUsage <= t.loadThreshold && memoryUsage <= t.loadThreshold
 	if result {
 		l1.Debug("Load is acceptable")
 	} else {
