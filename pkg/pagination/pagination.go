@@ -14,7 +14,8 @@ type Pager[S ~[]E, E any] struct {
 	lastErr  error // The last error that happened while reading a page.
 	lastPage S     // The most recent page read.
 
-	size int
+	allowShorterPages bool
+	size              int
 }
 
 // NewPager creates a pager with the given function to read pages of type S.
@@ -22,7 +23,8 @@ func NewPager[S ~[]E, E any](reader pageReader[S, E], options ...pagerOption) *P
 	const defaultSize = 25
 
 	configuration := &pagerConfiguration{
-		size: defaultSize,
+		allowShorterPages: false,
+		size:              defaultSize,
 	}
 	for _, option := range options {
 		option(configuration)
@@ -32,6 +34,11 @@ func NewPager[S ~[]E, E any](reader pageReader[S, E], options ...pagerOption) *P
 		reader: reader,
 		size:   configuration.size,
 	}
+}
+
+// AllowShorterPages allows the pager to continue reading pages even if the last page is shorter than the size.
+func AllowShorterPages() pagerOption {
+	return func(c *pagerConfiguration) { c.allowShorterPages = true }
 }
 
 // WithPageSize sets the size of the pages to be read by the pager.
@@ -44,9 +51,11 @@ func (p *Pager[S, E]) Err() error { return p.lastErr }
 // is no next page or an error happened while preparing it. [Pager.Err] should be called to distinguish between the two
 // cases.
 func (p *Pager[S, E]) Next() bool {
-	// If the last page is shorter than the size, there are no more pages.
-	if len(p.lastPage) != 0 && len(p.lastPage) < p.size {
-		return false
+	if !p.allowShorterPages {
+		// If the last page is shorter than the size, there are no more pages.
+		if p.lastPage != nil && len(p.lastPage) < p.size {
+			return false
+		}
 	}
 
 	page, err := p.reader.readPage(p.size)
@@ -75,7 +84,8 @@ func (p *Pager[S, E]) Reset() {
 }
 
 type pagerConfiguration struct {
-	size int
+	size              int
+	allowShorterPages bool
 }
 
 type pagerOption func(*pagerConfiguration)
