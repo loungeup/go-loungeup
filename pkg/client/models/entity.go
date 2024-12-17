@@ -109,7 +109,7 @@ func getEntityIDFromRID(rid string) uuid.UUID {
 type BuildEntityESQueryParams struct {
 	Conditions    *SearchConditions `json:"conditions,omitempty"`
 	RawConditions json.RawMessage   `json:"-"`
-	GuestIDs      uuid.UUIDs        `json:"guestIds"`
+	GuestIDs      uuid.UUIDs        `json:"guestIds,omitempty"`
 }
 
 var _ (json.Marshaler) = (*BuildEntityESQueryParams)(nil)
