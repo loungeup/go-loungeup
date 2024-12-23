@@ -10,6 +10,16 @@ import (
 )
 
 var (
+	EntityChain = &models.Entity{
+		ID:   uuid.New(),
+		Type: models.EntityTypeChain,
+	}
+
+	EntityGroup = &models.Entity{
+		ID:   uuid.New(),
+		Type: models.EntityTypeGroup,
+	}
+
 	Entity = &models.Entity{
 		ID:             uuid.New(),
 		LegacyID:       1,
@@ -26,6 +36,8 @@ var (
 		Rooms:          100,
 		Currency:       res.SoftRef("authority.currencies.eur"),
 		ConvertAmounts: true,
+		Chain:          res.SoftRef(AccountChainSelector.RID()),
+		Group:          res.SoftRef(AccountGroupSelector.RID()),
 		CreatedAt:      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 		UpdatedAt:      time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 	}
@@ -59,10 +71,34 @@ var (
 		},
 		"convertAmounts": true,
 		"createdAt": "2020-01-01T00:00:00Z",
-		"updatedAt": "2020-01-01T00:00:00Z"
+		"updatedAt": "2020-01-01T00:00:00Z",
+		"chain": {
+			"rid": "` + AccountChainSelector.RID() + `"
+		},
+		"group": {
+			"rid": "` + AccountGroupSelector.RID() + `"
+		}
+	}`
+
+	ChainModel = `{
+		"id": "` + EntityChain.ID.String() + `",
+		"type": "chain"
+	}`
+
+	GroupModel = `{
+		"id": "` + EntityGroup.ID.String() + `",
+		"type": "group"
 	}`
 
 	EntitySelector = &models.EntitySelector{
 		EntityID: Entity.ID,
+	}
+
+	AccountChainSelector = &models.EntitySelector{
+		EntityID: EntityChain.ID,
+	}
+
+	AccountGroupSelector = &models.EntitySelector{
+		EntityID: EntityGroup.ID,
 	}
 )

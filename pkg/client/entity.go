@@ -65,6 +65,47 @@ func (c *entitiesClient) ReadEntityAccounts(selector *models.EntityAccountsSelec
 	return result, nil
 }
 
+func (c *entitiesClient) ReadAccountParents(selector *models.EntitySelector) ([]*models.Entity, error) {
+	cacheKey := selector.RID() + ".parent-entities"
+
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).([]*models.Entity); ok {
+		return cachedResult, nil
+	}
+
+	entity, err := c.readEntityByRID(selector.RID())
+	if err != nil {
+		return nil, err
+	}
+
+	if entity.Type != models.EntityTypeAccount {
+		return nil, fmt.Errorf("entity is not an account")
+	}
+
+	result := []*models.Entity{}
+
+	if entity.Chain != "" {
+		chain, err := c.readEntityByRID(string(entity.Chain))
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, chain)
+	}
+
+	if entity.Group != "" {
+		group, err := c.readEntityByRID(string(entity.Group))
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, group)
+	}
+
+	defer c.baseClient.eventuallyWriteCache(cacheKey, result)
+
+	return result, nil
+}
+
 func (c *entitiesClient) ReadEntityCustomFields(
 	selector *models.EntityCustomFieldsSelector,
 ) (*models.EntityCustomFields, error) {

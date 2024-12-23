@@ -64,3 +64,24 @@ func TestReadEntityCustomFields(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, testdata.EntityCustomFields, got)
 }
+
+func TestReadAccountParents(t *testing.T) {
+	got, err := NewWithTransport(&transport.Transport{
+		RESClient: &transporttest.RESClientMock{
+			RequestFunc: func(resourceID string, _ resprot.Request) resprot.Response {
+				switch {
+				case strings.HasSuffix(resourceID, testdata.AccountChainSelector.RID()):
+					return transporttest.NewRESModelResponse(testdata.ChainModel)
+				case strings.HasSuffix(resourceID, testdata.AccountGroupSelector.RID()):
+					return transporttest.NewRESModelResponse(testdata.GroupModel)
+				case strings.HasSuffix(resourceID, testdata.EntitySelector.RID()):
+					return transporttest.NewRESModelResponse(testdata.EntityModel)
+				default:
+					return transporttest.NewRESModelResponse(`{}`)
+				}
+			},
+		},
+	}).Internal.Entities.ReadAccountParents(testdata.EntitySelector)
+	assert.NoError(t, err)
+	assert.Equal(t, []*models.Entity{testdata.EntityChain, testdata.EntityGroup}, got)
+}

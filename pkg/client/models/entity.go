@@ -107,9 +107,10 @@ func getEntityIDFromRID(rid string) uuid.UUID {
 }
 
 type BuildEntityESQueryParams struct {
-	Conditions    *SearchConditions `json:"conditions,omitempty"`
-	RawConditions json.RawMessage   `json:"-"`
-	GuestIDs      uuid.UUIDs        `json:"guestIds,omitempty"`
+	Conditions         *SearchConditions `json:"conditions,omitempty"`
+	RawConditions      json.RawMessage   `json:"-"`
+	GuestIDs           uuid.UUIDs        `json:"guestIds,omitempty"`
+	DisableEntityScope bool              `json:"disableEntityScope,omitempty"`
 }
 
 var _ (json.Marshaler) = (*BuildEntityESQueryParams)(nil)
@@ -117,8 +118,9 @@ var _ (json.Marshaler) = (*BuildEntityESQueryParams)(nil)
 func (p *BuildEntityESQueryParams) MarshalJSON() ([]byte, error) {
 	if p.RawConditions != nil {
 		return json.Marshal(map[string]any{
-			"conditions": p.RawConditions,
-			"guestIds":   p.GuestIDs.Strings(),
+			"conditions":         p.RawConditions,
+			"guestIds":           p.GuestIDs.Strings(),
+			"disableEntityScope": p.DisableEntityScope,
 		})
 	}
 
