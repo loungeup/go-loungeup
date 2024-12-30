@@ -86,7 +86,7 @@ func (s *sqlStore) ReadByID(id uuid.UUID) (*Task, error) {
 		return nil, fmt.Errorf("could not map SQL model to task: %w", err)
 	}
 
-	defer s.eventuallyPurge()
+	go s.eventuallyPurge()
 
 	return result, nil
 }
@@ -109,7 +109,7 @@ func (s *sqlStore) Write(task *Task) error {
 		return fmt.Errorf("could not write task to DB: %w", err)
 	}
 
-	defer s.eventuallyPurge()
+	go s.eventuallyPurge()
 
 	return nil
 }
