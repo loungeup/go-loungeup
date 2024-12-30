@@ -114,17 +114,17 @@ func (s *sqlStore) Write(task *Task) error {
 	return nil
 }
 
-func (s *sqlStore) eventuallyPurge() error {
+func (s *sqlStore) eventuallyPurge() {
 	if !s.shouldPurge() {
-		return nil
+		return
 	}
 
-	return s.purge()
+	s.purge()
 }
 
-func (s *sqlStore) purge() error {
+func (s *sqlStore) purge() {
 	if !s.purgeMutex.TryLock() {
-		return nil // A purge is already in progress.
+		return // A purge is already in progress.
 	}
 	defer s.purgeMutex.Unlock()
 
@@ -137,24 +137,24 @@ func (s *sqlStore) purge() error {
 		slog.Time("startedAt", startedAt),
 	)
 
-	result, err := s.db.Exec("DELETE FROM tasks WHERE ended_at < ?", startedAt.Add(-s.retention))
+	result, err := s.db.Exec("DELETE FROM tasks WHERE ended_at < $1", startedAt.Add(-s.retention))
 	if err != nil {
-		return fmt.Errorf("could not purge DB: %w", err)
+		l1.Error("Could not purge DB", slog.Any("error", err))
+		return
 	}
 
 	totalDeletedRows, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("could not count deleted rows: %w", err)
+		l1.Error("Could not count deleted rows", slog.Any("error", err))
+		return
 	}
 
 	l1.Debug("DB purged",
-		slog.Duration("duration", time.Since(startedAt)),
 		slog.Int64("totalDeletedRows", totalDeletedRows),
+		slog.String("duration", time.Since(startedAt).String()),
 	)
 
 	s.purgedAt = time.Now()
-
-	return nil
 }
 
 func (s *sqlStore) init() error {
