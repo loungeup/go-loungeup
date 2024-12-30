@@ -165,6 +165,12 @@ func (s *sqlStore) init() error {
 		return fmt.Errorf("could not create 'tasks' table: %w", err)
 	}
 
+	if _, err := s.db.Exec(
+		`CREATE INDEX CONCURRENTLY IF NOT EXISTS tasks_ended_at_idx ON tasks (ended_at)`,
+	); err != nil {
+		return fmt.Errorf("could not create 'tasks_ended_at_idx' index: %w", err)
+	}
+
 	return nil
 }
 

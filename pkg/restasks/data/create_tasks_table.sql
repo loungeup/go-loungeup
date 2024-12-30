@@ -9,5 +9,3 @@ CREATE TABLE IF NOT EXISTS tasks (
   started_at TIMESTAMP WITH TIME ZONE NOT NULL,
   ended_at TIMESTAMP WITH TIME ZONE
 );
-
-CREATE INDEX CONCURRENTLY IF NOT EXISTS tasks_ended_at_idx ON tasks (ended_at);
