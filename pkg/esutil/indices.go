@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 
@@ -35,22 +36,26 @@ func (i *Indices) Strings() []string {
 	return result
 }
 
-type indicesMaker struct {
+type IndicesMaker struct {
 	platform loungeup.Platform
 }
 
-func MakeIndices(platform loungeup.Platform) *indicesMaker { return &indicesMaker{platform} }
+func MakeIndices(platform loungeup.Platform) *IndicesMaker { return &IndicesMaker{platform} }
 
-func (m *indicesMaker) At(t time.Time) *Indices {
-	switch m.platform {
-	case loungeup.PlatformDevelopment, loungeup.PlatformStudio:
-		return makeIndices(makeIndexPrefix(m.platform), globalIndexSuffix)
-	default:
-		return makeIndices(makeIndexPrefix(m.platform), formatIndexTime(t))
+func (m *IndicesMaker) At(t time.Time) *Indices {
+	prefix := makeIndexPrefix(loungeup.PlatformProduction)
+
+	if m.platform == loungeup.PlatformDevelopment || m.platform == loungeup.PlatformStudio {
+		return makeIndices(prefix, globalIndexSuffix)
+	}
+
+	return &Indices{
+		Bookings: makeBookingIndex(prefix, formatBookingIndexTime(t)),
+		Guests:   makeGuestIndex(prefix, formatGuestIndexTime(t)),
 	}
 }
 
-func (m *indicesMaker) Wildcard() *Indices {
+func (m *IndicesMaker) Wildcard() *Indices {
 	return makeIndices(makeIndexPrefix(m.platform), wildcardIndexSuffix)
 }
 
@@ -69,9 +74,16 @@ func ParseResponseBody(response *esapi.Response) (string, error) {
 	return bodyBuilder.String(), nil
 }
 
-func formatIndexTime(t time.Time) string {
-	const thresholdYearForGlobal = 2023
-	if t.Year() < thresholdYearForGlobal {
+func formatBookingIndexTime(t time.Time) string {
+	if year := t.Year(); year > 2020 && year < 2022 {
+		return strconv.Itoa(year)
+	}
+
+	return globalIndexSuffix
+}
+
+func formatGuestIndexTime(t time.Time) string {
+	if t.Year() < 2023 { //nolint:mnd
 		return globalIndexSuffix
 	}
 
@@ -80,9 +92,17 @@ func formatIndexTime(t time.Time) string {
 
 func makeIndices(prefix, suffix string) *Indices {
 	return &Indices{
-		Bookings: strings.Join([]string{prefix, "guestbookings", suffix}, "-"),
-		Guests:   strings.Join([]string{prefix, "guestcards", suffix}, "-"),
+		Bookings: makeBookingIndex(prefix, suffix),
+		Guests:   makeGuestIndex(prefix, suffix),
 	}
+}
+
+func makeBookingIndex(prefix, suffix string) string {
+	return strings.Join([]string{prefix, "guestbookings", suffix}, "-")
+}
+
+func makeGuestIndex(prefix, suffix string) string {
+	return strings.Join([]string{prefix, "guestcards", suffix}, "-")
 }
 
 func makeIndexPrefix(p loungeup.Platform) string {
