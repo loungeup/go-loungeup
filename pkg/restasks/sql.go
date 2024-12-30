@@ -5,10 +5,13 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/loungeup/go-loungeup/pkg/errors"
+	"github.com/loungeup/go-loungeup/pkg/log"
 )
 
 var (
@@ -22,14 +25,41 @@ var (
 	writeTaskSQLQuery string
 )
 
-type sqlStore struct{ db *sql.DB }
+type sqlStore struct {
+	db         *sql.DB
+	logger     *log.Logger
+	purgedAt   time.Time
+	purgeMutex sync.Mutex
+	retention  time.Duration
+}
 
-func NewSQLStore(db *sql.DB) (*sqlStore, error) {
-	if _, err := db.Exec(createTasksTableSQLQuery); err != nil {
-		return nil, fmt.Errorf("could not create 'tasks' SQL table: %w", err)
+type sqlStoreOption func(*sqlStore)
+
+func NewSQLStore(db *sql.DB, options ...sqlStoreOption) (*sqlStore, error) {
+	const defaultRetention = 7 * 24 * time.Hour
+
+	result := &sqlStore{
+		db:        db,
+		logger:    log.Default(),
+		retention: defaultRetention,
+	}
+	for _, option := range options {
+		option(result)
 	}
 
-	return &sqlStore{db}, nil
+	if err := result.init(); err != nil {
+		return nil, fmt.Errorf("could not initialize SQL store: %w", err)
+	}
+
+	return result, nil
+}
+
+func WithSQLStoreLogger(logger *log.Logger) sqlStoreOption {
+	return func(s *sqlStore) { s.logger = logger }
+}
+
+func WithSQLStoreRetention(retention time.Duration) sqlStoreOption {
+	return func(s *sqlStore) { s.retention = retention }
 }
 
 var _ (Store) = (*sqlStore)(nil)
@@ -47,7 +77,7 @@ func (s *sqlStore) ReadByID(id uuid.UUID) (*Task, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, &errors.Error{Code: errors.CodeNotFound}
 		} else {
-			return nil, fmt.Errorf("could not read task from SQL DB: %w", err)
+			return nil, fmt.Errorf("could not read task from DB: %w", err)
 		}
 	}
 
@@ -55,6 +85,8 @@ func (s *sqlStore) ReadByID(id uuid.UUID) (*Task, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not map SQL model to task: %w", err)
 	}
+
+	defer s.eventuallyPurge()
 
 	return result, nil
 }
@@ -74,11 +106,69 @@ func (s *sqlStore) Write(task *Task) error {
 		model.StartedAt,
 		model.EndedAt,
 	); err != nil {
-		return fmt.Errorf("could not write task to SQL DB: %w", err)
+		return fmt.Errorf("could not write task to DB: %w", err)
+	}
+
+	defer s.eventuallyPurge()
+
+	return nil
+}
+
+func (s *sqlStore) eventuallyPurge() error {
+	if !s.shouldPurge() {
+		return nil
+	}
+
+	return s.purge()
+}
+
+func (s *sqlStore) purge() error {
+	if !s.purgeMutex.TryLock() {
+		return nil // A purge is already in progress.
+	}
+	defer s.purgeMutex.Unlock()
+
+	startedAt := time.Now()
+
+	l1 := s.logger.With(slog.String("traceID", uuid.NewString()))
+	l1.Debug("Purging DB",
+		slog.String("retention", s.retention.String()),
+		slog.Time("purgedAt", s.purgedAt),
+		slog.Time("startedAt", startedAt),
+	)
+
+	result, err := s.db.Exec(
+		"DELETE FROM tasks WHERE ended_at < NOW() - INTERVAL ? SECOND",
+		s.retention.Seconds(),
+	)
+	if err != nil {
+		return fmt.Errorf("could not purge DB: %w", err)
+	}
+
+	totalDeletedRows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("could not count deleted rows: %w", err)
+	}
+
+	l1.Debug("DB purged",
+		slog.Duration("duration", time.Since(startedAt)),
+		slog.Int64("totalDeletedRows", totalDeletedRows),
+	)
+
+	s.purgedAt = time.Now()
+
+	return nil
+}
+
+func (s *sqlStore) init() error {
+	if _, err := s.db.Exec(createTasksTableSQLQuery); err != nil {
+		return fmt.Errorf("could not create 'tasks' table: %w", err)
 	}
 
 	return nil
 }
+
+func (s *sqlStore) shouldPurge() bool { return time.Since(s.purgedAt) > s.retention }
 
 type taskSQLModel struct {
 	ID           uuid.UUID
@@ -113,7 +203,7 @@ func mapSQLModelToTask(model *taskSQLModel) (*Task, error) {
 		Progress: model.Progress,
 		Error: func() error {
 			if model.ErrorMessage.Valid {
-				return fmt.Errorf(model.ErrorMessage.String)
+				return fmt.Errorf("%s", model.ErrorMessage.String)
 			}
 
 			return nil
