@@ -128,7 +128,7 @@ func (s *sqlStore) purge() error {
 	}
 	defer s.purgeMutex.Unlock()
 
-	startedAt := time.Now()
+	startedAt := time.Now().UTC()
 
 	l1 := s.logger.With(slog.String("traceID", uuid.NewString()))
 	l1.Debug("Purging DB",
@@ -137,10 +137,7 @@ func (s *sqlStore) purge() error {
 		slog.Time("startedAt", startedAt),
 	)
 
-	result, err := s.db.Exec(
-		"DELETE FROM tasks WHERE ended_at < NOW() - INTERVAL ? SECOND",
-		s.retention.Seconds(),
-	)
+	result, err := s.db.Exec("DELETE FROM tasks WHERE ended_at < ?", startedAt.Add(-s.retention))
 	if err != nil {
 		return fmt.Errorf("could not purge DB: %w", err)
 	}
@@ -237,9 +234,9 @@ func mapTaskToSQLModel(task *Task) (*taskSQLModel, error) {
 			return sql.NullString{}
 		}(),
 		Result:    encodedResult,
-		StartedAt: task.StartedAt,
+		StartedAt: task.StartedAt.UTC(),
 		EndedAt: func() sql.NullTime {
-			if endedAt := task.EndedAt; !endedAt.IsZero() {
+			if endedAt := task.EndedAt.UTC(); !endedAt.IsZero() {
 				return sql.NullTime{Time: endedAt, Valid: true}
 			}
 
