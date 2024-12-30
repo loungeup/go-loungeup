@@ -131,7 +131,7 @@ func (s *sqlStore) purge() {
 	startedAt := time.Now().UTC()
 
 	l1 := s.logger.With(slog.String("traceID", uuid.NewString()))
-	l1.Debug("Purging DB",
+	l1.Debug("Purging tasks",
 		slog.String("retention", s.retention.String()),
 		slog.Time("purgedAt", s.purgedAt),
 		slog.Time("startedAt", startedAt),
@@ -139,18 +139,18 @@ func (s *sqlStore) purge() {
 
 	result, err := s.db.Exec("DELETE FROM tasks WHERE ended_at < $1", startedAt.Add(-s.retention))
 	if err != nil {
-		l1.Error("Could not purge DB", slog.Any("error", err))
+		l1.Error("Could not purge tasks", slog.Any("error", err))
 		return
 	}
 
-	totalDeletedRows, err := result.RowsAffected()
+	count, err := result.RowsAffected()
 	if err != nil {
-		l1.Error("Could not count deleted rows", slog.Any("error", err))
+		l1.Error("Could not count purged tasks", slog.Any("error", err))
 		return
 	}
 
-	l1.Debug("DB purged",
-		slog.Int64("totalDeletedRows", totalDeletedRows),
+	l1.Debug("Tasks purged",
+		slog.Int64("count", count),
 		slog.String("duration", time.Since(startedAt).String()),
 	)
 
