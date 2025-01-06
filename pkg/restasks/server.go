@@ -210,4 +210,5 @@ func mapTaskToRESChangeEventProperties(task *Task) map[string]any {
 	return result
 }
 
-func formatTime(t time.Time) string { return t.Format(time.RFC3339) }
+func formatTime(t time.Time) string         { return t.Format(time.RFC3339) }
+func parseTime(v string) (time.Time, error) { return time.Parse(time.RFC3339, v) }

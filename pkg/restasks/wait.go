@@ -52,7 +52,7 @@ func Wait[T any](requester natsRequester, taskRID string, options ...waitOption)
 			}
 
 			if errorMessage := model.Error; errorMessage != "" {
-				return result, fmt.Errorf(errorMessage)
+				return result, fmt.Errorf("%s", errorMessage)
 			}
 
 			if err := model.decodeResult(&result); err != nil {
