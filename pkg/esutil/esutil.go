@@ -4,12 +4,47 @@ import (
 	"strings"
 
 	estypes "github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	essortorder "github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
+	"github.com/google/uuid"
+	"github.com/loungeup/go-loungeup/pkg/jsonutil"
 	"github.com/loungeup/go-loungeup/pkg/pointer"
 )
 
 //nolint:forcetypeassert
 var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
-	"accountIds": {}, // TODO(remyduthu): Implement.
+	"accountIds": {
+		Agg: estypes.Aggregations{
+			Terms: &estypes.TermsAggregation{
+				Field: pointer.From("booking.entityId"),
+				Size:  pointer.From(20), //nolint:mnd
+			},
+		},
+		AggType: ComputedAttrAggTypeNumber,
+		MapValueFunc: func(aggregate estypes.Aggregate) any {
+			buckets := aggregate.(*estypes.StringTermsAggregate).Buckets.([]estypes.StringTermsBucket)
+			if len(buckets) == 0 {
+				return nil
+			}
+
+			entityIds := uuid.UUIDs{}
+			for _, bucket := range buckets {
+				key, ok := bucket.Key.(string)
+				if !ok {
+					continue
+				}
+
+				entityId, _ := uuid.Parse(key)
+
+				entityIds = append(entityIds, entityId)
+			}
+
+			if len(entityIds) == 0 {
+				return nil
+			}
+
+			return entityIds
+		},
+	},
 	"averageRevenue": {
 		Agg: estypes.Aggregations{
 			Avg: &estypes.AverageAggregation{
@@ -22,10 +57,31 @@ var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
 		},
 	},
 	"nextAccountId": {
-		Agg:     estypes.Aggregations{}, // TODO(remyduthu): Implement.
+		Agg: estypes.Aggregations{
+			TopHits: &estypes.TopHitsAggregation{
+				Size: pointer.From(1),
+				Sort: []estypes.SortCombinations{
+					estypes.SortOptions{
+						SortOptions: map[string]estypes.FieldSort{
+							"booking.arrival": {
+								Order: &essortorder.Asc,
+							},
+						},
+					},
+				},
+				Source_: estypes.SourceFilter{
+					Includes: []string{"booking.entityId"},
+				},
+			},
+		},
 		AggType: ComputedAttrAggTypeText,
 		MapValueFunc: func(aggregate estypes.Aggregate) any {
-			return nil // TODO: Implement.
+			hits := aggregate.(*estypes.TopHitsAggregate).Hits.Hits
+			if len(hits) == 0 {
+				return nil
+			}
+
+			return jsonutil.Document(hits[0].Source_).UUID("booking.entityId")
 		},
 	},
 	"nextBookingArrival": {
@@ -40,10 +96,31 @@ var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
 		},
 	},
 	"previousAccountId": {
-		Agg:     estypes.Aggregations{}, // TODO(remyduthu): Implement.
+		Agg: estypes.Aggregations{
+			TopHits: &estypes.TopHitsAggregation{
+				Size: pointer.From(1),
+				Sort: []estypes.SortCombinations{
+					estypes.SortOptions{
+						SortOptions: map[string]estypes.FieldSort{
+							"booking.departure": {
+								Order: &essortorder.Desc,
+							},
+						},
+					},
+				},
+				Source_: estypes.SourceFilter{
+					Includes: []string{"booking.entityId"},
+				},
+			},
+		},
 		AggType: ComputedAttrAggTypeText,
 		MapValueFunc: func(aggregate estypes.Aggregate) any {
-			return nil // TODO: Implement.
+			hits := aggregate.(*estypes.TopHitsAggregate).Hits.Hits
+			if len(hits) == 0 {
+				return nil
+			}
+
+			return jsonutil.Document(hits[0].Source_).UUID("booking.entityId")
 		},
 	},
 	"previousBookingDeparture": {
@@ -59,13 +136,15 @@ var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
 	},
 	"totalAccounts": {
 		Agg: estypes.Aggregations{
-			ValueCount: &estypes.ValueCountAggregation{
+			Terms: &estypes.TermsAggregation{
 				Field: pointer.From("booking.entityId"),
 			},
 		},
 		AggType: ComputedAttrAggTypeNumber,
 		MapValueFunc: func(aggregate estypes.Aggregate) any {
-			return mapESFloat64(aggregate.(*estypes.ValueCountAggregate).Value)
+			buckets := aggregate.(*estypes.StringTermsAggregate).Buckets.([]estypes.StringTermsBucket)
+
+			return len(buckets)
 		},
 	},
 	"totalBookings": {
