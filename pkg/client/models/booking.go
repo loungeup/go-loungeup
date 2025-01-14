@@ -168,3 +168,26 @@ func (s ReadBookingIDsResponse) LastGuestID() uuid.UUID {
 
 	return s[len(s)-1].GuestID
 }
+
+type SearchBookingsRequest struct {
+	GetFirst *bool                 `json:"getFirst,omitempty"`
+	Select   *[]string             `json:"select,omitempty"`
+	Filters  SearchBookingsFilters `json:"filters"`
+	Order    *OrderField           `json:"order,omitempty"`
+}
+
+type SearchBookingsFilters struct {
+	InResa       string      `json:"inResa,omitempty""`
+	Booked       bool        `json:"booked,omitempty"`
+	IsMasterResa bool        `json:"isMasterResa,omitempty"`
+	GuestId      []uuid.UUID `json:"guestId,omitempty"`
+	NotGuestId   []uuid.UUID `json:"notGuestId,omitempty"`
+}
+
+type OrderField struct {
+	ASC bool `json:"asc"`
+}
+
+type SearchBookingsResponse struct {
+	Bookings []*Booking `json:"bookings"`
+}

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -93,4 +94,33 @@ func (c *bookingsClient) IndexBooking(request *models.IndexBookingRequest) error
 	}
 
 	return nil
+}
+
+func (c *bookingsClient) Search(entityID uuid.UUID, selector models.SearchBookingsRequest) (*models.SearchBookingsResponse, error) {
+	body, err := json.Marshal(selector)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal payload: %w", err)
+	}
+
+	request, err := http.NewRequest(
+		http.MethodPost,
+		c.baseClient.httpAPIURL+"/entities/"+entityID.String()+"/bookings/search",
+		bytes.NewReader(body),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("could not create request: %w", err)
+	}
+
+	response, err := c.baseClient.executeHTTPRequest(request)
+	if err != nil {
+		return nil, fmt.Errorf("could not send request: %w", err)
+	}
+	defer response.Body.Close()
+
+	result := &models.SearchBookingsResponse{}
+	if err := json.NewDecoder(response.Body).Decode(result); err != nil {
+		return nil, fmt.Errorf("could not decode response body: %w", err)
+	}
+
+	return result, nil
 }

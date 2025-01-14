@@ -137,6 +137,22 @@ func (s StructuredValueSlice[T]) Select() StructuredValue[T] {
 	return result
 }
 
+// MostRecent value of the slice.
+func (s StructuredValueSlice[T]) MostRecent() StructuredValue[T] {
+	if len(s) < 1 {
+		return StructuredValue[T]{}
+	}
+
+	result := s[0]
+	for _, v := range s {
+		if v.UpdatedAt.After(result.UpdatedAt) {
+			result = v
+		}
+	}
+
+	return result
+}
+
 type StructuredPhoneValueSlice StructuredValueSlice[Phone]
 
 func (s StructuredPhoneValueSlice) byType(t string) StructuredValue[Phone] {
