@@ -96,7 +96,7 @@ func (s *badgerStore) Write(task *Task) error {
 // https://dgraph.io/docs/badger/get-started/#garbage-collection
 func (s *badgerStore) runGC() {
 	const (
-		discardRatio = 0.7
+		discardRatio = 0.5
 		runInterval  = 5 * time.Minute
 	)
 
@@ -104,10 +104,15 @@ func (s *badgerStore) runGC() {
 	defer ticker.Stop()
 
 	for range ticker.C {
+	again:
 		l1 := s.logger.With(slog.String("traceId", uuid.NewString()))
 		l1.Debug("Running Badger GC")
 
-		if err := s.db.RunValueLogGC(discardRatio); err != nil && !errors.Is(err, badger.ErrNoRewrite) {
+		if err := s.db.RunValueLogGC(discardRatio); err == nil {
+			// One call would only result in removal of at max one log file. As an optimization, immediately re-run it
+			// whenever it returns nil error (indicating a successful value log GC)
+			goto again
+		} else if !errors.Is(err, badger.ErrNoRewrite) {
 			l1.Error("Could not run Badger GC", slog.Any("error", err))
 		}
 	}
