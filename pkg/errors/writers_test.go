@@ -63,7 +63,8 @@ type errorLoggerMock struct {
 	args []slog.Attr
 }
 
-func (m *errorLoggerMock) Error(msg string, args ...slog.Attr) { m.msg, m.args = msg, args }
+func (m *errorLoggerMock) Error(msg string, args ...slog.Attr)          { m.msg, m.args = msg, args }
+func (m *errorLoggerMock) FormattedError(msg string, args ...slog.Attr) { m.msg, m.args = msg, args }
 
 type errorWriterMock struct {
 	err error

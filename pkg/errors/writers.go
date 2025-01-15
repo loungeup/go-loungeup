@@ -9,6 +9,7 @@ import (
 
 type errorLogger interface {
 	Error(message string, attributes ...slog.Attr)
+	FormattedError(message string, attributes ...slog.Attr)
 }
 
 type errorWriter interface {
@@ -44,7 +45,13 @@ func LogAndWriteRESError(l errorLogger, w errorWriter, err error) {
 		logContext.UnderlyingMessage = err.UnderlyingError.Error()
 	}
 
-	l.Error(err.Error(), logContext.Attributes()...)
+	switch ErrorCode(err) {
+	case CodeInternal:
+		l.FormattedError(err.Error(), logContext.Attributes()...)
+	default:
+		l.Error(err.Error(), logContext.Attributes()...)
+	}
+
 	w.Error(&res.Error{Code: getRESErrorCode(err), Message: ErrorMessage(err), Data: logContext})
 }
 
