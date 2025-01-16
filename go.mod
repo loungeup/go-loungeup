@@ -4,6 +4,7 @@ go 1.21.0
 
 require (
 	github.com/SparkPost/gosparkpost v0.2.0
+	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/dgraph-io/badger/v3 v3.2103.5
 	github.com/dgraph-io/badger/v4 v4.5.0
 	github.com/dgraph-io/ristretto v0.1.1

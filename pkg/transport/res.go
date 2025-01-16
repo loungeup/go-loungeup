@@ -1,10 +1,13 @@
 package transport
 
 import (
+	"log/slog"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/jirenius/go-res"
 	"github.com/jirenius/go-res/resprot"
+	"github.com/loungeup/go-loungeup/pkg/log"
 )
 
 // Here, we are trying to use as much as possible from the resprot package. The resprot package provides functions and
@@ -17,14 +20,15 @@ type RESRequester interface {
 
 // RESClient used to interact with NATS services using the RES protocol.
 type RESClient struct {
+	disableRetries bool
 	natsConnection res.Conn
 	natsTimeout    time.Duration
 }
 
-type resClientOption func(*RESClient)
+type RESClientOption func(c *RESClient)
 
 // NewRESClient returns a client to interact with NATS services using the RES protocol.
-func NewRESClient(natsConnection res.Conn, options ...resClientOption) *RESClient {
+func NewRESClient(natsConnection res.Conn, options ...RESClientOption) *RESClient {
 	const defaultNATSTimeout = 4 * time.Second
 
 	result := &RESClient{
@@ -39,13 +43,57 @@ func NewRESClient(natsConnection res.Conn, options ...resClientOption) *RESClien
 	return result
 }
 
-func WithRESClientNATSTimeout(natsTimeout time.Duration) func(*RESClient) {
+func WithRESClientNATSTimeout(natsTimeout time.Duration) RESClientOption {
 	return func(c *RESClient) { c.natsTimeout = natsTimeout }
+}
+
+func WithRESClientWithoutRetries() RESClientOption {
+	return func(c *RESClient) { c.disableRetries = true }
 }
 
 var _ (RESRequester) = (*RESClient)(nil)
 
 func (c *RESClient) Request(resourceID string, request resprot.Request) resprot.Response {
+	if c.disableRetries {
+		return c.requestOnce(resourceID, request)
+	}
+
+	return c.requestWithRetries(resourceID, request)
+}
+
+func (c *RESClient) requestWithRetries(resourceID string, request resprot.Request) resprot.Response {
+	var lastResponse resprot.Response
+
+	_ = backoff.RetryNotify(
+		func() error {
+			lastResponse = c.requestOnce(resourceID, request)
+			if !lastResponse.HasError() {
+				return nil
+			}
+
+			switch lastResponse.Error.Code {
+			case res.CodeInternalError,
+				res.CodeNotFound,
+				res.CodeTimeout:
+				return lastResponse.Error
+			default:
+				return backoff.Permanent(lastResponse.Error) // Do not retry for other codes.
+			}
+		},
+		backoff.NewExponentialBackOff(backoff.WithMaxElapsedTime(c.natsTimeout)),
+		func(err error, retryingIn time.Duration) {
+			log.Default().Error("Could not request RES service. Retrying...",
+				slog.Any("error", err),
+				slog.String("resourceId", resourceID),
+				slog.String("retryingIn", retryingIn.String()),
+			)
+		},
+	)
+
+	return lastResponse
+}
+
+func (c *RESClient) requestOnce(resourceID string, request resprot.Request) resprot.Response {
 	return resprot.SendRequest(c.natsConnection, resourceID, request, c.natsTimeout)
 }
 
