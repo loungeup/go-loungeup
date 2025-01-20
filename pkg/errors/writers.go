@@ -45,11 +45,13 @@ func LogAndWriteRESError(l errorLogger, w errorWriter, err error) {
 		logContext.UnderlyingMessage = err.UnderlyingError.Error()
 	}
 
+	logAttributes := append(logContext.Attributes(), extractLogAttributes(w)...)
+
 	switch ErrorCode(err) {
 	case CodeInternal:
-		l.FormattedError(err.Error(), logContext.Attributes()...)
+		l.FormattedError(err.Error(), logAttributes...)
 	default:
-		l.Error(err.Error(), logContext.Attributes()...)
+		l.Error(err.Error(), logAttributes...)
 	}
 
 	w.Error(&res.Error{Code: getRESErrorCode(err), Message: ErrorMessage(err), Data: logContext})
@@ -67,4 +69,24 @@ func getRESErrorCode(err error) string {
 	default:
 		return res.CodeInternalError
 	}
+}
+
+// extractLogAttributes from the given value.
+func extractLogAttributes(value any) []slog.Attr {
+	result := []slog.Attr{}
+
+	if request, ok := value.(*res.Request); ok {
+		result = append(result, slog.Group("request",
+			slog.Any("params", request.RawParams()),
+			slog.Any("token", request.RawToken()),
+			slog.Bool("isHttp", request.IsHTTP()),
+			slog.String("connectionId", request.CID()),
+			slog.String("method", request.Method()),
+			slog.String("name", request.ResourceName()),
+			slog.String("query", request.Query()),
+			slog.String("type", request.Type()),
+		))
+	}
+
+	return result
 }
