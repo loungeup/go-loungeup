@@ -42,9 +42,19 @@ type Date time.Time
 func NewDate(t time.Time) Date { return Date(t) }
 
 func (d *Date) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 {
+		*d = Date{}
+		return nil
+	}
+
 	var dateAsString string
 	if err := json.Unmarshal(data, &dateAsString); err != nil {
 		return err
+	}
+
+	if dateAsString == "" {
+		*d = Date{}
+		return nil
 	}
 
 	parsedDate, err := time.Parse(time.DateOnly, dateAsString)

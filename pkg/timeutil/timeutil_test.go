@@ -85,12 +85,16 @@ func TestDateUnmarshalJSON(t *testing.T) {
 			wantError: true,
 		},
 		"empty string": {
-			in:        json.RawMessage(`""`),
-			wantError: true,
+			in:   json.RawMessage(`""`),
+			want: NewDate(time.Time{}),
 		},
 		"not a string": {
 			in:        json.RawMessage(`123`),
 			wantError: true,
+		},
+		"no data": {
+			in:   json.RawMessage(`null`),
+			want: NewDate(time.Time{}),
 		},
 	}
 
