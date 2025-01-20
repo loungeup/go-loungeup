@@ -73,20 +73,35 @@ func getRESErrorCode(err error) string {
 
 // extractLogAttributes from the given value.
 func extractLogAttributes(value any) []slog.Attr {
-	result := []slog.Attr{}
+	requestAttributes := []any{}
 
-	if request, ok := value.(*res.Request); ok {
-		result = append(result, slog.Group("request",
+	if request, ok := value.(res.Resource); ok {
+		requestAttributes = append(requestAttributes,
+			slog.String("name", request.ResourceName()),
+			slog.String("query", request.Query()),
+		)
+	}
+
+	if request, ok := value.(hasType); ok {
+		requestAttributes = append(requestAttributes, slog.String("type", request.Type()))
+	}
+
+	if request, ok := value.(res.CallRequest); ok {
+		requestAttributes = append(requestAttributes,
 			slog.Any("params", request.RawParams()),
 			slog.Any("token", request.RawToken()),
 			slog.Bool("isHttp", request.IsHTTP()),
 			slog.String("connectionId", request.CID()),
 			slog.String("method", request.Method()),
-			slog.String("name", request.ResourceName()),
-			slog.String("query", request.Query()),
-			slog.String("type", request.Type()),
-		))
+		)
 	}
 
-	return result
+	return []slog.Attr{
+		slog.Group("request", requestAttributes...),
+	}
+}
+
+// https://pkg.go.dev/github.com/jirenius/go-res@v0.5.0#Request.Type
+type hasType interface {
+	Type() string
 }
