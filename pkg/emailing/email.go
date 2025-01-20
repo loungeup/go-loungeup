@@ -1,6 +1,8 @@
-package email
+package emailing
 
-import "github.com/loungeup/go-loungeup/pkg/errors"
+import (
+	"github.com/loungeup/go-loungeup/pkg/errors"
+)
 
 type Email struct {
 	Sender     string
