@@ -1,6 +1,9 @@
 package timeutil
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 func Format(t time.Time) string {
 	if t.IsZero() {
@@ -32,4 +35,28 @@ func Oldest(times ...time.Time) time.Time {
 	}
 
 	return result
+}
+
+type Date time.Time
+
+func NewDate(t time.Time) Date { return Date(t) }
+
+func (d *Date) UnmarshalJSON(data []byte) error {
+	var dateAsString string
+	if err := json.Unmarshal(data, &dateAsString); err != nil {
+		return err
+	}
+
+	parsedDate, err := time.Parse(time.DateOnly, dateAsString)
+	if err != nil {
+		return err
+	}
+
+	*d = Date(parsedDate)
+
+	return nil
+}
+
+func (d Date) MarshalJSON() ([]byte, error) {
+	return json.Marshal(time.Time(d).Format(time.DateOnly))
 }

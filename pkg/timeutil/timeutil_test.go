@@ -1,6 +1,7 @@
 package timeutil
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -61,6 +62,74 @@ func TestOldest(t *testing.T) {
 	for test, tt := range tests {
 		t.Run(test, func(t *testing.T) {
 			assert.Equal(t, tt.want, Oldest(tt.in...))
+		})
+	}
+}
+
+func TestDateUnmarshalJSON(t *testing.T) {
+	tests := map[string]struct {
+		in        json.RawMessage
+		want      Date
+		wantError bool
+	}{
+		"valid date": {
+			in:   json.RawMessage(`"2025-01-24"`),
+			want: NewDate(time.Date(2025, 1, 24, 0, 0, 0, 0, time.UTC)),
+		},
+		"invalid format": {
+			in:        json.RawMessage(`"01-01-2020"`),
+			wantError: true,
+		},
+		"invalid date": {
+			in:        json.RawMessage(`"2020-13-01"`),
+			wantError: true,
+		},
+		"empty string": {
+			in:        json.RawMessage(`""`),
+			wantError: true,
+		},
+		"not a string": {
+			in:        json.RawMessage(`123`),
+			wantError: true,
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			var got Date
+
+			err := json.Unmarshal(tt.in, &got)
+			if tt.wantError {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestDateMarshalJSON(t *testing.T) {
+	tests := map[string]struct {
+		in   Date
+		want json.RawMessage
+	}{
+		"simple": {
+			in:   NewDate(time.Date(2025, 1, 24, 12, 30, 0, 0, time.UTC)),
+			want: json.RawMessage(`"2025-01-24"`),
+		},
+		"zero date": {
+			in:   NewDate(time.Time{}),
+			want: json.RawMessage(`"0001-01-01"`),
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := json.Marshal(Date(tt.in))
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, json.RawMessage(got))
 		})
 	}
 }
