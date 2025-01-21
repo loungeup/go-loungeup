@@ -117,6 +117,19 @@ func CompareModels[T any](previous, current T) map[string]any {
 	return compareMaps(mapFromPrevious, mapFromCurrent)
 }
 
+// SetErrorMessage if the given error is a RES error.
+func SetErrorMessage(err error, message string) error {
+	if err, ok := err.(*res.Error); ok {
+		return &res.Error{
+			Code:    err.Code,
+			Message: message,
+			Data:    err.Data,
+		}
+	}
+
+	return err
+}
+
 // convertToMap converts a value to a map[string]any.
 func convertToMap[T any](value T) (map[string]any, error) {
 	encodedValue, err := json.Marshal(value)

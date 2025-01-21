@@ -47,6 +47,21 @@ func LogAndWriteRESError(l errorLogger, w errorWriter, err error) {
 
 	logAttributes := append(logContext.Attributes(), extractLogAttributes(w)...)
 
+	if err, ok := err.(*res.Error); ok {
+		logAttributes = append(logAttributes, slog.Any("underlyingError", err.Data))
+
+		switch err.Code {
+		case res.CodeInternalError:
+			l.FormattedError(err.Message, logAttributes...)
+		default:
+			l.Error(err.Message, logAttributes...)
+		}
+
+		w.Error(err)
+
+		return
+	}
+
 	switch ErrorCode(err) {
 	case CodeInternal:
 		l.FormattedError(err.Error(), logAttributes...)
