@@ -43,7 +43,7 @@ type IndicesMaker struct {
 func MakeIndices(platform loungeup.Platform) *IndicesMaker { return &IndicesMaker{platform} }
 
 func (m *IndicesMaker) At(t time.Time) *Indices {
-	prefix := makeIndexPrefix(loungeup.PlatformProduction)
+	prefix := makeIndexPrefix(m.platform)
 
 	if m.platform == loungeup.PlatformDevelopment || m.platform == loungeup.PlatformStudio {
 		return makeIndices(prefix, globalIndexSuffix)
@@ -75,11 +75,17 @@ func ParseResponseBody(response *esapi.Response) (string, error) {
 }
 
 func formatBookingIndexTime(t time.Time) string {
-	if year := t.Year(); year > 2020 && year < 2022 {
+	year := t.Year()
+
+	if year < 2020 || year > 2100 {
+		return globalIndexSuffix
+	}
+
+	if year < 2022 { //nolint:mnd
 		return strconv.Itoa(year)
 	}
 
-	return globalIndexSuffix
+	return t.Format("2006-01")
 }
 
 func formatGuestIndexTime(t time.Time) string {
