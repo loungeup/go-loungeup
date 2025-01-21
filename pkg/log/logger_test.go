@@ -9,7 +9,7 @@ import (
 
 func TestDefaultLogger(t *testing.T) {
 	assert.NotNil(t, Default())
-	assert.NotNil(t, Default().Adapter)
+	assert.NotNil(t, NewAdapter(Default()))
 	assert.NotPanics(t, func() { Default().Debug("A debug message") })
 	assert.NotPanics(t, func() { Default().Error("An error message") })
 	assert.NotPanics(t, func() { Default().FormattedDebug("A formatted debug message") })
