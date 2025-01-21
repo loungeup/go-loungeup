@@ -10,7 +10,27 @@ import (
 // Adapter for external libraries.
 // It is used to adapt the logger by implementing interfaces required by external libraries.
 // It is not intended to be used directly by the application.
-type Adapter struct{ underlyingLogger *Logger }
+type Adapter struct {
+	logger *Logger
+
+	disableTraceLogs bool
+}
+
+type AdapterOption func(*Adapter)
+
+func NewAdapter(logger *Logger, options ...AdapterOption) *Adapter {
+	result := &Adapter{
+		logger: logger,
+	}
+
+	for _, option := range options {
+		option(result)
+	}
+
+	return result
+}
+
+func DisableAdapterTraceLogs() AdapterOption { return func(a *Adapter) { a.disableTraceLogs = true } }
 
 // Interfaces implemented by the adapter.
 var (
@@ -19,21 +39,25 @@ var (
 )
 
 func (a *Adapter) Debugf(message string, attributes ...any) {
-	a.underlyingLogger.Debug(fmt.Sprintf(message, attributes...))
+	a.logger.Debug(fmt.Sprintf(message, attributes...))
 }
 
 func (a *Adapter) Errorf(message string, attributes ...any) {
-	a.underlyingLogger.Error(fmt.Sprintf(message, attributes...))
+	a.logger.Error(fmt.Sprintf(message, attributes...))
 }
 
 func (a *Adapter) Infof(message string, attributes ...any) {
-	a.underlyingLogger.Debug(fmt.Sprintf(message, attributes...))
+	a.logger.Debug(fmt.Sprintf(message, attributes...))
 }
 
 func (a *Adapter) Tracef(message string, attributes ...any) {
-	a.underlyingLogger.Debug(fmt.Sprintf(message, attributes...))
+	if a.disableTraceLogs {
+		return
+	}
+
+	a.logger.Debug(fmt.Sprintf(message, attributes...))
 }
 
 func (a *Adapter) Warningf(message string, attributes ...any) {
-	a.underlyingLogger.Debug(fmt.Sprintf(message, attributes...))
+	a.logger.Debug(fmt.Sprintf(message, attributes...))
 }

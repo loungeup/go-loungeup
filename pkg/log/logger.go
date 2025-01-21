@@ -28,12 +28,7 @@ func init() {
 func Default() *Logger { return defaultLogger.Load() }
 
 // Logger used by LoungeUp applications based on the official log/slog package.
-type Logger struct {
-	// Adapter for external libraries.
-	Adapter *Adapter
-
-	underlyingLogger *slog.Logger
-}
+type Logger struct{ underlyingLogger *slog.Logger }
 
 // LoggerOption is a type of function that configures a Logger.
 type LoggerOption func(*Logger)
@@ -46,8 +41,6 @@ func NewLogger(options ...LoggerOption) *Logger {
 	for _, option := range options {
 		option(result)
 	}
-
-	result.Adapter = &Adapter{underlyingLogger: result}
 
 	return result
 }
@@ -90,7 +83,6 @@ func (l *Logger) FormattedError(message string, attributes ...slog.Attr) {
 // With works like the With method of the official log/slog package.
 func (l *Logger) With(attributes ...slog.Attr) *Logger {
 	return &Logger{
-		Adapter:          l.Adapter,
 		underlyingLogger: slog.New(l.underlyingLogger.Handler().WithAttrs(attributes)),
 	}
 }
@@ -98,7 +90,6 @@ func (l *Logger) With(attributes ...slog.Attr) *Logger {
 // WithGroup works like the WithGroup method of the official log/slog package.
 func (l *Logger) WithGroup(name string) *Logger {
 	return &Logger{
-		Adapter:          l.Adapter,
 		underlyingLogger: slog.New(l.underlyingLogger.Handler().WithGroup(name)),
 	}
 }
