@@ -3,9 +3,11 @@ package cache
 import (
 	"bytes"
 	"encoding/gob"
+	"log/slog"
 	"time"
 
 	"github.com/dgraph-io/ristretto"
+	"github.com/loungeup/go-loungeup/pkg/log"
 )
 
 const (
@@ -72,16 +74,33 @@ func (s RistrettoCacheSize) Config() *ristretto.Config {
 	}
 }
 
-type Ristretto struct{ baseCache *ristretto.Cache }
+type Ristretto struct {
+	baseCache *ristretto.Cache
+	logger    *log.Logger
+}
+
+type RistrettoOption func(*Ristretto)
 
 // NewRistretto creates a new ristretto cache with the given size.
-func NewRistretto(size RistrettoCacheSize) (*Ristretto, error) {
+func NewRistretto(size RistrettoCacheSize, options ...RistrettoOption) (*Ristretto, error) {
 	baseCache, err := ristretto.NewCache(size.Config())
 	if err != nil {
 		return nil, err
 	}
 
-	return &Ristretto{baseCache}, nil
+	result := &Ristretto{
+		baseCache: baseCache,
+		logger:    log.Default(),
+	}
+	for _, option := range options {
+		option(result)
+	}
+
+	return result, nil
+}
+
+func WithRistrettoLogger(logger *log.Logger) RistrettoOption {
+	return func(r *Ristretto) { r.logger = logger }
 }
 
 var _ ReadWriter = (*Ristretto)(nil)
@@ -106,7 +125,16 @@ func (r *Ristretto) WriteWithDuration(key string, value any, duration time.Durat
 		return
 	}
 
-	r.baseCache.SetWithTTL(key, value, getRistrettoValueCost(value), duration)
+	cost := getRistrettoValueCost(value)
+
+	if !r.baseCache.SetWithTTL(key, value, cost, duration) {
+		r.logger.Error("Could not cache value",
+			slog.String("key", key),
+			slog.Any("value", value),
+			slog.Int64("cost", cost),
+			slog.Duration("duration", duration),
+		)
+	}
 }
 
 func getRistrettoValueCost(value any) int64 {
