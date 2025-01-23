@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/dgraph-io/ristretto"
+	"github.com/dgraph-io/ristretto/v2"
 	"github.com/loungeup/go-loungeup/pkg/log"
 )
 
@@ -27,7 +27,7 @@ const (
 )
 
 // Config of the ristretto cache for the given size.
-func (s RistrettoCacheSize) Config() *ristretto.Config {
+func (s RistrettoCacheSize) Config() *ristretto.Config[string, any] {
 	const (
 		bufferItems = 64 // The documentation recommends this value.
 
@@ -44,7 +44,7 @@ func (s RistrettoCacheSize) Config() *ristretto.Config {
 		tooSmallRistrettoCacheNumCounters = 100
 	)
 
-	return &ristretto.Config{
+	return &ristretto.Config[string, any]{
 		NumCounters: func() int64 {
 			switch s {
 			case tooSmallRistrettoCache:
@@ -75,7 +75,7 @@ func (s RistrettoCacheSize) Config() *ristretto.Config {
 }
 
 type Ristretto struct {
-	baseCache *ristretto.Cache
+	baseCache *ristretto.Cache[string, any]
 	logger    *log.Logger
 }
 
