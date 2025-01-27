@@ -2,9 +2,19 @@ package esutil
 
 import (
 	"strings"
+	"sync/atomic"
 
 	"github.com/loungeup/go-loungeup/pkg/errors"
 )
+
+var globalMappingKeys atomic.Pointer[MappingKeys]
+
+//nolint:gochecknoinits
+func init() {
+	globalMappingKeys.Store(newMappingKeys())
+}
+
+func GlobalMappingKeys() *MappingKeys { return globalMappingKeys.Load() }
 
 type MappingKeys struct {
 	Booking *BookingMappingKeys
@@ -17,12 +27,11 @@ type ScopedMappingKeys struct {
 }
 
 type BookingMappingKeys struct {
-	ID                  string
-	EntityID            string
-	Arrival             string
-	Departure           string
-	PMSBookingID        string
-	PMSBookingIDKeyword string
+	ID           string
+	EntityID     string
+	Arrival      string
+	Departure    string
+	PMSBookingID string
 }
 
 type GuestMappingKeys struct {
@@ -84,7 +93,7 @@ func (scope MappingKeysScope) validate() error {
 	}
 }
 
-func NewMappingKeys() *MappingKeys {
+func newMappingKeys() *MappingKeys {
 	return &MappingKeys{
 		Booking: newBookingMappingKeys(),
 		Guest: &GuestMappingKeys{
@@ -110,12 +119,11 @@ func newBookingMappingKeys() *BookingMappingKeys {
 	prefix := "booking"
 
 	return &BookingMappingKeys{
-		ID:                  prefix + ".id",
-		EntityID:            prefix + ".entityId",
-		Arrival:             prefix + ".arrival",
-		Departure:           prefix + ".departure",
-		PMSBookingID:        prefix + ".pmsBookingId",
-		PMSBookingIDKeyword: prefix + ".pmsBookingId.keyword",
+		ID:           joinMappingKeyParts(prefix, "id"),
+		EntityID:     joinMappingKeyParts(prefix, "entityId"),
+		Arrival:      joinMappingKeyParts(prefix, "arrival"),
+		Departure:    joinMappingKeyParts(prefix, "departure"),
+		PMSBookingID: joinMappingKeyParts(prefix, "pmsBookingId"),
 	}
 }
 
@@ -123,11 +131,15 @@ func newScopedGuestMappingKeys(scope MappingKeysScope) *ScopedGuestMappingKeys {
 	prefix := scope.guestPrefix()
 
 	return &ScopedGuestMappingKeys{
-		ID:           prefix + ".id",
-		EntityID:     prefix + ".entityId",
-		ComposedWith: prefix + ".composedWith",
-		FirstName:    prefix + ".firstname",
-		LastName:     prefix + ".lastname",
-		Emails:       prefix + ".emails",
+		ID:           joinMappingKeyParts(prefix, "id"),
+		EntityID:     joinMappingKeyParts(prefix, "entityId"),
+		ComposedWith: joinMappingKeyParts(prefix, "composedWith"),
+		FirstName:    joinMappingKeyParts(prefix, "firstname"),
+		LastName:     joinMappingKeyParts(prefix, "lastname"),
+		Emails:       joinMappingKeyParts(prefix, "emails"),
 	}
+}
+
+func joinMappingKeyParts(parts ...string) string {
+	return strings.Join(parts, ".")
 }

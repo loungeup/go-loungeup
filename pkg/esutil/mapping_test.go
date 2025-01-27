@@ -1,14 +1,15 @@
-package esutil
+package esutil_test
 
 import (
 	"testing"
 
+	"github.com/loungeup/go-loungeup/pkg/esutil"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMappingKeys(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
-		keys := NewMappingKeys()
+		keys := esutil.GlobalMappingKeys()
 		assert.Equal(t, "booking.id", keys.Booking.ID)
 		assert.Equal(t, "guest.account.id", keys.Guest.Account.ID)
 		assert.Equal(t, "guest.chain.id", keys.Guest.Chain.ID)
@@ -16,14 +17,14 @@ func TestMappingKeys(t *testing.T) {
 	})
 
 	t.Run("scoped", func(t *testing.T) {
-		keys, err := NewScopedMappingKeys(MappingKeysScopeAccount)
+		keys, err := esutil.NewScopedMappingKeys(esutil.MappingKeysScopeAccount)
 		assert.NoError(t, err)
 		assert.Equal(t, "booking.id", keys.Booking.ID)
 		assert.Equal(t, "guest.account.id", keys.Guest.ID)
 	})
 
 	t.Run("invalid scope", func(t *testing.T) {
-		_, err := NewScopedMappingKeys(MappingKeysScopeUnknown)
+		_, err := esutil.NewScopedMappingKeys(esutil.MappingKeysScopeUnknown)
 		assert.Error(t, err)
 	})
 }
