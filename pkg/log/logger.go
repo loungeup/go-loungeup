@@ -1,12 +1,17 @@
 package log
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"os"
+	"runtime/debug"
 	"strings"
 	"sync/atomic"
+
+	"github.com/DataDog/gostackparse"
 )
 
 // Log attribute keys used by LoungeUp applications.
@@ -92,6 +97,27 @@ func (l *Logger) WithGroup(name string) *Logger {
 	return &Logger{
 		underlyingLogger: slog.New(l.underlyingLogger.Handler().WithGroup(name)),
 	}
+}
+
+func HandlePanic() {
+	errorValue := recover()
+	if errorValue == nil {
+		return
+	}
+
+	Default().FormattedError("Handling panic",
+		slog.Any("errorValue", errorValue),
+		slog.Any("goroutinesStack", encodeGoroutinesStack()),
+	)
+
+	os.Exit(1)
+}
+
+func encodeGoroutinesStack() json.RawMessage {
+	goroutinesStack, _ := gostackparse.Parse(bytes.NewReader(debug.Stack()))
+	result, _ := json.Marshal(goroutinesStack)
+
+	return result
 }
 
 func formatMessage(message string) string {
