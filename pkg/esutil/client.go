@@ -13,6 +13,8 @@ import (
 
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/loungeup/go-loungeup/pkg/errors"
 	"github.com/loungeup/go-loungeup/pkg/log"
 )
 
@@ -97,7 +99,8 @@ func newClientConfig(addresses []string, username, password string) elasticsearc
 			http.StatusGatewayTimeout,
 		},
 
-		Logger: &clientLogger{baseLogger: logger},
+		Logger:    &clientLogger{baseLogger: logger},
+		Transport: &clientTransport{baseTransport: http.DefaultTransport},
 	}
 }
 
@@ -119,7 +122,13 @@ func (l *clientLogger) LogRoundTrip(
 		slog.String("startedAt", startedAt.Format(time.RFC3339)),
 	}
 
-	httpAttrs := makeHTTPLogAttrs(request, response)
+	httpAttrs := func() *httpLogAttrs {
+		if (response != nil && response.StatusCode >= http.StatusBadRequest) || err != nil {
+			return makeHTTPLogAttrsWithBodies(request, response)
+		}
+
+		return makeHTTPLogAttrs(request, response)
+	}()
 	attrs = append(attrs,
 		slog.Group("request", convertLogAttrsToAny(httpAttrs.Request)...),
 		slog.Group("response", convertLogAttrsToAny(httpAttrs.Response)...),
@@ -164,18 +173,22 @@ func makeHTTPLogAttrs(request *http.Request, response *http.Response) *httpLogAt
 
 	result.Response = append(result.Response, slog.Int("statusCode", response.StatusCode))
 
-	if response.StatusCode >= http.StatusBadRequest {
-		if body := request.Body; body != nil {
-			result.Request = append(result.Request,
-				slog.Any("body", convertReaderToLogAttrValue(request.Header.Get("Content-Type"), body)),
-			)
-		}
+	return result
+}
 
-		if body := response.Body; body != nil {
-			result.Response = append(result.Response,
-				slog.Any("body", convertReaderToLogAttrValue(response.Header.Get("Content-Type"), body)),
-			)
-		}
+func makeHTTPLogAttrsWithBodies(request *http.Request, response *http.Response) *httpLogAttrs {
+	result := makeHTTPLogAttrs(request, response)
+
+	if body := request.Body; body != nil {
+		result.Request = append(result.Request,
+			slog.Any("body", convertReaderToLogAttrValue(request.Header.Get("Content-Type"), body)),
+		)
+	}
+
+	if body := response.Body; body != nil {
+		result.Response = append(result.Response,
+			slog.Any("body", convertReaderToLogAttrValue(response.Header.Get("Content-Type"), body)),
+		)
 	}
 
 	return result
@@ -199,5 +212,66 @@ func convertReaderToLogAttrValue(contentType string, reader io.Reader) any {
 		return json.RawMessage(buffer.Bytes())
 	default:
 		return buffer.String()
+	}
+}
+
+type clientTransport struct{ baseTransport http.RoundTripper }
+
+var _ (http.RoundTripper) = (*clientTransport)(nil)
+
+func (t *clientTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+	response, err := t.baseTransport.RoundTrip(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if response.Body == nil || response.Body == http.NoBody {
+		return response, nil
+	}
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("could not read response body: %w", err)
+	}
+
+	response.Body = io.NopCloser(bytes.NewReader(body)) // Restore.
+
+	searchResponse := &partialSearchResponse{}
+	if err := json.NewDecoder(bytes.NewReader(body)).Decode(searchResponse); err != nil {
+		return response, nil // Ignore.
+	}
+
+	if err := parseShardFailures(searchResponse.Shards_.Failures); err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+// Reference: https://github.com/elastic/go-elasticsearch/blob/1dda5df4f11fd5f15264279dd6c773f0f97b9536/typedapi/core/search/response.go#L48
+type partialSearchResponse struct {
+	Shards_ types.ShardStatistics `json:"_shards"`
+}
+
+func parseShardFailures(failures []types.ShardFailure) error {
+	if len(failures) == 0 {
+		return nil
+	}
+
+	failure := failures[0].Reason // We only care about the first failure.
+
+	underlyingError := func() error {
+		if reason := failure.Reason; reason != nil {
+			return fmt.Errorf("could not execute request because of a shard failure: %s", *reason)
+		}
+
+		return fmt.Errorf("could not execute request because of a shard failure")
+	}()
+
+	switch failure.Type {
+	case "query_shard_exception":
+		return &errors.Error{Code: errors.CodeInvalid, UnderlyingError: underlyingError}
+	default:
+		return underlyingError
 	}
 }
