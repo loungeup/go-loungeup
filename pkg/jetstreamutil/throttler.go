@@ -143,6 +143,12 @@ func (params *throttlerParams) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("could not decode throttler handler params: %w", err)
 	}
 
+	if model.ThrottlerInterval == "" {
+		*params = throttlerParams{throttlerInterval: -1}
+
+		return nil
+	}
+
 	throttlerInterval, err := time.ParseDuration(model.ThrottlerInterval)
 	if err != nil {
 		return fmt.Errorf("could not parse throttler interval: %w", err)
