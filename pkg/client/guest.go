@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res/resprot"
 	"github.com/loungeup/go-loungeup/pkg/client/models"
+	"github.com/loungeup/go-loungeup/pkg/resresultsets"
 	"github.com/loungeup/go-loungeup/pkg/transport"
 )
 
@@ -92,4 +93,14 @@ func (s *GuestSelector) rid() string {
 	}
 
 	return result
+}
+
+func (c *guestsClient) SearchByContact(
+	selector *models.SearchByContactSelector,
+) (*resresultsets.KeysetPaginationModel, error) {
+	return transport.CallRESResult[*resresultsets.KeysetPaginationModel](
+		c.baseClient.resClient,
+		"guestprofile.entities."+selector.EntityID.String()+".guests.search-by-contact",
+		resprot.Request{Params: selector},
+	)
 }
