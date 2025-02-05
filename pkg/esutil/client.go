@@ -231,7 +231,7 @@ func (t *clientTransport) RoundTrip(request *http.Request) (*http.Response, erro
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("could not read response body: %w", err)
+		return response, fmt.Errorf("could not read response body: %w", err)
 	}
 
 	response.Body = io.NopCloser(bytes.NewReader(body)) // Restore.
@@ -242,7 +242,7 @@ func (t *clientTransport) RoundTrip(request *http.Request) (*http.Response, erro
 	}
 
 	if err := parseShardFailures(searchResponse.Shards_.Failures); err != nil {
-		return nil, err
+		return response, err
 	}
 
 	return response, nil
