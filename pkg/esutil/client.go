@@ -84,6 +84,11 @@ func newClientConfig(addresses []string, username, password string) elasticsearc
 
 			return result
 		},
+		RetryOnError: func(*http.Request, error) bool {
+			// Only use the status code of the HTTP response to retry.
+			// Reference: https://github.com/elastic/elastic-transport-go/blob/889f85a00260aae70acbe91eeb18011b60ca7ea8/elastictransport/elastictransport.go#L389-L392
+			return false
+		},
 		RetryOnStatus: []int{
 			// Client errors. Some might be temporary. Note that 404 is excluded to prevent infinite loops.
 			http.StatusBadRequest,
