@@ -23,10 +23,10 @@ type SearchCriteria struct {
 }
 
 type StructuredValueCriterion[T any] struct {
-	Preferred bool      `json:"preferred,omitempty"`
-	Value     T         `json:"value,omitempty"`
-	UpdatedAt time.Time `json:"updated,omitempty"`
-	From      string    `json:"from,omitempty"`
+	Preferred bool       `json:"preferred,omitempty"`
+	Value     T          `json:"value,omitempty"`
+	UpdatedAt *time.Time `json:"updated,omitempty"`
+	From      string     `json:"from,omitempty"`
 }
 
 type PMSIDCriterion struct {
@@ -56,11 +56,11 @@ type SearchByContactSelector struct {
 
 	Match SearchByContactMatch `json:"match,omitempty"`
 
-	Emails      []StructuredValueCriterion[Email]              `json:"emails,omitempty"`
-	Phones      []StructuredValueCriterion[PhoneCriterion]     `json:"phones,omitempty"`
-	MessengerID StructuredValueCriterion[MessengerIDCriterion] `json:"messengerId,omitempty"`
-	PMSID       StructuredValueCriterion[PMSIDCriterion]       `json:"pmsId,omitempty"`
-	Credentials StructuredValueCriterion[Credentials]          `json:"credentials,omitempty"`
+	Emails      []*StructuredValueCriterion[Email]              `json:"emails,omitempty"`
+	Phones      []*StructuredValueCriterion[PhoneCriterion]     `json:"phones,omitempty"`
+	MessengerID *StructuredValueCriterion[MessengerIDCriterion] `json:"messengerId,omitempty"`
+	PMSID       *StructuredValueCriterion[PMSIDCriterion]       `json:"pmsId,omitempty"`
+	Credentials *StructuredValueCriterion[Credentials]          `json:"credentials,omitempty"`
 
 	LastKey string `json:"lastKey,omitempty"`
 	Size    int    `json:"size,omitempty"`
