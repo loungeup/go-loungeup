@@ -66,6 +66,8 @@ func (s *Server) addHandlers() {
 				Message: "Invalid task ID",
 				Data:    err.Error(),
 			})
+
+			return
 		}
 
 		task, err := s.store.ReadByID(id)

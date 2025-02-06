@@ -1,59 +1,80 @@
 package resresultsets
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
-	"github.com/loungeup/go-loungeup/pkg/cache"
 	"github.com/loungeup/go-loungeup/pkg/errors"
-	"github.com/loungeup/go-loungeup/pkg/log"
 )
 
+type Store interface {
+	ReadByID(id uuid.UUID) (*ResultSet, error)
+	Write(set *ResultSet) error
+}
+
 type Server struct {
-	cache   cache.ReadWriter
 	service *res.Service
+	store   Store
 }
 
 // NewServer creates a new server.
-func NewServer(cache cache.ReadWriter, service *res.Service) *Server {
-	result := &Server{cache, service}
+func NewServer(service *res.Service, store Store) *Server {
+	result := &Server{service, store}
 	result.addRESHandlers()
 
 	return result
 }
 
 // CreateResultSet with the given collection and returns its RID.
-func (s *Server) CreateResultSet(collection any) string {
-	set := &resultSet{
-		serviceName: s.service.FullPath(),
-		id:          uuid.New(),
-		collection:  collection,
+func (server *Server) CreateResultSet(collection any) (string, error) {
+	set := &ResultSet{
+		ID:         uuid.New(),
+		Collection: collection,
 	}
-	cacheResultSet(s.cache, set)
+	if err := server.store.Write(set); err != nil {
+		return "", fmt.Errorf("could not write result set: %w", err)
+	}
 
-	return set.rid()
+	return server.makeResultSetRID(set), nil
 }
 
 // addRESHandlers to the server.
-func (s *Server) addRESHandlers() {
-	s.service.Handle("result-sets.$resultSetID", res.GetCollection(func(request res.CollectionRequest) {
-		set, err := readCachedResultSet(s.cache, request.ResourceName())
+func (server *Server) addRESHandlers() {
+	server.service.Handle("result-sets.$resultSetID", res.GetCollection(func(request res.CollectionRequest) {
+		id, err := uuid.Parse(request.PathParam("resultSetID"))
 		if err != nil {
-			errors.LogAndWriteRESError(log.Default(), request, err)
+			request.Error(&res.Error{
+				Code:    res.CodeInvalidParams,
+				Message: "Invalid result set ID",
+				Data:    err.Error(),
+			})
+
 			return
 		}
 
-		request.Collection(set.collection)
+		set, err := server.store.ReadByID(id)
+		if err != nil {
+			if errors.ErrorCode(err) == errors.CodeNotFound {
+				request.NotFound()
+			} else {
+				request.Error(&res.Error{
+					Code:    res.CodeInternalError,
+					Message: "Could not read result set",
+					Data: map[string]string{
+						"errorMessage": err.Error(),
+						"id":           id.String(),
+					},
+				})
+			}
+
+			return
+		}
+
+		request.Collection(set.Collection)
 	}))
 }
 
-func cacheResultSet(cache cache.ReadWriter, set *resultSet) {
-	cache.Write(set.rid(), set)
-}
-
-func readCachedResultSet(cache cache.ReadWriter, rid string) (*resultSet, error) {
-	if set, ok := cache.Read(rid).(*resultSet); ok {
-		return set, nil
-	}
-
-	return nil, &errors.Error{Code: errors.CodeNotFound, Message: "Result set not found"}
+func (server *Server) makeResultSetRID(set *ResultSet) string {
+	return server.service.FullPath() + ".result-sets." + set.ID.String()
 }

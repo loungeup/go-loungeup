@@ -4,22 +4,23 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
 	"github.com/jirenius/go-res/restest"
-	"github.com/loungeup/go-loungeup/pkg/cache"
 	"github.com/stretchr/testify/require"
 )
 
 func TestServer(t *testing.T) {
-	cache, err := cache.NewRistretto(cache.MediumRistrettoCache)
-	require.NoError(t, err)
-
-	server := NewServer(cache, res.NewService("test"))
+	server := NewServer(res.NewService("test"), &MockStore{
+		ReadByIDFunc: func(id uuid.UUID) (*ResultSet, error) { return nil, nil },
+		WriteFunc:    func(set *ResultSet) error { return nil },
+	})
 
 	session := restest.NewSession(t, server.service)
 	defer session.Close()
 
-	setRID := server.CreateResultSet([]res.Ref{res.Ref("foo"), res.Ref("bar")})
+	setRID, err := server.CreateResultSet([]res.Ref{res.Ref("foo"), res.Ref("bar")})
+	require.NoError(t, err)
 
 	session.Get(setRID).Response().AssertCollection(json.RawMessage(`[
 		{"rid": "foo"},

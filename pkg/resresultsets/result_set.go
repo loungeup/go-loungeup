@@ -1,13 +1,8 @@
 package resresultsets
 
-import (
-	"github.com/google/uuid"
-)
+import "github.com/google/uuid"
 
-type resultSet struct {
-	serviceName string
-	id          uuid.UUID
-	collection  any
+type ResultSet struct {
+	ID         uuid.UUID
+	Collection any
 }
-
-func (s *resultSet) rid() string { return s.serviceName + ".result-sets." + s.id.String() }
