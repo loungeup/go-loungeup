@@ -1,0 +1,16 @@
+include:
+  - /scripts/ci/go.yaml
+
+stages:
+  - test
+
+test:lint:
+  extends: .go.lint
+  variables:
+    GO_PROJECT_PATH: packages/go-loungeup/
+
+workflow:
+  rules:
+    - changes:
+        paths:
+          - packages/go-loungeup/**/*
