@@ -27,11 +27,43 @@ type ScopedMappingKeys struct {
 }
 
 type BookingMappingKeys struct {
-	ID           string
-	EntityID     string
-	Arrival      string
-	Departure    string
-	PMSBookingID string
+	Arrival                  string
+	ArrivalDay               string
+	ArrivalTime              string
+	Balance                  string
+	BookingDate              string
+	Channel                  string
+	CicoHasCompletedPayment  string
+	CicoHasFilledPoliceForm  string
+	CicoHasFilledPrestayForm string
+	CustomFields             string
+	CustomFieldsBoolean      string
+	CustomFieldsDate         string
+	CustomFieldsList         string
+	CustomFieldsNumber       string
+	CustomFieldsText         string
+	Departure                string
+	DepartureDay             string
+	EntityID                 string
+	Fare                     string
+	FareCode                 string
+	GuestID                  string
+	ID                       string
+	Index                    string
+	InstayDates              string
+	Pass                     string
+	PaxAdults                string
+	PaxBabies                string
+	PaxChildren              string
+	PMSBookingID             string
+	PMSBookingParentID       string
+	Room                     string
+	RoomType                 string
+	Status                   string
+	StayLength               string
+	TouristTax               string
+	UpdatedAt                string
+	Wildcard                 string
 }
 
 type GuestMappingKeys struct {
@@ -41,12 +73,33 @@ type GuestMappingKeys struct {
 }
 
 type ScopedGuestMappingKeys struct {
-	ID           string
-	EntityID     string
-	ComposedWith string
-	FirstName    string
-	LastName     string
-	Emails       string
+	Birthdate           string
+	BirthplaceCountry   string
+	City                string
+	Company             string
+	ComposedWith        string
+	Country             string
+	CustomFields        string
+	CustomFieldsBoolean string
+	CustomFieldsDate    string
+	CustomFieldsList    string
+	CustomFieldsNumber  string
+	CustomFieldsText    string
+	Emails              string
+	EntityID            string
+	FirstName           string
+	Gender              string
+	ID                  string
+	Languages           string
+	LastName            string
+	Nationalities       string
+	OptedOutMarketing   string
+	Phones              string
+	PMSID               string
+	State               string
+	Title               string
+	Zipcode             string
+	Wildcard            string
 }
 
 type MappingKeysScope int
@@ -119,11 +172,43 @@ func newBookingMappingKeys() *BookingMappingKeys {
 	prefix := "booking"
 
 	return &BookingMappingKeys{
-		ID:           joinMappingKeyParts(prefix, "id"),
-		EntityID:     joinMappingKeyParts(prefix, "entityId"),
-		Arrival:      joinMappingKeyParts(prefix, "arrival"),
-		Departure:    joinMappingKeyParts(prefix, "departure"),
-		PMSBookingID: joinMappingKeyParts(prefix, "pmsBookingId"),
+		Arrival:                  joinMappingKeyParts(prefix, "arrival"),
+		ArrivalDay:               joinMappingKeyParts(prefix, "arrivalDay"),
+		ArrivalTime:              joinMappingKeyParts(prefix, "data.arrivalTime"),
+		Balance:                  joinMappingKeyParts(prefix, "balance"),
+		BookingDate:              joinMappingKeyParts(prefix, "bookingDate"),
+		Channel:                  joinMappingKeyParts(prefix, "channel"),
+		CicoHasCompletedPayment:  joinMappingKeyParts(prefix, "cico.hasCompletedPayment"),
+		CicoHasFilledPoliceForm:  joinMappingKeyParts(prefix, "cico.hasFilledPoliceForm"),
+		CicoHasFilledPrestayForm: joinMappingKeyParts(prefix, "cico.hasFilledPrestayForm"),
+		CustomFields:             joinMappingKeyParts(prefix, "customFields"),
+		CustomFieldsBoolean:      joinMappingKeyParts(prefix, "customFields.boolean"),
+		CustomFieldsDate:         joinMappingKeyParts(prefix, "customFields.date"),
+		CustomFieldsList:         joinMappingKeyParts(prefix, "customFields.list"),
+		CustomFieldsNumber:       joinMappingKeyParts(prefix, "customFields.number"),
+		CustomFieldsText:         joinMappingKeyParts(prefix, "customFields.text"),
+		Departure:                joinMappingKeyParts(prefix, "departure"),
+		DepartureDay:             joinMappingKeyParts(prefix, "departureDay"),
+		EntityID:                 joinMappingKeyParts(prefix, "entityId"),
+		Fare:                     joinMappingKeyParts(prefix, "fare"),
+		FareCode:                 joinMappingKeyParts(prefix, "fareCode"),
+		GuestID:                  joinMappingKeyParts(prefix, "guestId"),
+		ID:                       joinMappingKeyParts(prefix, "id"),
+		Index:                    joinMappingKeyParts(prefix, "data.index"),
+		InstayDates:              joinMappingKeyParts(prefix, "instayDates"),
+		Pass:                     joinMappingKeyParts(prefix, "pass"),
+		PaxAdults:                joinMappingKeyParts(prefix, "paxAdults"),
+		PaxBabies:                joinMappingKeyParts(prefix, "paxBabies"),
+		PaxChildren:              joinMappingKeyParts(prefix, "paxChildren"),
+		PMSBookingID:             joinMappingKeyParts(prefix, "pmsBookingId"),
+		PMSBookingParentID:       joinMappingKeyParts(prefix, "pmsBookingParentId"),
+		Room:                     joinMappingKeyParts(prefix, "room"),
+		RoomType:                 joinMappingKeyParts(prefix, "roomType"),
+		Status:                   joinMappingKeyParts(prefix, "status"),
+		StayLength:               joinMappingKeyParts(prefix, "stayLength"),
+		TouristTax:               joinMappingKeyParts(prefix, "touristTax"),
+		UpdatedAt:                joinMappingKeyParts(prefix, "updatedAt"),
+		Wildcard:                 joinMappingKeyParts(prefix, "*"),
 	}
 }
 
@@ -131,12 +216,33 @@ func newScopedGuestMappingKeys(scope MappingKeysScope) *ScopedGuestMappingKeys {
 	prefix := scope.guestPrefix()
 
 	return &ScopedGuestMappingKeys{
-		ID:           joinMappingKeyParts(prefix, "id"),
-		EntityID:     joinMappingKeyParts(prefix, "entityId"),
-		ComposedWith: joinMappingKeyParts(prefix, "composedWith"),
-		FirstName:    joinMappingKeyParts(prefix, "firstname"),
-		LastName:     joinMappingKeyParts(prefix, "lastname"),
-		Emails:       joinMappingKeyParts(prefix, "emails"),
+		Birthdate:           joinMappingKeyParts(prefix, "birthdate"),
+		BirthplaceCountry:   joinMappingKeyParts(prefix, "birthplace.country"),
+		City:                joinMappingKeyParts(prefix, "city"),
+		Company:             joinMappingKeyParts(prefix, "company"),
+		ComposedWith:        joinMappingKeyParts(prefix, "composedWith"),
+		Country:             joinMappingKeyParts(prefix, "country"),
+		CustomFields:        joinMappingKeyParts(prefix, "customFields"),
+		CustomFieldsBoolean: joinMappingKeyParts(prefix, "customFields.boolean"),
+		CustomFieldsDate:    joinMappingKeyParts(prefix, "customFields.date"),
+		CustomFieldsList:    joinMappingKeyParts(prefix, "customFields.list"),
+		CustomFieldsNumber:  joinMappingKeyParts(prefix, "customFields.number"),
+		CustomFieldsText:    joinMappingKeyParts(prefix, "customFields.text"),
+		Emails:              joinMappingKeyParts(prefix, "emails"),
+		EntityID:            joinMappingKeyParts(prefix, "entityId"),
+		FirstName:           joinMappingKeyParts(prefix, "firstname"),
+		Gender:              joinMappingKeyParts(prefix, "gender"),
+		ID:                  joinMappingKeyParts(prefix, "id"),
+		Languages:           joinMappingKeyParts(prefix, "languages"),
+		LastName:            joinMappingKeyParts(prefix, "lastname"),
+		Nationalities:       joinMappingKeyParts(prefix, "nationalities"),
+		OptedOutMarketing:   joinMappingKeyParts(prefix, "optedOut.marketing"),
+		Phones:              joinMappingKeyParts(prefix, "phones"),
+		PMSID:               joinMappingKeyParts(prefix, "pmsId"),
+		State:               joinMappingKeyParts(prefix, "state"),
+		Title:               joinMappingKeyParts(prefix, "title"),
+		Zipcode:             joinMappingKeyParts(prefix, "zipcode"),
+		Wildcard:            joinMappingKeyParts(prefix, "*"),
 	}
 }
 
