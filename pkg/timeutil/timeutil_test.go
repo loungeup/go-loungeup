@@ -8,17 +8,44 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMostRecent(t *testing.T) {
+func TestFormatIfNotZero(t *testing.T) {
 	tests := map[string]struct {
-		in   []time.Time
-		want time.Time
+		in   time.Time
+		want string
 	}{
-		"no times": {in: []time.Time{}, want: time.Time{}},
+		"zero": {
+			in:   time.Time{},
+			want: "",
+		},
+		"not zero": {
+			in:   time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
+			want: "2020-01-01",
+		},
+	}
+
+	for test, tt := range tests {
+		t.Run(test, func(t *testing.T) {
+			assert.Equal(t, tt.want, FormatIfNotZero(time.DateOnly, tt.in))
+		})
+	}
+}
+
+func TestMostRecentAndOldest(t *testing.T) {
+	tests := map[string]struct {
+		in                         []time.Time
+		wantMostRecent, wantOldest time.Time
+	}{
+		"empty": {
+			in:             []time.Time{},
+			wantMostRecent: time.Time{},
+			wantOldest:     time.Time{},
+		},
 		"one time": {
 			in: []time.Time{
 				time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 			},
-			want: time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
+			wantMostRecent: time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
+			wantOldest:     time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 		},
 		"many times": {
 			in: []time.Time{
@@ -26,115 +53,37 @@ func TestMostRecent(t *testing.T) {
 				time.Date(2020, time.January, 2, 0, 0, 0, 0, time.UTC),
 				time.Date(2020, time.January, 3, 0, 0, 0, 0, time.UTC),
 			},
-			want: time.Date(2020, time.January, 3, 0, 0, 0, 0, time.UTC),
+			wantMostRecent: time.Date(2020, time.January, 3, 0, 0, 0, 0, time.UTC),
+			wantOldest:     time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 		},
 	}
 
 	for test, tt := range tests {
 		t.Run(test, func(t *testing.T) {
-			assert.Equal(t, tt.want, MostRecent(tt.in...))
+			assert.Equal(t, tt.wantMostRecent, MostRecent(tt.in...))
+			assert.Equal(t, tt.wantOldest, Oldest(tt.in...))
 		})
 	}
 }
 
-func TestOldest(t *testing.T) {
-	tests := map[string]struct {
-		in   []time.Time
-		want time.Time
-	}{
-		"no times": {in: []time.Time{}, want: time.Time{}},
-		"one time": {
-			in: []time.Time{
-				time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
-			},
-			want: time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
-		},
-		"many times": {
-			in: []time.Time{
-				time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
-				time.Date(2020, time.January, 2, 0, 0, 0, 0, time.UTC),
-				time.Date(2020, time.January, 3, 0, 0, 0, 0, time.UTC),
-			},
-			want: time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
-		},
-	}
+func TestRFC3339Time(t *testing.T) {
+	decoded := RFC3339Time{}
+	assert.NoError(t, json.Unmarshal(json.RawMessage(`"2025-01-01T00:00:00Z"`), &decoded))
 
-	for test, tt := range tests {
-		t.Run(test, func(t *testing.T) {
-			assert.Equal(t, tt.want, Oldest(tt.in...))
-		})
-	}
+	assert.Equal(t, NewRFC3339Time(time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC)), decoded)
+
+	encoded, err := json.Marshal(decoded)
+	assert.NoError(t, err)
+	assert.Equal(t, `"2025-01-01T00:00:00Z"`, string(encoded))
 }
 
-func TestDateUnmarshalJSON(t *testing.T) {
-	tests := map[string]struct {
-		in        json.RawMessage
-		want      Date
-		wantError bool
-	}{
-		"valid date": {
-			in:   json.RawMessage(`"2025-01-24"`),
-			want: NewDate(time.Date(2025, 1, 24, 0, 0, 0, 0, time.UTC)),
-		},
-		"invalid format": {
-			in:        json.RawMessage(`"01-01-2020"`),
-			wantError: true,
-		},
-		"invalid date": {
-			in:        json.RawMessage(`"2020-13-01"`),
-			wantError: true,
-		},
-		"empty string": {
-			in:   json.RawMessage(`""`),
-			want: NewDate(time.Time{}),
-		},
-		"not a string": {
-			in:        json.RawMessage(`123`),
-			wantError: true,
-		},
-		"no data": {
-			in:   json.RawMessage(`null`),
-			want: NewDate(time.Time{}),
-		},
-	}
+func TestDateOnlyTime(t *testing.T) {
+	decoded := DateOnlyTime{}
+	assert.NoError(t, json.Unmarshal(json.RawMessage(`"2025-01-01"`), &decoded))
 
-	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
-			var got Date
+	assert.Equal(t, NewDateOnlyTime(time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC)), decoded)
 
-			err := json.Unmarshal(tt.in, &got)
-			if tt.wantError {
-				assert.Error(t, err)
-
-				return
-			}
-
-			assert.NoError(t, err)
-			assert.Equal(t, tt.want, got)
-		})
-	}
-}
-
-func TestDateMarshalJSON(t *testing.T) {
-	tests := map[string]struct {
-		in   Date
-		want json.RawMessage
-	}{
-		"simple": {
-			in:   NewDate(time.Date(2025, 1, 24, 12, 30, 0, 0, time.UTC)),
-			want: json.RawMessage(`"2025-01-24"`),
-		},
-		"zero date": {
-			in:   NewDate(time.Time{}),
-			want: json.RawMessage(`"0001-01-01"`),
-		},
-	}
-
-	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
-			got, err := json.Marshal(Date(tt.in))
-			assert.NoError(t, err)
-			assert.Equal(t, tt.want, json.RawMessage(got))
-		})
-	}
+	encoded, err := json.Marshal(decoded)
+	assert.NoError(t, err)
+	assert.Equal(t, `"2025-01-01"`, string(encoded))
 }
