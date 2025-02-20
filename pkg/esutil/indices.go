@@ -61,7 +61,7 @@ func (m *IndicesMaker) Wildcard() *Indices {
 
 func ParseResponseBody(response *esapi.Response) (string, error) {
 	if response.IsError() {
-		return "", errors.New(fmt.Sprintf("invalid status code: %d", response.StatusCode))
+		return "", fmt.Errorf("invalid status code: %d", response.StatusCode)
 	}
 
 	defer response.Body.Close()
