@@ -1,7 +1,6 @@
 package esutil
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"strconv"
