@@ -1,6 +1,6 @@
 module github.com/loungeup/go-loungeup
 
-go 1.21.0
+go 1.24
 
 require (
 	github.com/DataDog/gostackparse v0.7.0
