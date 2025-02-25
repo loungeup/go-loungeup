@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+// SafeParse is a wrapper around time.Parse that returns a zero time.Time if the parsing fails.
+func SafeParse(layout, value string) time.Time {
+	result, _ := time.Parse(layout, value)
+	return result
+}
+
 func Format(t time.Time) string {
 	if t.IsZero() {
 		return ""
@@ -16,9 +22,9 @@ func Format(t time.Time) string {
 func MostRecent(times ...time.Time) time.Time {
 	result := time.Time{}
 
-	for _, time := range times {
-		if time.After(result) {
-			result = time
+	for _, t := range times {
+		if t.After(result) {
+			result = t
 		}
 	}
 
@@ -28,9 +34,9 @@ func MostRecent(times ...time.Time) time.Time {
 func Oldest(times ...time.Time) time.Time {
 	result := time.Time{}
 
-	for _, time := range times {
-		if result.IsZero() || time.Before(result) {
-			result = time
+	for _, t := range times {
+		if result.IsZero() || t.Before(result) {
+			result = t
 		}
 	}
 
