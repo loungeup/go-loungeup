@@ -111,6 +111,10 @@ func extractLogAttributes(value any) []slog.Attr {
 		)
 	}
 
+	if len(requestAttributes) == 0 {
+		return nil
+	}
+
 	return []slog.Attr{
 		slog.Group("request", requestAttributes...),
 	}
