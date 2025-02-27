@@ -16,6 +16,7 @@ func TestPager(t *testing.T) {
 
 		for pager.Next() {
 			assert.Len(t, pager.Page(), 1)
+
 			pagesCount++
 		}
 

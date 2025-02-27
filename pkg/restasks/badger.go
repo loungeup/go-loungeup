@@ -150,10 +150,12 @@ func mapBadgerModelToTask(model *badgerTaskModel) *Task {
 		}(),
 		StartedAt: func() time.Time {
 			result, _ := parseTime(model.StartedAt)
+
 			return result
 		}(),
 		EndedAt: func() time.Time {
 			result, _ := parseTime(model.EndedAt)
+
 			return result
 		}(),
 	}
@@ -172,6 +174,7 @@ func mapTaskToBadgerModel(task *Task) *badgerTaskModel {
 		}(),
 		Result: func() json.RawMessage {
 			result, _ := json.Marshal(task.Result)
+
 			return result
 		}(),
 		StartedAt: formatTime(task.StartedAt),

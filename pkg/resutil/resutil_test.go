@@ -173,9 +173,11 @@ func TestHandleCollectionQueryRequest(t *testing.T) {
 	session.Call("users-manager.users.latest?"+testQuery, "delete", nil).Response()
 
 	var latestUserQueryEventSubject string
+
 	session.GetMsg().AssertQueryEvent("users-manager.users.latest", &latestUserQueryEventSubject)
 
 	var usersQueryEventSubject string
+
 	session.GetMsg().AssertQueryEvent("users-manager.users", &usersQueryEventSubject)
 
 	session.QueryRequest(latestUserQueryEventSubject, testQuery).Response().AssertResult(json.RawMessage(`{

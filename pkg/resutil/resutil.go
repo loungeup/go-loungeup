@@ -29,6 +29,7 @@ func ParseRequestParams[T any](data []byte) T {
 	request := &RequestWithParams[T]{}
 	if err := json.Unmarshal(data, request); err != nil {
 		var emptyResult T
+
 		return emptyResult
 	}
 
@@ -160,6 +161,7 @@ func compareMaps(previous, current map[string]any) map[string]any {
 		previousValue, found := previous[key]
 		if !found {
 			result[key] = value
+
 			continue
 		}
 
@@ -182,6 +184,7 @@ func HandleCollectionQueryRequest[Collection ~[]Model, Model any](
 		response, err := handler(request)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
@@ -198,6 +201,7 @@ func HandleModelQueryRequest[Model any](
 		response, err := handler(request)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 

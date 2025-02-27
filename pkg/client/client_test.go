@@ -24,7 +24,6 @@ func TestClient(t *testing.T) {
 
 	require.NotNil(t, clientToTest.cache)
 	require.NotNil(t, clientToTest.resClient)
-
 	// We are not testing each sub-client here because they are just encoding the request, using the transport layer and
 	// parsing the response.
 }

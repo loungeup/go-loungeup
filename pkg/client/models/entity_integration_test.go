@@ -50,6 +50,7 @@ func TestGetEntityIntegrationValue(t *testing.T) {
 			got, err := tt.getValue()
 			if tt.wantError {
 				assert.Error(t, err)
+
 				return
 			}
 

@@ -17,6 +17,7 @@ func TestDefaultLogger(t *testing.T) {
 
 	l1 := Default().WithGroup("test")
 	l2 := l1.With(slog.String("key", "value"))
+
 	assert.NotPanics(t, func() { l2.Debug("A debug message") })
 }
 

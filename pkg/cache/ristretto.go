@@ -122,6 +122,7 @@ func (r *Ristretto) Write(key string, value any) {
 func (r *Ristretto) WriteWithDuration(key string, value any, duration time.Duration) {
 	if value == nil {
 		r.baseCache.Del(key)
+
 		return
 	}
 

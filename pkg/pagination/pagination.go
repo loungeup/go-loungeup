@@ -62,6 +62,7 @@ func (p *Pager[S, E]) Next() bool {
 	page, err := p.reader.readPage(p.size)
 	if err != nil {
 		p.lastErr = err
+
 		return false
 	}
 

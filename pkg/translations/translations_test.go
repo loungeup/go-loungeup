@@ -48,7 +48,7 @@ func TestTranslationsEqual(t *testing.T) {
 }
 
 func TestTranslationsGet(t *testing.T) {
-	t.Run("exising key", func(t *testing.T) {
+	t.Run("existing key", func(t *testing.T) {
 		translations := Translations{"en": "Hello", "fr": "Bonjour"}
 		assert.Equal(t, TranslationValue("Hello"), translations.Get("en"))
 	})

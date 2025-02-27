@@ -23,20 +23,24 @@ func (m Matchable) String() string { return string(m) }
 
 func (m Matchable) Bool() bool {
 	result, _ := strconv.ParseBool(m.String())
+
 	return result
 }
 
 func (m Matchable) Float64() float64 {
 	result, _ := strconv.ParseFloat(m.String(), 64)
+
 	return result
 }
 
 func (m Matchable) Int() int {
 	result, _ := strconv.ParseInt(m.String(), 10, 64)
+
 	return int(result)
 }
 
 func (m Matchable) UUID() uuid.UUID {
 	result, _ := uuid.Parse(m.String())
+
 	return result
 }

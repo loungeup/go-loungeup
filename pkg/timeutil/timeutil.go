@@ -8,6 +8,7 @@ import (
 // SafeParse is a wrapper around time.Parse that returns a zero time.Time if the parsing fails.
 func SafeParse(layout, value string) time.Time {
 	result, _ := time.Parse(layout, value)
+
 	return result
 }
 
@@ -50,6 +51,7 @@ func NewDate(t time.Time) Date { return Date(t) }
 func (d *Date) UnmarshalJSON(data []byte) error {
 	if len(data) == 0 {
 		*d = Date{}
+
 		return nil
 	}
 
@@ -60,6 +62,7 @@ func (d *Date) UnmarshalJSON(data []byte) error {
 
 	if dateAsString == "" {
 		*d = Date{}
+
 		return nil
 	}
 

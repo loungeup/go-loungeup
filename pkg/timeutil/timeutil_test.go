@@ -105,6 +105,7 @@ func TestDateUnmarshalJSON(t *testing.T) {
 			err := json.Unmarshal(tt.in, &got)
 			if tt.wantError {
 				assert.Error(t, err)
+
 				return
 			}
 

@@ -25,23 +25,27 @@ func UseModelHandlerMirror[Model, Selector any](
 		selector, err := provider.ParseModelSelector(request)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
 		source, err := provider.ReadSourceModel(selector)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
 		if isEmptyValue(source) {
 			next(request)
+
 			return
 		}
 
 		sourceResource, err := request.Service().Resource(provider.MakeModelRID(source))
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
@@ -66,12 +70,14 @@ func UseCallHandlerMirror[Model, Selector any](
 		selector, err := provider.ParseModelSelector(request)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
 		source, err := provider.ReadSourceModel(selector)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
@@ -189,5 +195,6 @@ func (m *modelRequestMirror) ForValue() bool { return m.baseRequest.ForValue() }
 
 func isEmptyValue[T any](value T) bool {
 	var emptyValue T
+
 	return reflect.DeepEqual(value, emptyValue)
 }

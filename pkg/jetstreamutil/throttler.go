@@ -118,6 +118,7 @@ func (throttler *Throttler) parseThrottlerInterval(data []byte) time.Duration {
 
 func (throttler *Throttler) isLocked(key string) bool {
 	_, result := throttler.throttledMsgs.Load(key)
+
 	return result
 }
 

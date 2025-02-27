@@ -57,6 +57,7 @@ func TestArrayUnmarshalJSON(t *testing.T) {
 	for test, tt := range tests {
 		t.Run(test, func(t *testing.T) {
 			var got Array[string]
+
 			assert.NoError(t, json.Unmarshal(tt.in, &got))
 			assert.Equal(t, tt.want, got)
 		})

@@ -71,6 +71,7 @@ func mapResultSetToJetStreamModel(set *ResultSet) *jetStreamResultSetModel {
 		ID: set.ID,
 		Collection: func() json.RawMessage {
 			result, _ := json.Marshal(set.Collection)
+
 			return result
 		}(),
 	}

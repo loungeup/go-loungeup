@@ -49,12 +49,14 @@ func UseGetCollectionHandler[Collection ~[]Model, Model, Selector any](
 		selector, err := provider.ParseCollectionSelector(request)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
 		collection, err := provider.ReadCollection(selector)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
@@ -70,12 +72,14 @@ func UseGetModelHandler[Model, Selector any](provider GetModelProvider[Model, Se
 		selector, err := provider.ParseModelSelector(request)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
 		model, err := provider.ReadModel(selector)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
@@ -91,12 +95,14 @@ func UseCreateModelHandler[Model, Params any](provider CreateModelProvider[Model
 		params, err := provider.ParseModelParams(request)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
 		model, err := provider.CreateModel(params)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
@@ -111,24 +117,28 @@ func UseUpdateModelHandler[Model, Selector, Updates any](
 		params, err := provider.ParseModelParams(request)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
 		selector, err := provider.ParseModelSelector(request)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
 		existingModel, err := provider.ReadModel(selector)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
 		updatedModel, err := provider.UpdateModel(existingModel, params)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
@@ -145,11 +155,13 @@ func UseDeleteModelHandler[Selector any](provider DeleteModelProvider[Selector])
 		selector, err := provider.ParseModelSelector(request)
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
 		if err := provider.DeleteModel(selector); err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
+
 			return
 		}
 
@@ -179,12 +191,14 @@ func WithCollectionQueryEventHandler[Collection ~[]Model, Model, Selector any](
 			selector, err := provider.ParseCollectionSelector(request)
 			if err != nil {
 				errors.LogAndWriteRESError(log.Default(), request, err)
+
 				return
 			}
 
 			result, err := provider.ReadCollection(selector)
 			if err != nil {
 				errors.LogAndWriteRESError(log.Default(), request, err)
+
 				return
 			}
 
@@ -209,12 +223,14 @@ func WithModelQueryEventHandler[Model, Selector any](
 			selector, err := provider.ParseModelSelector(request)
 			if err != nil {
 				errors.LogAndWriteRESError(log.Default(), request, err)
+
 				return
 			}
 
 			result, err := provider.ReadModel(selector)
 			if err != nil {
 				errors.LogAndWriteRESError(log.Default(), request, err)
+
 				return
 			}
 
