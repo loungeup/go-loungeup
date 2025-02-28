@@ -48,6 +48,8 @@ type RFC3339Time time.Time
 
 func NewRFC3339Time(t time.Time) RFC3339Time { return RFC3339Time(t) }
 
+func NowRFC3339() RFC3339Time { return NewRFC3339Time(time.Now()) }
+
 func (t RFC3339Time) Format() string { return t.Time().Format(time.RFC3339) }
 
 func (t RFC3339Time) Time() time.Time { return time.Time(t) }
