@@ -12,6 +12,49 @@ import (
 
 var testAccessHandler = res.Access(res.AccessGranted)
 
+func TestMarshalJSONWithDataValues(t *testing.T) {
+	type MetaValue struct {
+		Value string `json:"value"`
+	}
+
+	tests := map[string]struct {
+		in   any
+		want string
+	}{
+		"simple": {
+			in:   map[string]any{"id": "b0f71e4c-3dd5-4b5b-bbf6-869fcf05c1df"},
+			want: `{"id":"b0f71e4c-3dd5-4b5b-bbf6-869fcf05c1df"}`,
+		},
+		"with data values": {
+			in: map[string]any{
+				"id":        "80b2e36e-bbaa-4616-9d0d-b3061333186e",
+				"firstName": &MetaValue{Value: "John"},
+				"languages": []*MetaValue{{Value: "en"}, {Value: "fr"}},
+			},
+			want: `{
+				"id": "80b2e36e-bbaa-4616-9d0d-b3061333186e",
+				"firstName": {
+					"data": {"value": "John"}
+				},
+				"languages": {
+					"data": [
+						{"value": "en"},
+						{"value": "fr"}
+					]
+				}
+			}`,
+		},
+	}
+
+	for test, tt := range tests {
+		t.Run(test, func(t *testing.T) {
+			got, err := MarshalJSONWithDataValues(tt.in)
+			assert.NoError(t, err)
+			assert.JSONEq(t, tt.want, string(got))
+		})
+	}
+}
+
 func TestDeletable(t *testing.T) {
 	tests := map[string]struct {
 		in   []byte

@@ -15,6 +15,35 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
+// MarshalJSONWithDataValues marshals a value to JSON, converting nested arrays or objects to RES data values.
+//
+// Reference: https://resgate.io/docs/specification/res-protocol/#data-values
+func MarshalJSONWithDataValues[T any](value T) ([]byte, error) {
+	encodedValue, err := json.Marshal(value)
+	if err != nil {
+		return nil, err
+	}
+
+	valueAsMap := map[string]json.RawMessage{}
+	if err := json.Unmarshal(encodedValue, &valueAsMap); err != nil {
+		return nil, err
+	}
+
+	valueWithDataValues := map[string]any{}
+
+	for key, value := range valueAsMap {
+		valueWithDataValues[key] = func() any {
+			if bytes.HasPrefix(value, json.RawMessage(`[`)) || bytes.HasPrefix(value, json.RawMessage(`{`)) {
+				return res.NewDataValue(value)
+			}
+
+			return value
+		}
+	}
+
+	return json.Marshal(valueWithDataValues)
+}
+
 // RequestWithParams is a generic version of the resprot.Request structure.
 // See: https://github.com/jirenius/go-res/blob/30f62c293ba654bec3cbe4d55a4a07f0df4baf8f/resprot/resprot.go#L35
 type RequestWithParams[T any] struct {
