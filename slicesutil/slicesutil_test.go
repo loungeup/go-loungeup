@@ -324,7 +324,7 @@ func TestSubtract(t *testing.T) {
 		inputSliceB := []string{"banana", "GRAPE", "Kiwi"}
 		expectedSlice := []string{"Apple", "Orange"}
 		compare := func(a, b string) bool {
-			return strings.ToLower(a) == strings.ToLower(b)
+			return strings.EqualFold(a, b)
 		}
 		resultSlice := SubtractFunc(inputSliceA, inputSliceB, compare)
 		assert.Equal(t, expectedSlice, resultSlice)

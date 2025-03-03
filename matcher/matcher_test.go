@@ -33,7 +33,7 @@ func TestCastMatchable(t *testing.T) {
 	}{
 		"bool": {
 			in:     "true",
-			assert: func(t *testing.T, in Matchable) { assert.Equal(t, true, in.Bool()) },
+			assert: func(t *testing.T, in Matchable) { assert.True(t, in.Bool()) },
 		},
 		"float64": {
 			in:     "1.0",

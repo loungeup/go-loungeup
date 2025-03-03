@@ -25,7 +25,7 @@ func TestPager(t *testing.T) {
 
 		pager.Reset()
 		assert.Equal(t, 0, pageReader.offset)
-		assert.Nil(t, pager.lastErr)
+		assert.NoError(t, pager.lastErr)
 		assert.Nil(t, pager.lastPage)
 	})
 
@@ -74,7 +74,7 @@ func TestPager(t *testing.T) {
 
 		pager.Reset()
 		assert.Equal(t, "", pageReader.lastKey)
-		assert.Nil(t, pager.lastErr)
+		assert.NoError(t, pager.lastErr)
 		assert.Nil(t, pager.lastPage)
 	})
 }

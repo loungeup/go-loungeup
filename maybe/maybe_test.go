@@ -12,13 +12,13 @@ import (
 
 func TestOptionalValues(t *testing.T) {
 	t.Run("int", func(t *testing.T) {
-		assert.Equal(t, maybe.Int(0).Or(1), 1)
-		assert.Equal(t, maybe.Int(1).Or(2), 1)
+		assert.Equal(t, 1, maybe.Int(0).Or(1))
+		assert.Equal(t, 1, maybe.Int(1).Or(2))
 	})
 
 	t.Run("string", func(t *testing.T) {
-		assert.Equal(t, maybe.String("").Or("hello"), "hello")
-		assert.Equal(t, maybe.String("hello").Or("world"), "hello")
+		assert.Equal(t, "hello", maybe.String("").Or("hello"))
+		assert.Equal(t, "hello", maybe.String("hello").Or("world"))
 	})
 
 	t.Run("time", func(t *testing.T) {
@@ -29,12 +29,10 @@ func TestOptionalValues(t *testing.T) {
 
 	t.Run("translations", func(t *testing.T) {
 		assert.Equal(t,
-			maybe.Translations(nil).Or(translations.Translations{"en": "Hello"}),
-			translations.Translations{"en": "Hello"},
+			translations.Translations{"en": "Hello"}, maybe.Translations(nil).Or(translations.Translations{"en": "Hello"}),
 		)
 		assert.Equal(t,
-			maybe.Translations(translations.Translations{"en": "Hello"}).Or(translations.Translations{"en": "Hi"}),
-			translations.Translations{"en": "Hello"},
+			translations.Translations{"en": "Hello"}, maybe.Translations(translations.Translations{"en": "Hello"}).Or(translations.Translations{"en": "Hi"}),
 		)
 	})
 
