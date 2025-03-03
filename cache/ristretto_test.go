@@ -30,7 +30,7 @@ func TestRistrettoCache(t *testing.T) {
 		cache.Write("baz", "this item is too large")
 		waitForCache()
 
-		require.Equal(t, nil, cache.Read("baz"))
+		require.Nil(t, cache.Read("baz"))
 		require.Equal(t, int64(7), getRistrettoValueCost("bar"))
 	})
 }
@@ -52,7 +52,7 @@ func TestGetRistrettoValueCost(t *testing.T) {
 		&User{FirstName: "Johnny", LastName: "Depp"},
 	}
 
-	for i := 0; i < len(tests); i++ {
+	for i := range tests {
 		if i > 0 {
 			require.Greater(t, getRistrettoValueCost(tests[i]), getRistrettoValueCost(tests[i-1]))
 		}

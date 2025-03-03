@@ -67,7 +67,7 @@ func TestValidateEmail(t *testing.T) {
 			if err := in.Validate(); tt.wantError {
 				assert.Equal(t, errors.CodeInvalid, errors.ErrorCode(err))
 			} else {
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 			}
 		})
 	}

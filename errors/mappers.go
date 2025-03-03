@@ -2,6 +2,7 @@ package errors
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/lib/pq"
 )
@@ -12,7 +13,7 @@ func MapSQLError(err error) error {
 		return nil
 	}
 
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return &Error{
 			Code:            CodeNotFound,
 			UnderlyingError: err,
