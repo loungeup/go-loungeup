@@ -18,7 +18,7 @@ import (
 // MarshalJSONWithDataValues marshals a value to JSON, converting nested arrays or objects to RES data values.
 //
 // Reference: https://resgate.io/docs/specification/res-protocol/#data-values
-func MarshalJSONWithDataValues[T any](value T) ([]byte, error) {
+func MarshalJSONWithDataValues[T any](value T) (json.RawMessage, error) {
 	encodedValue, err := json.Marshal(value)
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func MarshalJSONWithDataValues[T any](value T) ([]byte, error) {
 			}
 
 			return value
-		}
+		}()
 	}
 
 	return json.Marshal(valueWithDataValues)
