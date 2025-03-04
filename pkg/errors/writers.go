@@ -2,6 +2,7 @@ package errors
 
 import (
 	"log/slog"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
@@ -74,15 +75,21 @@ func LogAndWriteRESError(l errorLogger, w errorWriter, err error) {
 
 // getRESErrorCode returns the RES error code for a given error.
 func getRESErrorCode(err error) string {
-	switch ErrorCode(err) {
-	case CodeConflict:
+	code := ErrorCode(err)
+
+	switch {
+	case strings.EqualFold(code, ""):
+		return ""
+	case strings.EqualFold(code, CodeConflict):
 		return res.CodeInvalidParams
-	case CodeInvalid:
+	case strings.EqualFold(code, CodeInternal):
+		return res.CodeInternalError
+	case strings.EqualFold(code, CodeInvalid):
 		return res.CodeInvalidParams
-	case CodeNotFound:
+	case strings.EqualFold(code, CodeNotFound):
 		return res.CodeNotFound
 	default:
-		return res.CodeInternalError
+		return code
 	}
 }
 
