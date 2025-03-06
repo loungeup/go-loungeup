@@ -169,3 +169,29 @@ func ToAny[S ~[]E, E any](s S) []any {
 
 	return result
 }
+
+func RemoveDuplicates[S ~[]E, E any](s S, compareFunc func(E, E) bool) S {
+	if s == nil {
+		return nil
+	}
+
+	result := make(S, 0, len(s))
+
+	for _, e := range s {
+		duplicate := false
+
+		for _, r := range result {
+			if compareFunc(e, r) {
+				duplicate = true
+
+				break
+			}
+		}
+
+		if !duplicate {
+			result = append(result, e)
+		}
+	}
+
+	return result
+}

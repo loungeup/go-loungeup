@@ -384,3 +384,80 @@ func TestMergeFunc(t *testing.T) {
 		assert.Equal(t, expectedSlice, resultSlice)
 	})
 }
+
+func Test_RemoveDuplicates(t *testing.T) {
+	t.Run("Empty Slice", func(t *testing.T) {
+		inputSlice := []int{}
+		expectedSlice := []int{}
+		compareFunc := func(a, b int) bool { return a == b }
+		resultSlice := RemoveDuplicates(inputSlice, compareFunc)
+		assert.Equal(t, expectedSlice, resultSlice)
+	})
+
+	t.Run("Nil Slice", func(t *testing.T) {
+		var inputSlice []int = nil
+
+		var expectedSlice []int = nil
+
+		compareFunc := func(a, b int) bool { return a == b }
+		resultSlice := RemoveDuplicates(inputSlice, compareFunc)
+		assert.Equal(t, expectedSlice, resultSlice)
+	})
+
+	t.Run("No Duplicates", func(t *testing.T) {
+		inputSlice := []int{1, 2, 3, 4, 5}
+		expectedSlice := []int{1, 2, 3, 4, 5}
+		compareFunc := func(a, b int) bool { return a == b }
+		resultSlice := RemoveDuplicates(inputSlice, compareFunc)
+		assert.Equal(t, expectedSlice, resultSlice)
+	})
+
+	t.Run("Duplicates", func(t *testing.T) {
+		inputSlice := []int{1, 2, 2, 3, 4, 4, 5}
+		expectedSlice := []int{1, 2, 3, 4, 5}
+		compareFunc := func(a, b int) bool { return a == b }
+		resultSlice := RemoveDuplicates(inputSlice, compareFunc)
+		assert.Equal(t, expectedSlice, resultSlice)
+	})
+
+	t.Run("All Duplicates", func(t *testing.T) {
+		inputSlice := []int{1, 1, 1, 1, 1}
+		expectedSlice := []int{1}
+		compareFunc := func(a, b int) bool { return a == b }
+		resultSlice := RemoveDuplicates(inputSlice, compareFunc)
+		assert.Equal(t, expectedSlice, resultSlice)
+	})
+
+	t.Run("Custom Compare Function", func(t *testing.T) {
+		inputSlice := []int{1, 2, 3, 4, 5, 6}
+		expectedSlice := []int{1, 2}
+		compareFunc := func(a, b int) bool {
+			return a%2 == b%2
+		}
+		resultSlice := RemoveDuplicates(inputSlice, compareFunc)
+		assert.Equal(t, expectedSlice, resultSlice)
+	})
+
+	t.Run("String Test", func(t *testing.T) {
+		inputSlice := []string{"apple", "banana", "apple", "orange", "banana"}
+		expectedSlice := []string{"apple", "banana", "orange"}
+		compareFunc := func(a, b string) bool { return a == b }
+		resultSlice := RemoveDuplicates(inputSlice, compareFunc)
+		assert.Equal(t, expectedSlice, resultSlice)
+	})
+
+	t.Run("Unordered String Test", func(t *testing.T) {
+		inputSlice := []string{"apple", "banana", "orange", "banana", "apple"}
+		expectedSlice := []string{"apple", "banana", "orange"}
+		compareFunc := func(a, b string) bool { return strings.EqualFold(a, b) }
+		resultSlice := RemoveDuplicates(inputSlice, compareFunc)
+		assert.Equal(t, expectedSlice, resultSlice)
+	})
+
+	t.Run("Unordered string with different case and strings.EqualFolds", func(t *testing.T) {
+		inputSlice := []string{"apple", "Banana", "APPLE", "Orange", "BANANA"}
+		compareFunc := func(a, b string) bool { return strings.EqualFold(a, b) }
+		resultSlice := RemoveDuplicates(inputSlice, compareFunc)
+		assert.Len(t, resultSlice, 3)
+	})
+}
