@@ -10,34 +10,75 @@ type GuestBookingDocument struct {
 }
 
 type ScopedGuestBookingDocument struct {
-	Booking                 Booking         `json:"booking"`
-	CampaignStats           json.RawMessage `json:"campaignStats,omitempty"`
-	Device                  json.RawMessage `json:"device,omitempty"`
-	Guest                   *ScopedGuest    `json:"guest,omitempty"`
-	SurveyAnswers           json.RawMessage `json:"surveyAnswers,omitempty"`
-	TypedComputedAttributes json.RawMessage `json:"typedComputedAttributes,omitempty"`
-
-	Aggregations json.RawMessage `json:"aggregations,omitempty"`
+	Booking                 Booking                        `json:"booking"`
+	CampaignStats           json.RawMessage                `json:"campaignStats,omitempty"`
+	Device                  json.RawMessage                `json:"device,omitempty"`
+	Guest                   *ScopedGuest                   `json:"guest,omitempty"`
+	SurveyAnswers           json.RawMessage                `json:"surveyAnswers,omitempty"`
+	TypedComputedAttributes *ScopedTypedComputedAttributes `json:"typedComputedAttributes,omitempty"`
+	Aggregations            *ScopedAggregations            `json:"aggregations,omitempty"`
 }
 
 type GuestCardDocument struct {
-	CampaignStats           json.RawMessage `json:"campaignStats,omitempty"`
-	Device                  json.RawMessage `json:"device,omitempty"`
-	Guest                   Guest           `json:"guest"`
-	SurveyAnswers           json.RawMessage `json:"surveyAnswers,omitempty"`
-	TypedComputedAttributes json.RawMessage `json:"typedComputedAttributes,omitempty"`
-
-	Aggregations json.RawMessage `json:"aggregations,omitempty"`
+	CampaignStats           json.RawMessage          `json:"campaignStats,omitempty"`
+	Device                  json.RawMessage          `json:"device,omitempty"`
+	Guest                   Guest                    `json:"guest"`
+	SurveyAnswers           json.RawMessage          `json:"surveyAnswers,omitempty"`
+	TypedComputedAttributes *TypedComputedAttributes `json:"typedComputedAttributes,omitempty"`
+	Aggregations            Aggregations             `json:"aggregations,omitempty"`
 }
 
 type ScopedGuestCardDocument struct {
-	CampaignStats           json.RawMessage `json:"campaignStats,omitempty"`
-	Device                  json.RawMessage `json:"device,omitempty"`
-	Guest                   *ScopedGuest    `json:"guest,omitempty"`
-	SurveyAnswers           json.RawMessage `json:"surveyAnswers,omitempty"`
-	TypedComputedAttributes json.RawMessage `json:"typedComputedAttributes,omitempty"`
+	CampaignStats           json.RawMessage                `json:"campaignStats,omitempty"`
+	Device                  json.RawMessage                `json:"device,omitempty"`
+	Guest                   *ScopedGuest                   `json:"guest,omitempty"`
+	SurveyAnswers           json.RawMessage                `json:"surveyAnswers,omitempty"`
+	TypedComputedAttributes *ScopedTypedComputedAttributes `json:"typedComputedAttributes,omitempty"`
+	Aggregations            *ScopedAggregations            `json:"aggregations,omitempty"`
+}
 
-	Aggregations json.RawMessage `json:"aggregations,omitempty"`
+type TypedComputedAttributes struct {
+	Account *ScopedTypedComputedAttributes `json:"account,omitempty"`
+	Chain   *ScopedTypedComputedAttributes `json:"chain,omitempty"`
+	Group   *ScopedTypedComputedAttributes `json:"group,omitempty"`
+}
+
+type ScopedTypedComputedAttributes struct {
+	Number  []ScopedTypedComputedAttribute `json:"number,omitempty"`
+	Text    []ScopedTypedComputedAttribute `json:"text,omitempty"`
+	Boolean []ScopedTypedComputedAttribute `json:"boolean,omitempty"`
+	Date    []ScopedTypedComputedAttribute `json:"date,omitempty"`
+}
+
+type ScopedTypedComputedAttribute struct {
+	ID        string `json:"id,omitempty"`
+	Value     any    `json:"value,omitempty"`
+	AccountID string `json:"accountId,omitempty"`
+}
+
+type ScopedAggregations struct {
+	CounterFutureBookings float64                     `json:"counterFutureBookings"`
+	LastDeparture         string                      `json:"lastDeparture,omitempty"`
+	CounterBookings       float64                     `json:"counterBookings"`
+	EntityID              string                      `json:"entityId,omitempty"`
+	ConvertedAvgFare      *BookingConvertedCurrencies `json:"convertedAvgFare,omitempty"`
+	CounterPastBookings   float64                     `json:"counterPastBookings"`
+	AvgFares              float64                     `json:"avgFares"`
+	SumFares              float64                     `json:"sumFares"`
+	ConvertedSumFare      *BookingConvertedCurrencies `json:"convertedSumFare,omitempty"`
+	NextArrival           string                      `json:"nextArrival,omitempty"`
+	AccountIDs            Array[string]               `json:"accountIds,omitempty"`
+	AccountIDsCounter     float64                     `json:"accountIdsCounter"`
+	LastAccountID         string                      `json:"lastAccountId,omitempty"`
+	ID                    string                      `json:"id,omitempty"`
+	NextAccountID         string                      `json:"nextAccountId,omitempty"`
+	UpdatedAt             string                      `json:"updatedAt,omitempty"`
+}
+
+type Aggregations struct {
+	Account *ScopedAggregations `json:"account,omitempty"`
+	Chain   *ScopedAggregations `json:"chain,omitempty"`
+	Group   *ScopedAggregations `json:"group,omitempty"`
 }
 
 type Booking struct {
