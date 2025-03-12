@@ -49,18 +49,20 @@ func (c *guestsClient) CountGuests(
 }
 
 func (c *guestsClient) ReadOne(selector *GuestSelector) (*models.Guest, error) {
-	rid := selector.rid()
+	cacheKey := selector.makeCacheKey()
 
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(rid).(*models.Guest); ok {
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).(*models.Guest); ok {
 		return cachedResult, nil
 	}
 
-	result, err := transport.GetRESModel[*models.Guest](c.baseClient.resClient, rid, resprot.Request{})
+	result, err := transport.GetRESModel[*models.Guest](c.baseClient.resClient, selector.makeRID(), resprot.Request{
+		Query: selector.makeEncodedQuery(),
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	defer c.baseClient.eventuallyWriteCache(rid, result)
+	defer c.baseClient.eventuallyWriteCache(cacheKey, result)
 
 	return result, nil
 }
@@ -76,23 +78,26 @@ type GuestSelector struct {
 	Redirect bool
 }
 
-func (s *GuestSelector) rid() string {
+func (selector *GuestSelector) makeCacheKey() string {
+	return selector.makeRID() + selector.makeEncodedQuery()
+}
+
+func (selector *GuestSelector) makeRID() string {
+	return "guestprofile.entities." + selector.EntityID.String() + ".guests." + selector.GuestID.String()
+}
+
+func (selector *GuestSelector) makeEncodedQuery() string {
 	query := url.Values{}
 
-	if s.Expand {
+	if selector.Expand {
 		query.Add("expand", "true")
 	}
 
-	if s.Redirect {
+	if selector.Redirect {
 		query.Add("redirect", "true")
 	}
 
-	result := "guestprofile.entities." + s.EntityID.String() + ".guests." + s.GuestID.String()
-	if len(query) > 0 {
-		result += "?" + query.Encode()
-	}
-
-	return result
+	return query.Encode()
 }
 
 func (c *guestsClient) SearchByContact(
