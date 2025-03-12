@@ -1,6 +1,7 @@
 package esutil
 
 import (
+	"bytes"
 	"encoding/json"
 )
 
@@ -86,7 +87,7 @@ type Booking struct {
 	Arrival               string                      `json:"arrival,omitempty"`
 	ArrivalDay            string                      `json:"arrivalDay,omitempty"`
 	ArrivalDow            string                      `json:"arrivalDow,omitempty"`
-	Balance               float64                     `json:"balance,omitempty"`
+	Balance               any                         `json:"balance,omitempty"`
 	BookingDate           string                      `json:"bookingDate,omitempty"`
 	BookingDateArrival    string                      `json:"bookingDateArrival,omitempty"`
 	Channel               string                      `json:"channel,omitempty"`
@@ -103,7 +104,7 @@ type Booking struct {
 	DepartureDow          string                      `json:"departureDow,omitempty"`
 	EntityID              string                      `json:"entityId,omitempty"`
 	ExternalIDs           *BookingExternalIDs         `json:"externalIds,omitempty"`
-	Fare                  float64                     `json:"fare,omitempty"`
+	Fare                  any                         `json:"fare,omitempty"`
 	FareCode              string                      `json:"fareCode,omitempty"`
 	FarePerNight          float64                     `json:"farePerNight,omitempty"`
 	FilledCustomFields    Array[string]               `json:"filledCustomFields,omitempty"`
@@ -114,9 +115,9 @@ type Booking struct {
 	Last                  string                      `json:"last,omitempty"`
 	Partner               string                      `json:"partner,omitempty"`
 	Pass                  string                      `json:"pass,omitempty"`
-	PaxAdults             int                         `json:"paxAdults,omitempty"`
-	PaxBabies             int                         `json:"paxBabies,omitempty"`
-	PaxChildren           int                         `json:"paxChildren,omitempty"`
+	PaxAdults             any                         `json:"paxAdults,omitempty"`
+	PaxBabies             any                         `json:"paxBabies,omitempty"`
+	PaxChildren           any                         `json:"paxChildren,omitempty"`
 	PMSBookingID          string                      `json:"pmsBookingId,omitempty"`
 	PMSBookingParentID    string                      `json:"pmsBookingParentId,omitempty"`
 	Purposes              Array[string]               `json:"purposes,omitempty"`
@@ -126,9 +127,33 @@ type Booking struct {
 	Status                string                      `json:"status,omitempty"`
 	StayLength            int                         `json:"stayLength,omitempty"`
 	Tags                  Array[string]               `json:"tags,omitempty"`
-	TouristTax            float64                     `json:"touristTax,omitempty"`
+	TouristTax            any                         `json:"touristTax,omitempty"`
 	UpdatedAt             string                      `json:"updatedAt,omitempty"`
 	Weekend               bool                        `json:"weekend,omitempty"`
+}
+
+var _ json.Unmarshaler = (*BookingConvertedCurrencies)(nil)
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+// This method is required to be compatible with the Guest Profile PHP server.
+func (m *BookingConvertedCurrencies) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, json.RawMessage(`[]`)) {
+		*m = BookingConvertedCurrencies{}
+
+		return nil
+	}
+
+	type Alias BookingConvertedCurrencies
+
+	alias := Alias{}
+
+	if err := json.Unmarshal(data, &alias); err != nil {
+		return err
+	}
+
+	*m = BookingConvertedCurrencies(alias)
+
+	return nil
 }
 
 type BookingExternalIDs struct {
