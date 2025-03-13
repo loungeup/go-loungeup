@@ -157,9 +157,9 @@ func (m *BookingConvertedCurrencies) UnmarshalJSON(data []byte) error {
 }
 
 type BookingExternalIDs struct {
-	ExternalID       string `json:"externalid,omitempty"`
-	MonewebAccountID string `json:"moneweb_account_id,omitempty"`
-	Qualitelis       string `json:"qualitelis,omitempty"`
+	ExternalID       any `json:"externalid,omitempty"`
+	MonewebAccountID any `json:"moneweb_account_id,omitempty"`
+	Qualitelis       any `json:"qualitelis,omitempty"`
 }
 
 type BookingCico struct {
