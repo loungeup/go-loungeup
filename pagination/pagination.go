@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strconv"
 
+	estypes "github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/loungeup/go-loungeup/errors"
 )
 
@@ -88,6 +89,7 @@ func (p *Pager[S, E]) Reset() {
 type pagerConfiguration struct {
 	size              int
 	allowShorterPages bool
+	pit               *estypes.PointInTimeReference
 }
 
 type pagerOption func(*pagerConfiguration)
@@ -124,6 +126,41 @@ func (r *keysetPageReader[S, E, K]) readPage(size int) (S, error) {
 func (r *keysetPageReader[S, E, K]) reset() {
 	var emptyKey K
 	r.lastKey = emptyKey
+}
+
+type esKeysetPageReader[S ~[]E, E, K any] struct {
+	readPageFunc func(size int, lastKey K, pit *estypes.PointInTimeReference) (S, K, error)
+	lastKey      K
+	pit          *estypes.PointInTimeReference
+}
+
+func NewESKeysetPageReader[S ~[]E, E, K any](
+	readPageFunc func(size int, lastKey K, pit *estypes.PointInTimeReference) (S, K, error),
+	pit *estypes.PointInTimeReference,
+) *esKeysetPageReader[S, E, K] {
+	return &esKeysetPageReader[S, E, K]{
+		readPageFunc: readPageFunc,
+		pit:          pit,
+	}
+}
+
+var _ pageReader[[]any, any] = (*esKeysetPageReader[[]any, any, any])(nil)
+
+func (r *esKeysetPageReader[S, E, K]) readPage(size int) (S, error) {
+	result, lastKey, err := r.readPageFunc(size, r.lastKey, r.pit)
+	if err != nil {
+		return nil, err
+	}
+
+	r.lastKey = lastKey
+
+	return result, nil
+}
+
+func (r *esKeysetPageReader[S, E, K]) reset() {
+	var emptyKey K
+	r.lastKey = emptyKey
+	r.pit = nil
 }
 
 type offsetPagerReader[S ~[]E, E any] struct {
