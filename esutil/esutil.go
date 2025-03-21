@@ -1,11 +1,13 @@
 package esutil
 
 import (
+	"encoding/json"
 	"strings"
 
 	estypes "github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	essortorder "github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 	"github.com/google/uuid"
+	"github.com/loungeup/go-loungeup/client/models"
 	"github.com/loungeup/go-loungeup/jsonutil"
 	"github.com/loungeup/go-loungeup/pointer"
 )
@@ -54,6 +56,31 @@ var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
 		AggType: ComputedAttrAggTypeNumber,
 		MapValueFunc: func(aggregate estypes.Aggregate) any {
 			return mapESFloat64(aggregate.(*estypes.AvgAggregate).Value)
+		},
+	},
+	"mostRelevantBookingId": {
+		Agg: estypes.Aggregations{
+			ScriptedMetric: &estypes.ScriptedMetricAggregation{
+				InitScript: &estypes.Script{
+					Id: pointer.From("compute-guest-current-booking-init"),
+				},
+				MapScript: &estypes.Script{
+					Id: pointer.From("compute-guest-current-booking-map"),
+				},
+				CombineScript: &estypes.Script{
+					Id: pointer.From("compute-guest-current-booking-combine"),
+				},
+				ReduceScript: &estypes.Script{
+					Id: pointer.From("compute-guest-current-booking-reduce"),
+				},
+				Params: map[string]json.RawMessage{
+					"entityType": nil, // This is a placeholder for the actual value.
+				},
+			},
+		},
+		AggType: ComputedAttrAggTypeText,
+		MapValueFunc: func(aggregate estypes.Aggregate) any {
+			return jsonutil.Document(aggregate.(*estypes.ScriptedMetricAggregate).Value).Child("id")
 		},
 	},
 	"nextAccountId": {
@@ -195,8 +222,12 @@ var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
 	},
 }
 
-func GetComputedAttrAggConfig[T ~string](v T) ComputedAttrAggConfig {
+func GetComputedAttrAggConfig[T ~string](v T, entityType models.EntityType) ComputedAttrAggConfig {
 	if result, ok := computedAttrAggConfigs[string(v)]; ok {
+		if string(v) == "mostRelevantBookingId" {
+			result.Agg.ScriptedMetric.Params["entityType"] = json.RawMessage(`"` + entityType.String() + `"`)
+		}
+
 		return result
 	}
 
