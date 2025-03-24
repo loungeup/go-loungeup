@@ -129,25 +129,28 @@ func (r *keysetPageReader[S, E, K]) reset() {
 }
 
 type esKeysetPageReader[S ~[]E, E, K any] struct {
-	readPageFunc func(size int, lastKey K, pit *estypes.PointInTimeReference) (S, K, error)
+	readPageFunc func(size int, lastKey K, pit *estypes.PointInTimeReference, query *estypes.Query) (S, K, error)
 	lastKey      K
 	pit          *estypes.PointInTimeReference
+	query        *estypes.Query
 }
 
 func NewESKeysetPageReader[S ~[]E, E, K any](
-	readPageFunc func(size int, lastKey K, pit *estypes.PointInTimeReference) (S, K, error),
+	readPageFunc func(size int, lastKey K, pit *estypes.PointInTimeReference, query *estypes.Query) (S, K, error),
 	pit *estypes.PointInTimeReference,
+	query *estypes.Query,
 ) *esKeysetPageReader[S, E, K] {
 	return &esKeysetPageReader[S, E, K]{
 		readPageFunc: readPageFunc,
 		pit:          pit,
+		query:        query,
 	}
 }
 
 var _ pageReader[[]any, any] = (*esKeysetPageReader[[]any, any, any])(nil)
 
 func (r *esKeysetPageReader[S, E, K]) readPage(size int) (S, error) {
-	result, lastKey, err := r.readPageFunc(size, r.lastKey, r.pit)
+	result, lastKey, err := r.readPageFunc(size, r.lastKey, r.pit, r.query)
 	if err != nil {
 		return nil, err
 	}
