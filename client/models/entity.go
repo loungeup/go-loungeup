@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -67,20 +68,29 @@ func (s EntitySelector) RID() string { return "authority.entities." + s.EntityID
 type EntityAccountsSelector struct {
 	EntityID      uuid.UUID
 	Limit, Offset int
+	Name          string
 }
 
 func (s EntityAccountsSelector) EncodedQuery() string {
+	query := url.Values{}
+
 	sanitizedLimit := 25
 	if s.Limit > 0 {
 		sanitizedLimit = s.Limit
 	}
+	query.Set("limit", strconv.Itoa(sanitizedLimit))
 
 	sanitizedOffset := 0
 	if s.Offset > 0 {
 		sanitizedOffset = s.Offset
 	}
+	query.Set("offset", strconv.Itoa(sanitizedOffset))
 
-	return "limit=" + strconv.Itoa(sanitizedLimit) + "&offset=" + strconv.Itoa(sanitizedOffset)
+	if s.Name != "" {
+		query.Set("name", s.Name)
+	}
+
+	return query.Encode()
 }
 
 func (s EntityAccountsSelector) RID() string {
