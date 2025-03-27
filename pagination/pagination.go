@@ -79,6 +79,14 @@ func (p *Pager[S, E]) Next() bool {
 // Page returns the last page read by the [Pager.Next] method.
 func (p *Pager[S, E]) Page() S { return p.lastPage }
 
+func (p *Pager[S, E]) LastKey() any {
+	if reader, ok := p.reader.(keysetPageReaderInterface); ok {
+		return reader.LastKey()
+	}
+
+	return nil
+}
+
 // Reset the pager to its initial state.
 func (p *Pager[S, E]) Reset() {
 	p.reader.reset()
@@ -99,6 +107,10 @@ type pageReader[S ~[]E, E any] interface {
 	reset()
 }
 
+type keysetPageReaderInterface interface {
+	LastKey() any
+}
+
 type keysetPageReader[S ~[]E, E, K any] struct {
 	readPageFunc func(size int, lastKey K) (S, K, error)
 	lastKey      K
@@ -111,6 +123,12 @@ func NewKeysetPageReader[S ~[]E, E, K any](
 }
 
 var _ pageReader[[]any, any] = (*keysetPageReader[[]any, any, any])(nil)
+
+var _ keysetPageReaderInterface = (*keysetPageReader[[]any, any, any])(nil)
+
+func (r *keysetPageReader[S, E, K]) LastKey() any {
+	return r.lastKey
+}
 
 func (r *keysetPageReader[S, E, K]) readPage(size int) (S, error) {
 	result, lastKey, err := r.readPageFunc(size, r.lastKey)
@@ -139,15 +157,23 @@ func NewESKeysetPageReader[S ~[]E, E, K any](
 	readPageFunc func(size int, lastKey K, pit *estypes.PointInTimeReference, query *estypes.Query) (S, K, error),
 	pit *estypes.PointInTimeReference,
 	query *estypes.Query,
+	lastKey K,
 ) *esKeysetPageReader[S, E, K] {
 	return &esKeysetPageReader[S, E, K]{
 		readPageFunc: readPageFunc,
 		pit:          pit,
 		query:        query,
+		lastKey:      lastKey,
 	}
 }
 
 var _ pageReader[[]any, any] = (*esKeysetPageReader[[]any, any, any])(nil)
+
+var _ keysetPageReaderInterface = (*esKeysetPageReader[[]any, any, any])(nil)
+
+func (r *esKeysetPageReader[S, E, K]) LastKey() any {
+	return r.lastKey
+}
 
 func (r *esKeysetPageReader[S, E, K]) readPage(size int) (S, error) {
 	result, lastKey, err := r.readPageFunc(size, r.lastKey, r.pit, r.query)
