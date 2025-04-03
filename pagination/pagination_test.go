@@ -58,14 +58,13 @@ func TestPager(t *testing.T) {
 	})
 
 	t.Run("keyset", func(t *testing.T) {
-		pageReader := NewKeysetPageReader(func(size int, lastKey string) (uuid.UUIDs, string, error) {
+		pager := NewPager(NewKeysetPageReader(func(size int, lastKey string) (uuid.UUIDs, string, error) {
 			if lastKey != "" {
 				return nil, "", nil
 			}
 
 			return uuid.UUIDs{uuid.New()}, "foo", nil
-		})
-		pager := NewPager(pageReader)
+		}))
 
 		for pager.Next() {
 		}
@@ -73,7 +72,7 @@ func TestPager(t *testing.T) {
 		assert.NoError(t, pager.Err())
 
 		pager.Reset()
-		assert.Equal(t, "", pageReader.lastKey)
+		assert.Equal(t, "", pager.Reader.LastKey)
 		assert.NoError(t, pager.lastErr)
 		assert.Nil(t, pager.lastPage)
 	})
