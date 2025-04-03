@@ -56,14 +56,14 @@ func UseModelHandlerMirror[Model, Selector any](
 	}
 }
 
-type MirrorCallProvider[Model, Selector any] interface {
-	MakeMirrorModelRIDsPager(selector Selector) *pagination.Pager[[]string, string]
+type MirrorCallProvider[Model, Selector any, PageReader pagination.PageReader[[]string, string]] interface {
+	MakeMirrorModelRIDsPager(selector Selector) *pagination.Pager[[]string, string, PageReader]
 	ParseModelSelector(resource res.Resource) (Selector, error)
 	ReadSourceModel(selector Selector) (Model, error)
 }
 
-func UseCallHandlerMirror[Model, Selector any](
-	provider MirrorCallProvider[Model, Selector],
+func UseCallHandlerMirror[Model, Selector any, PageReader pagination.PageReader[[]string, string]](
+	provider MirrorCallProvider[Model, Selector, PageReader],
 	next res.CallHandler,
 ) res.CallHandler {
 	return func(request res.CallRequest) {
@@ -82,7 +82,7 @@ func UseCallHandlerMirror[Model, Selector any](
 		}
 
 		if isEmptyValue(source) {
-			next(&callRequestMirror{
+			next(&callRequestMirror[PageReader]{
 				CallRequest:          request,
 				mirrorModelRIDsPager: provider.MakeMirrorModelRIDsPager(selector),
 			})
@@ -99,61 +99,61 @@ func UseCallHandlerMirror[Model, Selector any](
 
 // callRequestMirror is an extension of res.CallRequest. It sends all RES events to mirrors. See:
 // https://github.com/jirenius/go-res/blob/master/resource.go#L47-L102.
-type callRequestMirror struct {
+type callRequestMirror[PageReader pagination.PageReader[[]string, string]] struct {
 	res.CallRequest
 
-	mirrorModelRIDsPager *pagination.Pager[[]string, string]
+	mirrorModelRIDsPager *pagination.Pager[[]string, string, PageReader]
 }
 
-func (m *callRequestMirror) Event(event string, payload any) {
+func (m *callRequestMirror[PageReader]) Event(event string, payload any) {
 	m.CallRequest.Event(event, payload)
 	m.applyToMirrorResources(func(resource res.Resource) { resource.Event(event, payload) })
 }
 
-func (m *callRequestMirror) ChangeEvent(props map[string]any) {
+func (m *callRequestMirror[PageReader]) ChangeEvent(props map[string]any) {
 	m.CallRequest.ChangeEvent(props)
 	m.applyToMirrorResources(func(resource res.Resource) { resource.ChangeEvent(props) })
 }
 
-func (m *callRequestMirror) AddEvent(value any, idx int) {
+func (m *callRequestMirror[PageReader]) AddEvent(value any, idx int) {
 	m.CallRequest.AddEvent(value, idx)
 	m.applyToMirrorResources(func(resource res.Resource) { resource.AddEvent(value, idx) })
 }
 
-func (m *callRequestMirror) RemoveEvent(idx int) {
+func (m *callRequestMirror[PageReader]) RemoveEvent(idx int) {
 	m.CallRequest.RemoveEvent(idx)
 	m.applyToMirrorResources(func(resource res.Resource) { resource.RemoveEvent(idx) })
 }
 
-func (m *callRequestMirror) ReaccessEvent() {
+func (m *callRequestMirror[PageReader]) ReaccessEvent() {
 	m.CallRequest.ReaccessEvent()
 	m.applyToMirrorResources(func(resource res.Resource) { resource.ReaccessEvent() })
 }
 
-func (m *callRequestMirror) ResetEvent() {
+func (m *callRequestMirror[PageReader]) ResetEvent() {
 	m.CallRequest.ResetEvent()
 	m.applyToMirrorResources(func(resource res.Resource) { resource.ResetEvent() })
 }
 
-func (m *callRequestMirror) QueryEvent(f func(request res.QueryRequest)) {
+func (m *callRequestMirror[PageReader]) QueryEvent(f func(request res.QueryRequest)) {
 	m.CallRequest.QueryEvent(f)
 	m.applyToMirrorResources(func(resource res.Resource) { resource.QueryEvent(f) })
 }
 
-func (m *callRequestMirror) CreateEvent(value any) {
+func (m *callRequestMirror[PageReader]) CreateEvent(value any) {
 	m.CallRequest.CreateEvent(value)
 	m.applyToMirrorResources(func(resource res.Resource) { resource.CreateEvent(value) })
 }
 
-func (m *callRequestMirror) DeleteEvent() {
+func (m *callRequestMirror[PageReader]) DeleteEvent() {
 	m.CallRequest.DeleteEvent()
 	m.applyToMirrorResources(func(resource res.Resource) { resource.DeleteEvent() })
 }
 
-func (r *callRequestMirror) applyToMirrorResources(f func(resource res.Resource)) {
-	for r.mirrorModelRIDsPager.Next() {
-		for _, rid := range r.mirrorModelRIDsPager.Page() {
-			if err := r.Service().With(rid, func(resource res.Resource) { f(resource) }); err != nil {
+func (m *callRequestMirror[PageReader]) applyToMirrorResources(f func(resource res.Resource)) {
+	for m.mirrorModelRIDsPager.Next() {
+		for _, rid := range m.mirrorModelRIDsPager.Page() {
+			if err := m.Service().With(rid, func(resource res.Resource) { f(resource) }); err != nil {
 				log.Default().Error("Could not process mirror resource",
 					slog.Any("error", err),
 					slog.String("rid", rid),
@@ -162,7 +162,7 @@ func (r *callRequestMirror) applyToMirrorResources(f func(resource res.Resource)
 		}
 	}
 
-	if err := r.mirrorModelRIDsPager.Err(); err != nil {
+	if err := m.mirrorModelRIDsPager.Err(); err != nil {
 		log.Default().Error("Could not paginate mirror model RIDs", slog.Any("error", err))
 	}
 }

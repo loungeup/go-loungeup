@@ -9,8 +9,8 @@ import (
 	"github.com/loungeup/go-loungeup/errors"
 )
 
-type Pager[S ~[]E, E any] struct {
-	reader pageReader[S, E]
+type Pager[S ~[]E, E any, R PageReader[S, E]] struct {
+	Reader R
 
 	lastErr  error // The last error that happened while reading a page.
 	lastPage S     // The most recent page read.
@@ -19,11 +19,17 @@ type Pager[S ~[]E, E any] struct {
 	size              int
 }
 
+type (
+	ESKeysetPager[S ~[]E, E, K any] = Pager[S, E, *ESKeysetPageReader[S, E, K]]
+	KeysetPager[S ~[]E, E, K any]   = Pager[S, E, *KeysetPageReader[S, E, K]]
+	OffsetPager[S ~[]E, E any]      = Pager[S, E, *OffsetPagerReader[S, E]]
+)
+
 // NewPager creates a pager with the given function to read pages of type S.
-func NewPager[S ~[]E, E any](reader pageReader[S, E], options ...pagerOption) *Pager[S, E] {
+func NewPager[S ~[]E, E any, R PageReader[S, E]](reader R, options ...PagerOption) *Pager[S, E, R] {
 	const defaultSize = 25
 
-	configuration := &pagerConfiguration{
+	configuration := &PagerConfig{
 		allowShorterPages: false,
 		size:              defaultSize,
 	}
@@ -31,28 +37,30 @@ func NewPager[S ~[]E, E any](reader pageReader[S, E], options ...pagerOption) *P
 		option(configuration)
 	}
 
-	return &Pager[S, E]{
-		reader:            reader,
+	return &Pager[S, E, R]{
+		Reader:            reader,
 		allowShorterPages: configuration.allowShorterPages,
 		size:              configuration.size,
 	}
 }
 
 // AllowShorterPages allows the pager to continue reading pages even if the last page is shorter than the size.
-func AllowShorterPages() pagerOption {
-	return func(c *pagerConfiguration) { c.allowShorterPages = true }
+func AllowShorterPages() PagerOption {
+	return func(config *PagerConfig) { config.allowShorterPages = true }
 }
 
 // WithPageSize sets the size of the pages to be read by the pager.
-func WithPageSize(size int) pagerOption { return func(c *pagerConfiguration) { c.size = size } }
+func WithPageSize(size int) PagerOption {
+	return func(config *PagerConfig) { config.size = size }
+}
 
 // Err returns the error, if any, that was encountered during pagination.
-func (p *Pager[S, E]) Err() error { return p.lastErr }
+func (p *Pager[S, E, R]) Err() error { return p.lastErr }
 
 // Next prepares the next page for reading with the [Pager.Page] method. It returns true on success, or false if there
 // is no next page or an error happened while preparing it. [Pager.Err] should be called to distinguish between the two
 // cases.
-func (p *Pager[S, E]) Next() bool {
+func (p *Pager[S, E, R]) Next() bool {
 	if !p.allowShorterPages {
 		// If the last page is shorter than the size, there are no more pages.
 		if p.lastPage != nil && len(p.lastPage) < p.size {
@@ -60,7 +68,7 @@ func (p *Pager[S, E]) Next() bool {
 		}
 	}
 
-	page, err := p.reader.readPage(p.size)
+	page, err := p.Reader.ReadPage(p.size)
 	if err != nil {
 		p.lastErr = err
 
@@ -77,133 +85,151 @@ func (p *Pager[S, E]) Next() bool {
 }
 
 // Page returns the last page read by the [Pager.Next] method.
-func (p *Pager[S, E]) Page() S { return p.lastPage }
-
-func (p *Pager[S, E]) LastKey() any {
-	if reader, ok := p.reader.(keysetPageReaderInterface); ok {
-		return reader.LastKey()
-	}
-
-	return nil
-}
+func (p *Pager[S, E, R]) Page() S { return p.lastPage }
 
 // Reset the pager to its initial state.
-func (p *Pager[S, E]) Reset() {
-	p.reader.reset()
+func (p *Pager[S, E, R]) Reset() {
+	p.Reader.Reset()
 	p.lastErr = nil
 	p.lastPage = nil
 }
 
-type pagerConfiguration struct {
+type PagerConfig struct {
 	size              int
 	allowShorterPages bool
-	pit               *estypes.PointInTimeReference
 }
 
-type pagerOption func(*pagerConfiguration)
+type PagerOption func(config *PagerConfig)
 
-type pageReader[S ~[]E, E any] interface {
-	readPage(size int) (S, error)
-	reset()
+type PageReader[S ~[]E, E any] interface {
+	ReadPage(size int) (S, error)
+	Reset()
 }
 
-type keysetPageReaderInterface interface {
-	LastKey() any
-}
-
-type keysetPageReader[S ~[]E, E, K any] struct {
+type KeysetPageReader[S ~[]E, E, K any] struct {
+	LastKey      K
 	readPageFunc func(size int, lastKey K) (S, K, error)
-	lastKey      K
 }
+
+type KeysetPageReaderConfig[K any] struct {
+	lastKey K
+}
+
+type KeysetPageReaderOption[K any] func(config *KeysetPageReaderConfig[K])
 
 func NewKeysetPageReader[S ~[]E, E, K any](
 	readPageFunc func(size int, lastKey K) (S, K, error),
-) *keysetPageReader[S, E, K] {
-	return &keysetPageReader[S, E, K]{readPageFunc: readPageFunc}
+	options ...KeysetPageReaderOption[K],
+) *KeysetPageReader[S, E, K] {
+	config := &KeysetPageReaderConfig[K]{}
+	for _, option := range options {
+		option(config)
+	}
+
+	return &KeysetPageReader[S, E, K]{
+		readPageFunc: readPageFunc,
+		LastKey:      config.lastKey,
+	}
 }
 
-var _ pageReader[[]any, any] = (*keysetPageReader[[]any, any, any])(nil)
-
-var _ keysetPageReaderInterface = (*keysetPageReader[[]any, any, any])(nil)
-
-func (r *keysetPageReader[S, E, K]) LastKey() any {
-	return r.lastKey
+func WithKeysetPageReaderLastKey[K any](lastKey K) KeysetPageReaderOption[K] {
+	return func(config *KeysetPageReaderConfig[K]) { config.lastKey = lastKey }
 }
 
-func (r *keysetPageReader[S, E, K]) readPage(size int) (S, error) {
-	result, lastKey, err := r.readPageFunc(size, r.lastKey)
+var _ PageReader[[]any, any] = (*KeysetPageReader[[]any, any, any])(nil)
+
+func (r *KeysetPageReader[S, E, K]) ReadPage(size int) (S, error) {
+	result, lastKey, err := r.readPageFunc(size, r.LastKey)
 	if err != nil {
 		return nil, err
 	}
 
-	r.lastKey = lastKey
+	r.LastKey = lastKey
 
 	return result, nil
 }
 
-func (r *keysetPageReader[S, E, K]) reset() {
+func (r *KeysetPageReader[S, E, K]) Reset() {
 	var emptyKey K
-	r.lastKey = emptyKey
+	r.LastKey = emptyKey
 }
 
-type esKeysetPageReader[S ~[]E, E, K any] struct {
+type ESKeysetPageReader[S ~[]E, E, K any] struct {
+	LastKey      K
 	readPageFunc func(size int, lastKey K, pit *estypes.PointInTimeReference, query *estypes.Query) (S, K, error)
-	lastKey      K
 	pit          *estypes.PointInTimeReference
 	query        *estypes.Query
 }
 
+type ESKeysetPageReaderConfig[K any] struct {
+	lastKey K
+	pit     *estypes.PointInTimeReference
+	query   *estypes.Query
+}
+
+type ESKeysetPageReaderOption[K any] func(config *ESKeysetPageReaderConfig[K])
+
+func WithESKeysetPageReaderLastKey[K any](lastKey K) ESKeysetPageReaderOption[K] {
+	return func(config *ESKeysetPageReaderConfig[K]) { config.lastKey = lastKey }
+}
+
+func WithESKeysetPageReaderPIT[K any](pit *estypes.PointInTimeReference) ESKeysetPageReaderOption[K] {
+	return func(config *ESKeysetPageReaderConfig[K]) { config.pit = pit }
+}
+
+func WithESKeysetPageReaderQuery[K any](query *estypes.Query) ESKeysetPageReaderOption[K] {
+	return func(config *ESKeysetPageReaderConfig[K]) { config.query = query }
+}
+
 func NewESKeysetPageReader[S ~[]E, E, K any](
 	readPageFunc func(size int, lastKey K, pit *estypes.PointInTimeReference, query *estypes.Query) (S, K, error),
-	pit *estypes.PointInTimeReference,
-	query *estypes.Query,
-	lastKey K,
-) *esKeysetPageReader[S, E, K] {
-	return &esKeysetPageReader[S, E, K]{
+	options ...ESKeysetPageReaderOption[K],
+) *ESKeysetPageReader[S, E, K] {
+	config := &ESKeysetPageReaderConfig[K]{}
+
+	for _, option := range options {
+		option(config)
+	}
+
+	return &ESKeysetPageReader[S, E, K]{
+		LastKey:      config.lastKey,
 		readPageFunc: readPageFunc,
-		pit:          pit,
-		query:        query,
-		lastKey:      lastKey,
+		pit:          config.pit,
+		query:        config.query,
 	}
 }
 
-var _ pageReader[[]any, any] = (*esKeysetPageReader[[]any, any, any])(nil)
+var _ PageReader[[]any, any] = (*ESKeysetPageReader[[]any, any, any])(nil)
 
-var _ keysetPageReaderInterface = (*esKeysetPageReader[[]any, any, any])(nil)
-
-func (r *esKeysetPageReader[S, E, K]) LastKey() any {
-	return r.lastKey
-}
-
-func (r *esKeysetPageReader[S, E, K]) readPage(size int) (S, error) {
-	result, lastKey, err := r.readPageFunc(size, r.lastKey, r.pit, r.query)
+func (r *ESKeysetPageReader[S, E, K]) ReadPage(size int) (S, error) {
+	result, lastKey, err := r.readPageFunc(size, r.LastKey, r.pit, r.query)
 	if err != nil {
 		return nil, err
 	}
 
-	r.lastKey = lastKey
+	r.LastKey = lastKey
 
 	return result, nil
 }
 
-func (r *esKeysetPageReader[S, E, K]) reset() {
+func (r *ESKeysetPageReader[S, E, K]) Reset() {
 	var emptyKey K
-	r.lastKey = emptyKey
+	r.LastKey = emptyKey
 	r.pit = nil
 }
 
-type offsetPagerReader[S ~[]E, E any] struct {
+type OffsetPagerReader[S ~[]E, E any] struct {
 	readPageFunc func(size, offset int) (S, error)
 	offset       int
 }
 
-func NewOffsetPageReader[S ~[]E, E any](readPageFunc func(size, offset int) (S, error)) *offsetPagerReader[S, E] {
-	return &offsetPagerReader[S, E]{readPageFunc: readPageFunc}
+func NewOffsetPageReader[S ~[]E, E any](readPageFunc func(size, offset int) (S, error)) *OffsetPagerReader[S, E] {
+	return &OffsetPagerReader[S, E]{readPageFunc: readPageFunc}
 }
 
-var _ pageReader[[]any, any] = (*offsetPagerReader[[]any, any])(nil)
+var _ PageReader[[]any, any] = (*OffsetPagerReader[[]any, any])(nil)
 
-func (r *offsetPagerReader[S, E]) readPage(size int) (S, error) {
+func (r *OffsetPagerReader[S, E]) ReadPage(size int) (S, error) {
 	result, err := r.readPageFunc(size, r.offset)
 	if err != nil {
 		return nil, err
@@ -214,7 +240,7 @@ func (r *offsetPagerReader[S, E]) readPage(size int) (S, error) {
 	return result, nil
 }
 
-func (r *offsetPagerReader[S, E]) reset() { r.offset = 0 }
+func (r *OffsetPagerReader[S, E]) Reset() { r.offset = 0 }
 
 const (
 	keysetSelectorLastKeyQuery = "lastKey"
