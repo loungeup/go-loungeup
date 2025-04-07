@@ -11,6 +11,8 @@ import (
 	"github.com/loungeup/go-loungeup/pagination"
 )
 
+const errorCodeManagedByAnotherEntity = "loungeup.resourceManagedByAnotherEntity"
+
 type MirrorModelProvider[Model, Selector any] interface {
 	MakeModelRID(model Model) string
 	ParseModelSelector(resource res.Resource) (Selector, error)
@@ -91,7 +93,7 @@ func UseCallHandlerMirror[Model, Selector any, PageReader pagination.PageReader[
 		}
 
 		errors.LogAndWriteRESError(log.Default(), request, &errors.Error{
-			Code:    errors.CodeConflict,
+			Code:    errorCodeManagedByAnotherEntity,
 			Message: "This resource is managed by another entity",
 		})
 	}
