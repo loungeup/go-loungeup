@@ -18,7 +18,8 @@ type Entity struct {
 	Name              string              `json:"name,omitempty"`
 	Slug              string              `json:"slug,omitempty"`
 	Image             string              `json:"image,omitempty"`
-	Languages         DataValue[[]string] `json:"languages,omitempty"`
+	Logo              string              `json:"logo,omitempty"`
+	Languages         DataValue[[]string] `json:"languages"`
 	Timezone          string              `json:"timezone,omitempty"`
 	Country           string              `json:"country,omitempty"`
 	PostalCode        string              `json:"postalCode,omitempty"`
