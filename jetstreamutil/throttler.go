@@ -14,18 +14,28 @@ import (
 	"github.com/nats-io/nats.go/jetstream"
 )
 
+const (
+	minInterval = 0
+	maxInterval = time.Minute
+)
+
 type Throttler struct {
-	interval      time.Duration
-	logger        *log.Logger
-	throttledMsgs sync.Map
+	interval           time.Duration
+	inProgressInterval time.Duration
+	logger             *log.Logger
+	throttledMsgs      sync.Map
 }
 
 func NewThrottler(options ...throttlerOption) *Throttler {
-	const defaultInterval = time.Second
+	const (
+		defaultInterval           = time.Second
+		defaultInProgressInterval = 10 * time.Second
+	)
 
 	result := &Throttler{
-		interval: defaultInterval,
-		logger:   log.Default(),
+		interval:           defaultInterval,
+		inProgressInterval: defaultInProgressInterval,
+		logger:             log.Default(),
 	}
 	for _, option := range options {
 		option(result)
@@ -40,6 +50,10 @@ func WithThrottlerInterval(interval time.Duration) throttlerOption {
 	return func(throttler *Throttler) { throttler.interval = interval }
 }
 
+func WithThrottlerInProgressInterval(interval time.Duration) throttlerOption {
+	return func(throttler *Throttler) { throttler.inProgressInterval = interval }
+}
+
 func WithThrottlerLogger(logger *log.Logger) throttlerOption {
 	return func(throttler *Throttler) { throttler.logger = logger }
 }
@@ -48,24 +62,15 @@ func (throttler *Throttler) Handle(next func(msg jetstream.Msg)) func(msg jetstr
 	return func(msg jetstream.Msg) {
 		key := strings.Join([]string{msg.Subject(), string(msg.Data())}, "-")
 
-		validThrottlerInterval := throttler.parseThrottlerInterval(msg.Data())
+		interval := throttler.extractThrottlerInterval(msg.Data())
 
 		l1 := throttler.logger.With(
 			slog.Any("data", json.RawMessage(msg.Data())),
 			slog.String("key", key),
 			slog.String("subject", msg.Subject()),
 			slog.String("traceId", uuid.NewString()),
-			slog.String("validThrottlerInterval", validThrottlerInterval.String()),
+			slog.String("interval", interval.String()),
 		)
-
-		if validThrottlerInterval == 0 {
-			l1.Debug("Processing message")
-			next(msg)
-			l1.Debug("Message processed")
-			throttler.release(key)
-
-			return
-		}
 
 		if throttler.isLocked(key) {
 			l1.Debug("Terminating duplicated message")
@@ -78,8 +83,8 @@ func (throttler *Throttler) Handle(next func(msg jetstream.Msg)) func(msg jetstr
 
 		l1.Debug("Throttling message")
 
-		timer := time.NewTimer(validThrottlerInterval)
-		ticker := time.NewTicker(validThrottlerInterval / 2) //nolint:all
+		timer := time.NewTimer(interval)
+		ticker := time.NewTicker(throttler.inProgressInterval)
 
 		go func() {
 			defer func() {
@@ -105,11 +110,12 @@ func (throttler *Throttler) Handle(next func(msg jetstream.Msg)) func(msg jetstr
 	}
 }
 
-func (throttler *Throttler) parseThrottlerInterval(data []byte) time.Duration {
+// extractThrottlerInterval from the given data or fallback to the interval of the throttler.
+func (throttler *Throttler) extractThrottlerInterval(data []byte) time.Duration {
 	request := resutil.NewRequestWithParams(&throttlerParams{})
 	_ = json.Unmarshal(data, request)
 
-	if request.Params.throttlerInterval >= 0 && request.Params.throttlerInterval <= time.Minute {
+	if request.Params.throttlerInterval >= minInterval && request.Params.throttlerInterval <= maxInterval {
 		return request.Params.throttlerInterval
 	}
 
