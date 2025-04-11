@@ -29,6 +29,9 @@ type Booking struct {
 	RoomType           string       `json:"roomType"`
 	PMSBookingID       string       `json:"pmsBookingId"`
 	PMSBookingParentID string       `json:"pmsBookingParentId"`
+	BookingDate        time.Time    `json:"bookingDate"`
+	PaxAdults          string       `json:"paxAdults,omitempty"`
+	PaxChildren        string       `json:"paxChildren,omitempty"`
 	CustomFields       CustomFields `json:"customFields"`
 }
 
@@ -60,6 +63,14 @@ type BookingSelector struct {
 
 func (s *BookingSelector) RID() string {
 	return "proxy-db.entities." + s.EntityID.String() + ".bookings." + strconv.Itoa(s.BookingID)
+}
+
+type BookingSelectorById struct {
+	BookingID int
+}
+
+func (selector *BookingSelectorById) RID() string {
+	return "proxy-db.bookings." + strconv.Itoa(selector.BookingID)
 }
 
 func (c CustomFields) Get(key string) string {

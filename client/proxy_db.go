@@ -8,6 +8,10 @@ import (
 
 type proxyDBClient struct{ baseClient *Client }
 
-func (c *proxyDBClient) ReadBooking(selector *models.BookingSelector) (*models.Booking, error) {
-	return transport.GetRESModel[*models.Booking](c.baseClient.resClient, selector.RID(), resprot.Request{})
+func (client *proxyDBClient) ReadBooking(selector *models.BookingSelector) (*models.Booking, error) {
+	return transport.GetRESModel[*models.Booking](client.baseClient.resClient, selector.RID(), resprot.Request{})
+}
+
+func (client *proxyDBClient) ReadBookingById(selector *models.BookingSelectorById) (*models.Booking, error) {
+	return transport.GetRESModel[*models.Booking](client.baseClient.resClient, selector.RID(), resprot.Request{})
 }
