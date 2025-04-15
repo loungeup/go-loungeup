@@ -17,13 +17,28 @@ func init() {
 func GlobalMappingKeys() *MappingKeys { return globalMappingKeys.Load() }
 
 type MappingKeys struct {
-	Booking *BookingMappingKeys
-	Guest   *GuestMappingKeys
+	Booking            *BookingMappingKeys
+	Guest              *GuestMappingKeys
+	ComputedAttributes *ComputedAttributesMappingKeys
+}
+
+type ComputedAttributesMappingKeys struct {
+	Account *ScopedComputedAttributesMappingKeys
+	Group   *ScopedComputedAttributesMappingKeys
+	Chain   *ScopedComputedAttributesMappingKeys
+}
+
+type ScopedComputedAttributesMappingKeys struct {
+	Boolean string
+	Date    string
+	Number  string
+	Text    string
 }
 
 type ScopedMappingKeys struct {
-	Booking *BookingMappingKeys
-	Guest   *ScopedGuestMappingKeys
+	Booking            *BookingMappingKeys
+	Guest              *ScopedGuestMappingKeys
+	ComputedAttributes *ScopedComputedAttributesMappingKeys
 }
 
 type BookingMappingKeys struct {
@@ -98,6 +113,7 @@ type ScopedGuestMappingKeys struct {
 	PMSID               string
 	State               string
 	Title               string
+	UpdatedAt           string
 	Zipcode             string
 	Wildcard            string
 }
@@ -137,6 +153,19 @@ func (scope MappingKeysScope) guestPrefix() string {
 	}
 }
 
+func (scope MappingKeysScope) computedAttributePrefix() string {
+	switch scope {
+	case MappingKeysScopeAccount:
+		return "typedComputedAttributes.account"
+	case MappingKeysScopeChain:
+		return "typedComputedAttributes.chain"
+	case MappingKeysScopeGroup:
+		return "typedComputedAttributes.group"
+	default:
+		return ""
+	}
+}
+
 func (scope MappingKeysScope) validate() error {
 	switch scope {
 	case MappingKeysScopeAccount, MappingKeysScopeChain, MappingKeysScopeGroup:
@@ -154,6 +183,11 @@ func newMappingKeys() *MappingKeys {
 			Chain:   newScopedGuestMappingKeys(MappingKeysScopeChain),
 			Group:   newScopedGuestMappingKeys(MappingKeysScopeGroup),
 		},
+		ComputedAttributes: &ComputedAttributesMappingKeys{
+			Account: newScopedComputedAttributeMappingKeys(MappingKeysScopeAccount),
+			Group:   newScopedComputedAttributeMappingKeys(MappingKeysScopeGroup),
+			Chain:   newScopedComputedAttributeMappingKeys(MappingKeysScopeChain),
+		},
 	}
 }
 
@@ -165,6 +199,12 @@ func NewScopedMappingKeys(scope MappingKeysScope) (*ScopedMappingKeys, error) {
 	return &ScopedMappingKeys{
 		Booking: newBookingMappingKeys(),
 		Guest:   newScopedGuestMappingKeys(scope),
+		ComputedAttributes: &ScopedComputedAttributesMappingKeys{
+			Boolean: newScopedComputedAttributeMappingKeys(scope).Boolean,
+			Date:    newScopedComputedAttributeMappingKeys(scope).Date,
+			Number:  newScopedComputedAttributeMappingKeys(scope).Number,
+			Text:    newScopedComputedAttributeMappingKeys(scope).Text,
+		},
 	}, nil
 }
 
@@ -241,8 +281,20 @@ func newScopedGuestMappingKeys(scope MappingKeysScope) *ScopedGuestMappingKeys {
 		PMSID:               joinMappingKeyParts(prefix, "pmsId"),
 		State:               joinMappingKeyParts(prefix, "state"),
 		Title:               joinMappingKeyParts(prefix, "title"),
+		UpdatedAt:           joinMappingKeyParts(prefix, "updatedAt"),
 		Zipcode:             joinMappingKeyParts(prefix, "zipcode"),
 		Wildcard:            joinMappingKeyParts(prefix, "*"),
+	}
+}
+
+func newScopedComputedAttributeMappingKeys(scope MappingKeysScope) *ScopedComputedAttributesMappingKeys {
+	prefix := scope.computedAttributePrefix()
+
+	return &ScopedComputedAttributesMappingKeys{
+		Boolean: joinMappingKeyParts(prefix, "boolean"),
+		Date:    joinMappingKeyParts(prefix, "date"),
+		Number:  joinMappingKeyParts(prefix, "number"),
+		Text:    joinMappingKeyParts(prefix, "text"),
 	}
 }
 
