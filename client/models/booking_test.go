@@ -25,7 +25,8 @@ func TestBookingInStayDates(t *testing.T) {
 		},
 		"only arrival": {
 			in: &Booking{
-				Arrival: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+				Arrival:   time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+				Departure: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC),
 			},
 			want: []time.Time{
 				time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),

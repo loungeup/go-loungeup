@@ -32,16 +32,18 @@ type Booking struct {
 	CustomFields       CustomFields `json:"customFields"`
 }
 
-func (b *Booking) InStayDates() []time.Time {
-	result := []time.Time{b.arrivalDay()}
-	for d := b.arrivalDay().Add(aDay); d.Before(b.departureDay()); d = d.Add(aDay) {
-		result = append(result, d)
+func (booking *Booking) InStayDates() []time.Time {
+	result := []time.Time{
+		booking.arrivalDay(),
+	}
+	for departure := booking.arrivalDay().Add(aDay); departure.Before(booking.departureDay()); departure = departure.Add(aDay) {
+		result = append(result, departure)
 	}
 
 	return result
 }
 
-func (b *Booking) arrivalDay() time.Time { return b.Arrival.Truncate(aDay) }
+func (booking *Booking) arrivalDay() time.Time { return booking.Arrival.Truncate(aDay) }
 
 func (b *Booking) departureDay() time.Time {
 	if b.Departure.IsZero() {
