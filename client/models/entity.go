@@ -67,9 +67,10 @@ type EntitySelector struct {
 func (s EntitySelector) RID() string { return "authority.entities." + s.EntityID.String() }
 
 type EntityAccountsSelector struct {
-	EntityID      uuid.UUID
-	Limit, Offset int
-	Name          string
+	EntityID           uuid.UUID
+	Limit, Offset      int
+	Name               string
+	ExcludeDeactivated bool
 }
 
 func (s EntityAccountsSelector) EncodedQuery() string {
@@ -89,6 +90,10 @@ func (s EntityAccountsSelector) EncodedQuery() string {
 
 	if s.Name != "" {
 		query.Set("name", s.Name)
+	}
+
+	if s.ExcludeDeactivated {
+		query.Set("excludeDeactivated", strconv.FormatBool(s.ExcludeDeactivated))
 	}
 
 	return query.Encode()
