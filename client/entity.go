@@ -127,6 +127,50 @@ func (c *entitiesClient) ReadEntityCustomFields(
 	return result, nil
 }
 
+func (c *entitiesClient) ReadEntityFeatures(selector *models.EntitySelector) (*models.EntityFeatures, error) {
+	cacheKey := selector.RID() + ".features"
+
+	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).(*models.EntityFeatures); ok {
+		return cachedResult, nil
+	}
+
+	rids, err := transport.GetRESCollection[res.Ref](
+		c.baseClient.resClient,
+		selector.RID()+".features",
+		resprot.Request{},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	rawEntityFeatures := []*models.RawEntityFeature{}
+
+	for _, rid := range rids {
+		rawEntityFeature, err := c.readEntityFeatureByRid(string(rid))
+		if err != nil {
+			return nil, err
+		}
+
+		rawEntityFeatures = append(rawEntityFeatures, rawEntityFeature)
+	}
+
+	return models.MapRawEntityFeaturesToEntityFeatures(rawEntityFeatures), nil
+}
+
+func (c *entitiesClient) readEntityFeatureByRid(rid string) (
+	*models.RawEntityFeature, error,
+) {
+	result, err := transport.GetRESModel[*models.RawEntityFeature](
+		c.baseClient.resClient,
+		rid,
+		resprot.Request{})
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (c *entitiesClient) PatchEntity(selector *models.EntitySelector, updates *models.EntityUpdates) error {
 	encodedUpdates, err := json.Marshal(updates)
 	if err != nil {
