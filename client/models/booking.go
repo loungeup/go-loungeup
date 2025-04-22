@@ -30,8 +30,8 @@ type Booking struct {
 	PMSBookingID       string       `json:"pmsBookingId"`
 	PMSBookingParentID string       `json:"pmsBookingParentId"`
 	BookingDate        time.Time    `json:"bookingDate"`
-	PaxAdults          string       `json:"paxAdults,omitempty"`
-	PaxChildren        string       `json:"paxChildren,omitempty"`
+	PaxAdults          int          `json:"paxAdults,omitempty"`
+	PaxChildren        int          `json:"paxChildren,omitempty"`
 	CustomFields       CustomFields `json:"customFields"`
 }
 
@@ -190,7 +190,7 @@ type SearchBookingsRequest struct {
 }
 
 type SearchBookingsFilters struct {
-	InResa       string      `json:"inResa,omitempty""`
+	InResa       string      `json:"inResa,omitempty"`
 	Booked       bool        `json:"booked,omitempty"`
 	IsMasterResa bool        `json:"isMasterResa,omitempty"`
 	GuestId      []uuid.UUID `json:"guestId,omitempty"`
