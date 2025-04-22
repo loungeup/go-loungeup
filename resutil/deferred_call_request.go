@@ -3,7 +3,7 @@ package resutil
 import "github.com/jirenius/go-res"
 
 // DeferredCallRequest embeds a res.CallRequest and adds state to it. It stores the state of the request and send the
-// reploy when you explicitly call the Reply method.
+// reply when you explicitly call the Reply method.
 type DeferredCallRequest struct {
 	res.CallRequest
 
