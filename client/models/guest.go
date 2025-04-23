@@ -36,10 +36,10 @@ type Guest struct {
 	Languages     DataValue[StructuredValueSlice[string]] `json:"languages,omitempty"`
 	Nationalities DataValue[StructuredValueSlice[string]] `json:"nationalities,omitempty"`
 
-	Company DataValue[StructuredValue[Company]]    `json:"company,omitempty"`
-	Emails  DataValue[StructuredValueSlice[Email]] `json:"emails,omitempty"`
-	Phones  DataValue[StructuredPhoneValueSlice]   `json:"phones,omitempty"`
-	Socials DataValue[StructuredValueMap[string]]  `json:"socials,omitempty"`
+	Company DataValue[StructuredValue[Company]]          `json:"company,omitempty"`
+	Emails  DataValue[StructuredValueSlice[Email]]       `json:"emails,omitempty"`
+	Phones  DataValue[StructuredPhoneValueSlice]         `json:"phones,omitempty"`
+	Socials DataValue[StructuredValueMap[SocialAccount]] `json:"socials,omitempty"`
 
 	Addresses  DataValue[StructuredValueSlice[Address]] `json:"addresses,omitempty"`
 	Birthdate  DataValue[StructuredValue[BirthDate]]    `json:"birthdate,omitempty"`
@@ -320,4 +320,14 @@ func joinStrings(separator string, values ...string) string {
 	}
 
 	return strings.Join(notZeroValues, separator)
+}
+
+type SocialAccount struct {
+	Bio       string `json:"bio"`
+	Followers int    `json:"followers"`
+	Following int    `json:"following"`
+	Service   string `json:"service"`
+	URL       string `json:"url"`
+	UserID    string `json:"userId"`
+	Username  string `json:"username"`
 }
