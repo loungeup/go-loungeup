@@ -50,6 +50,7 @@ const (
 	ComputedAttrValueTypeTotalDistinctBookings    ComputedAttrValueType = "totalDistinctBookings"
 	ComputedAttrValueTypeTotalNights              ComputedAttrValueType = "totalNights"
 	ComputedAttrValueTypeTotalRevenue             ComputedAttrValueType = "totalRevenue"
+	ComputedAttrValueMostRelevantBookingId        ComputedAttrValueType = "mostRelevantBookingId"
 )
 
 func (t ComputedAttrValueType) String() string { return string(t) }
