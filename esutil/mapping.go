@@ -88,6 +88,7 @@ type GuestMappingKeys struct {
 }
 
 type ScopedGuestMappingKeys struct {
+	Anonymous           string
 	Birthdate           string
 	BirthplaceCountry   string
 	City                string
@@ -110,10 +111,13 @@ type ScopedGuestMappingKeys struct {
 	Nationalities       string
 	OptedOutMarketing   string
 	Phones              string
+	PhonesMergeableAt   string
+	EmailsMergeableAt   string
 	PMSID               string
 	State               string
 	Title               string
 	UpdatedAt           string
+	TrustableContacts   string
 	Zipcode             string
 	Wildcard            string
 }
@@ -256,6 +260,7 @@ func newScopedGuestMappingKeys(scope MappingKeysScope) *ScopedGuestMappingKeys {
 	prefix := scope.guestPrefix()
 
 	return &ScopedGuestMappingKeys{
+		Anonymous:           joinMappingKeyParts(prefix, "anonymous"),
 		Birthdate:           joinMappingKeyParts(prefix, "birthdate"),
 		BirthplaceCountry:   joinMappingKeyParts(prefix, "birthplace.country"),
 		City:                joinMappingKeyParts(prefix, "city"),
@@ -278,10 +283,13 @@ func newScopedGuestMappingKeys(scope MappingKeysScope) *ScopedGuestMappingKeys {
 		Nationalities:       joinMappingKeyParts(prefix, "nationalities"),
 		OptedOutMarketing:   joinMappingKeyParts(prefix, "optedOut.marketing"),
 		Phones:              joinMappingKeyParts(prefix, "phones"),
+		PhonesMergeableAt:   joinMappingKeyParts(prefix, "phonesMergeableAt"),
+		EmailsMergeableAt:   joinMappingKeyParts(prefix, "emailsMergeableAt"),
 		PMSID:               joinMappingKeyParts(prefix, "pmsId"),
 		State:               joinMappingKeyParts(prefix, "state"),
 		Title:               joinMappingKeyParts(prefix, "title"),
 		UpdatedAt:           joinMappingKeyParts(prefix, "updatedAt"),
+		TrustableContacts:   joinMappingKeyParts(prefix, "trustableContacts"),
 		Zipcode:             joinMappingKeyParts(prefix, "zipcode"),
 		Wildcard:            joinMappingKeyParts(prefix, "*"),
 	}
