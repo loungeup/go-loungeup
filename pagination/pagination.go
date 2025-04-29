@@ -20,9 +20,10 @@ type Pager[S ~[]E, E any, R PageReader[S, E]] struct {
 }
 
 type (
-	ESKeysetPager[S ~[]E, E, K any] = Pager[S, E, *ESKeysetPageReader[S, E, K]]
-	KeysetPager[S ~[]E, E, K any]   = Pager[S, E, *KeysetPageReader[S, E, K]]
-	OffsetPager[S ~[]E, E any]      = Pager[S, E, *OffsetPagerReader[S, E]]
+	ESKeysetPager[S ~[]E, E, K any]          = Pager[S, E, *ESKeysetPageReader[S, E, K]]
+	ESCompositeKeysetPager[S ~[]E, E, K any] = Pager[S, E, *ESCompositeKeysetPageReader[S, E, K]]
+	KeysetPager[S ~[]E, E, K any]            = Pager[S, E, *KeysetPageReader[S, E, K]]
+	OffsetPager[S ~[]E, E any]               = Pager[S, E, *OffsetPagerReader[S, E]]
 )
 
 // NewPager creates a pager with the given function to read pages of type S.
@@ -213,6 +214,84 @@ func (r *ESKeysetPageReader[S, E, K]) ReadPage(size int) (S, error) {
 }
 
 func (r *ESKeysetPageReader[S, E, K]) Reset() {
+	var emptyKey K
+	r.LastKey = emptyKey
+	r.pit = nil
+}
+
+type ESCompositeKeysetPageReader[S ~[]E, E, K any] struct {
+	LastKey       K
+	readPageFunc  func(size int, lastKey K, pit *estypes.PointInTimeReference, query *estypes.Query, aggs map[string]estypes.Aggregations) (S, K, error)
+	pit           *estypes.PointInTimeReference
+	query         *estypes.Query
+	compositeAgg  map[string]estypes.Aggregations
+	compositeSize int
+}
+
+type ESCompositeKeysetPageReaderConfig[K any] struct {
+	lastKey       K
+	pit           *estypes.PointInTimeReference
+	query         *estypes.Query
+	compositeAgg  map[string]estypes.Aggregations
+	compositeSize int
+}
+
+type ESCompositeKeysetPageReaderOption[K any] func(config *ESCompositeKeysetPageReaderConfig[K])
+
+func WithESCompositeKeysetPageReaderLastKey[K any](lastKey K) ESCompositeKeysetPageReaderOption[K] {
+	return func(config *ESCompositeKeysetPageReaderConfig[K]) { config.lastKey = lastKey }
+}
+
+func WithESCompositeKeysetPageReaderPIT[K any](pit *estypes.PointInTimeReference) ESCompositeKeysetPageReaderOption[K] {
+	return func(config *ESCompositeKeysetPageReaderConfig[K]) { config.pit = pit }
+}
+
+func WithESCompositeKeysetPageReaderQuery[K any](query *estypes.Query) ESCompositeKeysetPageReaderOption[K] {
+	return func(config *ESCompositeKeysetPageReaderConfig[K]) { config.query = query }
+}
+
+func WithESCompositeKeysetPageReaderAgg[K any](compositeAgg map[string]estypes.Aggregations) ESCompositeKeysetPageReaderOption[K] {
+	return func(config *ESCompositeKeysetPageReaderConfig[K]) { config.compositeAgg = compositeAgg }
+}
+
+func WithESCompositeKeysetPageReaderSize[K any](compositeSize int) ESCompositeKeysetPageReaderOption[K] {
+	return func(config *ESCompositeKeysetPageReaderConfig[K]) { config.compositeSize = compositeSize }
+}
+
+func NewESCompositeKeysetPageReader[S ~[]E, E, K any](
+	readPageFunc func(size int, lastKey K, pit *estypes.PointInTimeReference, query *estypes.Query, aggs map[string]estypes.Aggregations) (S, K, error),
+	options ...ESCompositeKeysetPageReaderOption[K],
+) *ESCompositeKeysetPageReader[S, E, K] {
+	config := &ESCompositeKeysetPageReaderConfig[K]{}
+
+	for _, option := range options {
+		option(config)
+	}
+
+	return &ESCompositeKeysetPageReader[S, E, K]{
+		LastKey:       config.lastKey,
+		readPageFunc:  readPageFunc,
+		pit:           config.pit,
+		query:         config.query,
+		compositeAgg:  config.compositeAgg,
+		compositeSize: config.compositeSize,
+	}
+}
+
+var _ PageReader[[]any, any] = (*ESCompositeKeysetPageReader[[]any, any, any])(nil)
+
+func (r *ESCompositeKeysetPageReader[S, E, K]) ReadPage(size int) (S, error) {
+	result, lastKey, err := r.readPageFunc(r.compositeSize, r.LastKey, r.pit, r.query, r.compositeAgg)
+	if err != nil {
+		return nil, err
+	}
+
+	r.LastKey = lastKey
+
+	return result, nil
+}
+
+func (r *ESCompositeKeysetPageReader[S, E, K]) Reset() {
 	var emptyKey K
 	r.LastKey = emptyKey
 	r.pit = nil
