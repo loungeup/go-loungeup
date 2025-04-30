@@ -3,8 +3,10 @@ package resutil
 import (
 	"log/slog"
 	"net/url"
+	"slices"
 
 	"github.com/jirenius/go-res"
+	lumodels "github.com/loungeup/go-loungeup/client/models"
 	"github.com/loungeup/go-loungeup/errors"
 	"github.com/loungeup/go-loungeup/log"
 )
@@ -241,6 +243,31 @@ func WithModelQueryEventHandler[Model, Selector any](
 				slog.String("rid", rid),
 			)
 		}
+	}
+}
+
+func WithRolesGuard[
+	Request interface {
+		Error(err error)
+		ParseToken(v any)
+	},
+](
+	roles lumodels.TokenAgentRoleSlice,
+	next func(request Request),
+) func(request Request) {
+	return func(request Request) {
+		token := &lumodels.Token{}
+		request.ParseToken(token)
+
+		for _, role := range roles {
+			if slices.Contains(token.AgentRoles, role) {
+				next(request)
+
+				return
+			}
+		}
+
+		request.Error(res.ErrAccessDenied)
 	}
 }
 
