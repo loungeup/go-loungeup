@@ -13,9 +13,11 @@ import (
 // Here, we are trying to use as much as possible from the resprot package. The resprot package provides functions and
 // types to work with the (low-level) RES protocol.
 
+type RESRequestHandler func(subject string, request resprot.Request) resprot.Response
+
 // RESRequester is the interface used to execute a request using the RES protocol. It wraps the Request method.
 type RESRequester interface {
-	Request(resourceID string, request resprot.Request) resprot.Response
+	Request(subject string, request resprot.Request) resprot.Response
 }
 
 // RESClient used to interact with NATS services using the RES protocol.
@@ -53,20 +55,20 @@ func WithRESClientWithoutRetries() RESClientOption {
 
 var _ (RESRequester) = (*RESClient)(nil)
 
-func (c *RESClient) Request(resourceID string, request resprot.Request) resprot.Response {
+func (c *RESClient) Request(subject string, request resprot.Request) resprot.Response {
 	if c.disableRetries {
-		return c.requestOnce(resourceID, request)
+		return c.requestOnce(subject, request)
 	}
 
-	return c.requestWithRetries(resourceID, request)
+	return c.requestWithRetries(subject, request)
 }
 
-func (c *RESClient) requestWithRetries(resourceID string, request resprot.Request) resprot.Response {
+func (c *RESClient) requestWithRetries(subject string, request resprot.Request) resprot.Response {
 	var lastResponse resprot.Response
 
 	_ = backoff.RetryNotify(
 		func() error {
-			lastResponse = c.requestOnce(resourceID, request)
+			lastResponse = c.requestOnce(subject, request)
 			if !lastResponse.HasError() {
 				return nil
 			}
@@ -84,7 +86,7 @@ func (c *RESClient) requestWithRetries(resourceID string, request resprot.Reques
 		func(err error, retryingIn time.Duration) {
 			log.Default().Error("Could not request RES service. Retrying...",
 				slog.Any("error", err),
-				slog.String("resourceId", resourceID),
+				slog.String("subject", subject),
 				slog.String("retryingIn", retryingIn.String()),
 			)
 		},
@@ -93,8 +95,8 @@ func (c *RESClient) requestWithRetries(resourceID string, request resprot.Reques
 	return lastResponse
 }
 
-func (c *RESClient) requestOnce(resourceID string, request resprot.Request) resprot.Response {
-	return resprot.SendRequest(c.natsConnection, resourceID, request, c.natsTimeout)
+func (c *RESClient) requestOnce(subject string, request resprot.Request) resprot.Response {
+	return resprot.SendRequest(c.natsConnection, subject, request, c.natsTimeout)
 }
 
 // CallRESResult from the resource ID.

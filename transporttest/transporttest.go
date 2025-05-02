@@ -21,7 +21,7 @@ func (c *HTTPClientMock) Do(request *http.Request) (*http.Response, error) {
 }
 
 type RESClientMock struct {
-	RequestFunc func(resourceID string, request resprot.Request) resprot.Response
+	RequestFunc transport.RESRequestHandler
 }
 
 var _ transport.RESRequester = (*RESClientMock)(nil)
@@ -48,4 +48,22 @@ func NewRESModelResponse(model string) resprot.Response {
 // NewRESResultResponse creates a new resprot.Response with the given result.
 func NewRESResultResponse(result string) resprot.Response {
 	return resprot.Response{Result: json.RawMessage(result)}
+}
+
+func UseHandlers(handlersPerSubject map[string]transport.RESRequestHandler) transport.RESRequestHandler {
+	return func(subject string, request resprot.Request) resprot.Response {
+		if handler, ok := handlersPerSubject[subject]; ok {
+			return handler(subject, request)
+		}
+
+		panic("unexpected subject: '" + subject + "'")
+	}
+}
+
+func UseJSONModelHandler[T any](model T) transport.RESRequestHandler {
+	return func(_ string, _ resprot.Request) resprot.Response {
+		encodedValue, _ := json.Marshal(model)
+
+		return NewRESModelResponse(string(encodedValue))
+	}
 }
