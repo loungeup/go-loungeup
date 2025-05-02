@@ -18,6 +18,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/tidwall/gjson v1.17.1
 	github.com/xuri/excelize/v2 v2.8.1
+	go.uber.org/mock v0.5.0
 	golang.org/x/text v0.21.0
 )
 

@@ -6,18 +6,31 @@ import (
 	"github.com/loungeup/go-loungeup/transport"
 )
 
-// currencyRate client provides methods to interact with entities.
-type currencyClient struct{ baseClient *Client }
+//go:generate mockgen -source currency.go -destination=./mocks/mock_currency.go -package=mocks
 
-func (c *currencyClient) ReadCurrencyRates(selector *models.CurrencyRatesSelector) (*models.CurrencyRates, error) {
+type CurrencyManager interface {
+	ReadCurrencyRates(selector *models.CurrencyRatesSelector) (*models.CurrencyRates, error)
+}
+
+type CurrencyClient struct {
+	base *BaseClient
+}
+
+func NewCurrencyClient(base *BaseClient) *CurrencyClient {
+	return &CurrencyClient{
+		base: base,
+	}
+}
+
+func (c *CurrencyClient) ReadCurrencyRates(selector *models.CurrencyRatesSelector) (*models.CurrencyRates, error) {
 	cacheKey := selector.RID() + "?" + selector.EncodedQuery()
 
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).(*models.CurrencyRates); ok {
+	if cachedResult, ok := c.base.ReadCache(cacheKey).(*models.CurrencyRates); ok {
 		return cachedResult, nil
 	}
 
 	result, err := transport.GetRESModel[*models.CurrencyRates](
-		c.baseClient.resClient,
+		c.base.resClient,
 		selector.RID(),
 		resprot.Request{Query: selector.EncodedQuery()},
 	)
@@ -25,7 +38,7 @@ func (c *currencyClient) ReadCurrencyRates(selector *models.CurrencyRatesSelecto
 		return nil, err
 	}
 
-	defer c.baseClient.eventuallyWriteCache(cacheKey, result)
+	defer c.base.WriteCache(cacheKey, result)
 
 	return result, nil
 }

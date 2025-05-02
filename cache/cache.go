@@ -2,6 +2,8 @@ package cache
 
 import "time"
 
+//go:generate mockgen -source cache.go -destination=./mocks/cache.go -package=mocks
+
 type Reader interface {
 	Read(key string) any
 }

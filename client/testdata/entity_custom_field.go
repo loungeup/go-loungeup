@@ -1,19 +1,23 @@
 package testdata
 
-import "github.com/loungeup/go-loungeup/client/models"
+import (
+	"github.com/google/uuid"
+	"github.com/jirenius/go-res"
+	"github.com/loungeup/go-loungeup/resmodels"
+)
 
 var (
-	EntityCustomFields = &models.EntityCustomFields{
-		User: models.NewDataValue(map[string]models.EntityCustomField{
+	EntityCustomFields = &resmodels.EntityCustomFields{
+		User: res.NewDataValue(map[string]resmodels.EntityCustomField{
 			"vipLevel": {
 				Label: "VIP Level",
-				Type:  models.EntityCustomFieldTypeText,
+				Type:  resmodels.EntityCustomFieldTypeText,
 			},
 		}),
-		Visit: models.NewDataValue(map[string]models.EntityCustomField{
+		Visit: res.NewDataValue(map[string]resmodels.EntityCustomField{
 			"adultsCounts": {
 				Label: "Adults Counts",
-				Type:  models.EntityCustomFieldTypeNumber,
+				Type:  resmodels.EntityCustomFieldTypeNumber,
 			},
 		}),
 	}
@@ -37,7 +41,7 @@ var (
 		}
 	}`
 
-	EntityCustomFieldsSelector = &models.EntityCustomFieldsSelector{
-		EntityID: Entity.ID,
+	EntityCustomFieldsSelector = &resmodels.EntityCustomFieldsSelector{
+		EntityID: uuid.MustParse(Entity.ID),
 	}
 )

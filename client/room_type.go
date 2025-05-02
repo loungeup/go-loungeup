@@ -7,14 +7,28 @@ import (
 	"github.com/loungeup/go-loungeup/transport"
 )
 
-type roomTypesClient struct{ baseClient *Client }
+//go:generate mockgen -source room_type.go -destination=./mocks/mock_room_type.go -package=mocks
 
-func (c *roomTypesClient) ReadRoomTypes(selector *models.RoomTypesSelector) ([]*models.RoomType, error) {
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(selector.RID()).([]*models.RoomType); ok {
+type RoomTypesManager interface {
+	ReadRoomTypes(selector *models.RoomTypesSelector) ([]*models.RoomType, error)
+}
+
+type RoomTypesClient struct {
+	base *BaseClient
+}
+
+func NewRoomTypesClient(base *BaseClient) *RoomTypesClient {
+	return &RoomTypesClient{
+		base: base,
+	}
+}
+
+func (c *RoomTypesClient) ReadRoomTypes(selector *models.RoomTypesSelector) ([]*models.RoomType, error) {
+	if cachedResult, ok := c.base.ReadCache(selector.RID()).([]*models.RoomType); ok {
 		return cachedResult, nil
 	}
 
-	references, err := transport.GetRESCollection[res.Ref](c.baseClient.resClient, selector.RID(), resprot.Request{})
+	references, err := transport.GetRESCollection[res.Ref](c.base.resClient, selector.RID(), resprot.Request{})
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +37,7 @@ func (c *roomTypesClient) ReadRoomTypes(selector *models.RoomTypesSelector) ([]*
 
 	for _, reference := range references {
 		relatedRoomType, err := transport.GetRESModel[*models.RoomType](
-			c.baseClient.resClient,
+			c.base.resClient,
 			string(reference),
 			resprot.Request{},
 		)
@@ -34,7 +48,7 @@ func (c *roomTypesClient) ReadRoomTypes(selector *models.RoomTypesSelector) ([]*
 		result = append(result, relatedRoomType)
 	}
 
-	defer c.baseClient.eventuallyWriteCache(selector.RID(), result)
+	defer c.base.WriteCache(selector.RID(), result)
 
 	return result, nil
 }

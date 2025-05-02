@@ -7,6 +7,7 @@ import (
 	"github.com/jirenius/go-res/resprot"
 	"github.com/loungeup/go-loungeup/client/models"
 	"github.com/loungeup/go-loungeup/client/testdata"
+	"github.com/loungeup/go-loungeup/resmodels"
 	"github.com/loungeup/go-loungeup/transport"
 	"github.com/loungeup/go-loungeup/transporttest"
 	"github.com/stretchr/testify/assert"
@@ -26,7 +27,7 @@ func TestReadEntityIntegration(t *testing.T) {
 				}
 			},
 		},
-	}).Internal.Integrations.ReadEntityIntegration(testdata.EntityIntegrationSelector)
+	}, nil).Integrations.ReadEntityIntegration(testdata.EntityIntegrationSelector)
 	assert.NoError(t, err)
 	assert.Equal(t, testdata.EntityIntegration, got)
 }
@@ -47,9 +48,9 @@ func TestReadEntityIntegrations(t *testing.T) {
 				}
 			},
 		},
-	}).Internal.Integrations.ReadEntityIntegrations(testdata.EntityIntegrationsSelector)
+	}, nil).Integrations.ReadEntityIntegrations(testdata.EntityIntegrationsSelector)
 	assert.NoError(t, err)
-	assert.Equal(t, []*models.EntityIntegration{testdata.EntityIntegration}, got)
+	assert.Equal(t, []*resmodels.EntityIntegration{testdata.EntityIntegration}, got)
 }
 
 func TestReadIntegration(t *testing.T) {
@@ -64,7 +65,7 @@ func TestReadIntegration(t *testing.T) {
 				}
 			},
 		},
-	}).Internal.Integrations.ReadIntegration(testdata.IntegrationSelector)
+	}, nil).Integrations.ReadIntegration(testdata.IntegrationSelector)
 	assert.NoError(t, err)
 	assert.Equal(t, testdata.Integration, got)
 }
@@ -83,7 +84,7 @@ func TestReadIntegrations(t *testing.T) {
 				}
 			},
 		},
-	}).Internal.Integrations.ReadIntegrations(testdata.IntegrationsSelector)
+	}, nil).Integrations.ReadIntegrations(testdata.IntegrationsSelector)
 	assert.NoError(t, err)
 	assert.Equal(t, []*models.Integration{testdata.Integration}, got)
 }
@@ -95,7 +96,7 @@ func TestFetchFromProvider(t *testing.T) {
 				return transporttest.NewRESResultResponse(testdata.ProviderResultModel)
 			},
 		},
-	}).Internal.Integrations.FetchFromProvider(testdata.EntityIntegrationSelector, nil)
+	}, nil).Integrations.FetchFromProvider(testdata.EntityIntegrationSelector, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, testdata.ProviderResult, got)
 }
@@ -107,7 +108,7 @@ func TestSendToProvider(t *testing.T) {
 				return transporttest.NewRESResultResponse(testdata.ProviderResultModel)
 			},
 		},
-	}).Internal.Integrations.SendToProvider(testdata.EntityIntegrationSelector, nil)
+	}, nil).Integrations.SendToProvider(testdata.EntityIntegrationSelector, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, testdata.ProviderResult, got)
 }

@@ -6,16 +6,30 @@ import (
 	"github.com/loungeup/go-loungeup/transport"
 )
 
-type proxyDBClient struct{ baseClient *Client }
-
-func (client *proxyDBClient) ReadBooking(selector *models.BookingSelector) (*models.Booking, error) {
-	return transport.GetRESModel[*models.Booking](client.baseClient.resClient, selector.RID(), resprot.Request{})
+//go:generate mockgen -source proxy_db.go -destination=./mocks/mock_proxy_db.go -package=mocks
+type ProxyDBManager interface {
+	ReadBooking(selector *models.BookingSelector) (*models.Booking, error)
+	ReadBookingById(selector *models.BookingSelectorById) (*models.Booking, error)
 }
 
-func (client *proxyDBClient) ReadBookingById(selector *models.BookingSelectorById) (*models.Booking, error) {
-	return transport.GetRESModel[*models.Booking](client.baseClient.resClient, selector.RID(), resprot.Request{})
+type ProxyDBClient struct {
+	base *BaseClient
 }
 
-func (client *proxyDBClient) ReadEntityMetadatas(selector *models.EntityMetadatasSelector) (*models.EntityMetadatas, error) {
-	return transport.GetRESModel[*models.EntityMetadatas](client.baseClient.resClient, selector.RID(), resprot.Request{})
+func NewProxyDBClient(base *BaseClient) *ProxyDBClient {
+	return &ProxyDBClient{
+		base: base,
+	}
+}
+
+func (c *ProxyDBClient) ReadBooking(selector *models.BookingSelector) (*models.Booking, error) {
+	return transport.GetRESModel[*models.Booking](c.base.resClient, selector.RID(), resprot.Request{})
+}
+
+func (client *ProxyDBClient) ReadBookingById(selector *models.BookingSelectorById) (*models.Booking, error) {
+	return transport.GetRESModel[*models.Booking](client.base.resClient, selector.RID(), resprot.Request{})
+}
+
+func (client *ProxyDBClient) ReadEntityMetadatas(selector *models.EntityMetadatasSelector) (*models.EntityMetadatas, error) {
+	return transport.GetRESModel[*models.EntityMetadatas](client.base.resClient, selector.RID(), resprot.Request{})
 }

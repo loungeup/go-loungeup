@@ -11,12 +11,29 @@ import (
 	"github.com/loungeup/go-loungeup/transport"
 )
 
-type guestsClient struct{ baseClient *Client }
+//go:generate mockgen -source guest.go -destination=./mocks/mock_guest.go -package=mocks
+
+type GuestsManager interface {
+	AnonymizeGuests(entityID uuid.UUID, guestIDs []uuid.UUID) error
+	CountGuests(entityID uuid.UUID, request *models.SearchGuestsRequest) (*models.CountGuestsResponse, error)
+	ReadOne(selector *GuestSelector) (*models.Guest, error)
+	SearchByContact(selector *models.SearchByContactSelector) (*resresultsets.KeysetPaginationModel, error)
+}
+
+type guestsClient struct {
+	base *BaseClient
+}
+
+func NewGuestsClient(base *BaseClient) GuestsManager {
+	return &guestsClient{
+		base: base,
+	}
+}
 
 func (c *guestsClient) AnonymizeGuests(entityID uuid.UUID, guestIDs []uuid.UUID) error {
 	resourceID := "call.guestprofile.entities." + entityID.String() + ".guests.anonymize"
 
-	response := c.baseClient.resClient.Request(resourceID, resprot.Request{
+	response := c.base.resClient.Request(resourceID, resprot.Request{
 		Params: map[string]any{
 			"guests": guestIDs,
 		},
@@ -37,7 +54,7 @@ func (c *guestsClient) CountGuests(
 	request *models.SearchGuestsRequest,
 ) (*models.CountGuestsResponse, error) {
 	result, err := transport.CallRESResult[*models.CountGuestsResponse](
-		c.baseClient.resClient,
+		c.base.resClient,
 		"guestprofile.entities."+entityID.String()+".guests.count",
 		resprot.Request{Params: request},
 	)
@@ -51,18 +68,18 @@ func (c *guestsClient) CountGuests(
 func (c *guestsClient) ReadOne(selector *GuestSelector) (*models.Guest, error) {
 	cacheKey := selector.makeCacheKey()
 
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).(*models.Guest); ok {
+	if cachedResult, ok := c.base.ReadCache(cacheKey).(*models.Guest); ok {
 		return cachedResult, nil
 	}
 
-	result, err := transport.GetRESModel[*models.Guest](c.baseClient.resClient, selector.makeRID(), resprot.Request{
+	result, err := transport.GetRESModel[*models.Guest](c.base.resClient, selector.makeRID(), resprot.Request{
 		Query: selector.makeEncodedQuery(),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	defer c.baseClient.eventuallyWriteCache(cacheKey, result)
+	c.base.WriteCache(cacheKey, result)
 
 	return result, nil
 }
@@ -104,7 +121,7 @@ func (c *guestsClient) SearchByContact(
 	selector *models.SearchByContactSelector,
 ) (*resresultsets.KeysetPaginationModel, error) {
 	return transport.CallRESResult[*resresultsets.KeysetPaginationModel](
-		c.baseClient.resClient,
+		c.base.resClient,
 		"guestprofile.entities."+selector.EntityID.String()+".guests.search-by-contact",
 		resprot.Request{Params: selector},
 	)

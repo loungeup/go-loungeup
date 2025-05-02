@@ -46,9 +46,10 @@ func TestCountBookings(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got, err := NewWithTransport(
 				transport.New(),
+				nil,
 				WithHTTPAPIKey("key"),
 				WithHTTPAPIURL(httptest.NewServer(tt.handlerFunc).URL),
-			).Internal.Bookings.CountBookings(entityID)
+			).Bookings.CountBookings(entityID)
 			tt.assertFunc(t, got, err)
 		})
 	}
@@ -125,9 +126,10 @@ func TestReadBookingIDs(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got, err := NewWithTransport(
 				transport.New(),
+				nil,
 				WithHTTPAPIKey("key"),
 				WithHTTPAPIURL(httptest.NewServer(tt.handlerFunc).URL),
-			).Internal.Bookings.ReadBookingIDs(tt.selector)
+			).Bookings.ReadBookingIDs(tt.selector)
 			tt.assertFunc(t, got, err)
 		})
 	}

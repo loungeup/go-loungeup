@@ -1,10 +1,13 @@
-package models
+package resmodels
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"github.com/jirenius/go-res"
+)
 
 type EntityCustomFields struct {
-	User  DataValue[map[string]EntityCustomField] `json:"user,omitempty"`
-	Visit DataValue[map[string]EntityCustomField] `json:"visit,omitempty"`
+	User  res.DataValue[map[string]EntityCustomField] `json:"user,omitempty"`
+	Visit res.DataValue[map[string]EntityCustomField] `json:"visit,omitempty"`
 }
 
 type EntityCustomField struct {

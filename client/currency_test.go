@@ -23,7 +23,7 @@ func TestReadCurrencyRates(t *testing.T) {
 				}
 			},
 		},
-	}).Internal.Currency.ReadCurrencyRates(&testdata.CurrencyRatesSelector)
+	}, nil).Currency.ReadCurrencyRates(&testdata.CurrencyRatesSelector)
 	assert.NoError(t, err)
 	assert.Equal(t, testdata.CurrencyRates, got)
 }

@@ -9,17 +9,29 @@ import (
 	"github.com/loungeup/go-loungeup/transport"
 )
 
-type computedAttrsClient struct{ baseClient *Client }
+type ComputedAttrsManager interface {
+	ReadOne(selector *ComputedAttrSelector) (*resmodels.ComputedAttr, error)
+}
 
-func (c *computedAttrsClient) ReadOne(selector *ComputedAttrSelector) (*resmodels.ComputedAttr, error) {
+type ComputedAttrsClient struct {
+	base *BaseClient
+}
+
+func NewComputedAttrsClient(base *BaseClient) *ComputedAttrsClient {
+	return &ComputedAttrsClient{
+		base: base,
+	}
+}
+
+func (c *ComputedAttrsClient) ReadOne(selector *ComputedAttrSelector) (*resmodels.ComputedAttr, error) {
 	cacheKey := selector.rid()
 
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).(*resmodels.ComputedAttr); ok {
+	if cachedResult, ok := c.base.ReadCache(cacheKey).(*resmodels.ComputedAttr); ok {
 		return cachedResult, nil
 	}
 
 	result, err := transport.GetRESModel[*resmodels.ComputedAttr](
-		c.baseClient.resClient,
+		c.base.resClient,
 		selector.rid(),
 		resprot.Request{},
 	)
@@ -27,7 +39,7 @@ func (c *computedAttrsClient) ReadOne(selector *ComputedAttrSelector) (*resmodel
 		return nil, err
 	}
 
-	defer c.baseClient.eventuallyWriteCacheWithDuration(cacheKey, result, time.Minute)
+	c.base.WriteCacheWithDuration(cacheKey, result, time.Minute)
 
 	return result, nil
 }

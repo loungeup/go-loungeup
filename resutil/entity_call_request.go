@@ -2,9 +2,9 @@ package resutil
 
 import (
 	"github.com/jirenius/go-res"
-	lumodels "github.com/loungeup/go-loungeup/client/models"
 	"github.com/loungeup/go-loungeup/errors"
 	"github.com/loungeup/go-loungeup/log"
+	"github.com/loungeup/go-loungeup/resmodels"
 )
 
 // EntityCallRequest wraps a res.CallRequest with an associated Entity. This structure allows handlers to access the
@@ -12,7 +12,7 @@ import (
 type EntityCallRequest struct {
 	res.CallRequest
 
-	Entity *lumodels.Entity
+	Entity *resmodels.Entity
 }
 
 type EntityCallHandler func(request *EntityCallRequest)
@@ -25,7 +25,7 @@ type EntityCallRequestConfig struct {
 type EntityCallRequestOption func(config *EntityCallRequestConfig)
 
 type EntityReader interface {
-	ReadEntity(selector *lumodels.EntitySelector) (*lumodels.Entity, error)
+	ReadEntity(selector *resmodels.EntitySelector) (*resmodels.Entity, error)
 }
 
 func WithEntityCallRequestPathParamKey(key string) EntityCallRequestOption {
@@ -51,7 +51,7 @@ func WithEntityCallHandler(next EntityCallHandler, reader EntityReader, options 
 			return
 		}
 
-		entity, err := reader.ReadEntity(&lumodels.EntitySelector{EntityID: entityID})
+		entity, err := reader.ReadEntity(&resmodels.EntitySelector{EntityID: entityID})
 		if err != nil {
 			errors.LogAndWriteRESError(log.Default(), request, err)
 

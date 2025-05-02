@@ -12,19 +12,37 @@ import (
 	"github.com/loungeup/go-loungeup/client/models"
 )
 
-type bookingsClient struct{ baseClient *Client }
+//go:generate mockgen -source booking.go -destination=./mocks/mock_booking.go -package=mocks
 
-func (c *bookingsClient) CountBookings(entityID uuid.UUID) (int64, error) {
+type BookingsManager interface {
+	CountBookings(entityID uuid.UUID) (int64, error)
+	ReadBookingIDs(selector *models.BookingIDsSelector) (models.ReadBookingIDsResponse, error)
+	ReadIndexableBookingByID(bookingID int) (*models.IndexableBookingResponse, error)
+	IndexBooking(request *models.IndexBookingRequest) error
+	Search(entityID uuid.UUID, selector models.SearchBookingsRequest) (*models.SearchBookingsResponse, error)
+}
+
+type BookingsClient struct {
+	base *BaseClient
+}
+
+func NewBookingsClient(base *BaseClient) *BookingsClient {
+	return &BookingsClient{
+		base: base,
+	}
+}
+
+func (c *BookingsClient) CountBookings(entityID uuid.UUID) (int64, error) {
 	request, err := http.NewRequest(
 		http.MethodPost,
-		c.baseClient.httpAPIURL+"/entities/"+entityID.String()+"/bookings/count",
+		c.base.httpAPIURL+"/entities/"+entityID.String()+"/bookings/count",
 		http.NoBody,
 	)
 	if err != nil {
 		return 0, fmt.Errorf("could not create request: %w", err)
 	}
 
-	response, err := c.baseClient.executeHTTPRequest(request)
+	response, err := c.base.ExecuteHTTPRequest(request)
 	if err != nil {
 		return 0, fmt.Errorf("could not send request: %w", err)
 	}
@@ -38,17 +56,17 @@ func (c *bookingsClient) CountBookings(entityID uuid.UUID) (int64, error) {
 	return result, nil
 }
 
-func (c *bookingsClient) ReadBookingIDs(selector *models.BookingIDsSelector) (models.ReadBookingIDsResponse, error) {
+func (c *BookingsClient) ReadBookingIDs(selector *models.BookingIDsSelector) (models.ReadBookingIDsResponse, error) {
 	request, err := http.NewRequest(
 		http.MethodGet,
-		c.baseClient.httpAPIURL+"/entities/"+selector.EntityID.String()+"/booking-ids?"+selector.EncodedQuery(),
+		c.base.httpAPIURL+"/entities/"+selector.EntityID.String()+"/booking-ids?"+selector.EncodedQuery(),
 		http.NoBody,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("could not create request: %w", err)
 	}
 
-	response, err := c.baseClient.executeHTTPRequest(request)
+	response, err := c.base.ExecuteHTTPRequest(request)
 	if err != nil {
 		return nil, fmt.Errorf("could not send request: %w", err)
 	}
@@ -62,17 +80,17 @@ func (c *bookingsClient) ReadBookingIDs(selector *models.BookingIDsSelector) (mo
 	return result, nil
 }
 
-func (c *bookingsClient) ReadIndexableBookingByID(bookingID int) (*models.IndexableBookingResponse, error) {
+func (c *BookingsClient) ReadIndexableBookingByID(bookingID int) (*models.IndexableBookingResponse, error) {
 	request, err := http.NewRequest(
 		http.MethodGet,
-		c.baseClient.httpAPIURL+"/booking/"+strconv.Itoa(bookingID)+"/indexable",
+		c.base.httpAPIURL+"/booking/"+strconv.Itoa(bookingID)+"/indexable",
 		http.NoBody,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("could not create request: %w", err)
 	}
 
-	response, err := c.baseClient.executeHTTPRequest(request)
+	response, err := c.base.ExecuteHTTPRequest(request)
 	if err != nil {
 		return nil, fmt.Errorf("could not send request: %w", err)
 	}
@@ -86,8 +104,8 @@ func (c *bookingsClient) ReadIndexableBookingByID(bookingID int) (*models.Indexa
 	return result, nil
 }
 
-func (c *bookingsClient) IndexBooking(request *models.IndexBookingRequest) error {
-	if response := c.baseClient.resClient.Request("call."+request.RID(), resprot.Request{
+func (c *BookingsClient) IndexBooking(request *models.IndexBookingRequest) error {
+	if response := c.base.resClient.Request("call."+request.RID(), resprot.Request{
 		Params: request,
 	}); response.HasError() {
 		return response.Error
@@ -96,7 +114,7 @@ func (c *bookingsClient) IndexBooking(request *models.IndexBookingRequest) error
 	return nil
 }
 
-func (c *bookingsClient) Search(entityID uuid.UUID, selector models.SearchBookingsRequest) (*models.SearchBookingsResponse, error) {
+func (c *BookingsClient) Search(entityID uuid.UUID, selector models.SearchBookingsRequest) (*models.SearchBookingsResponse, error) {
 	body, err := json.Marshal(selector)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal payload: %w", err)
@@ -104,14 +122,14 @@ func (c *bookingsClient) Search(entityID uuid.UUID, selector models.SearchBookin
 
 	request, err := http.NewRequest(
 		http.MethodPost,
-		c.baseClient.httpAPIURL+"/entities/"+entityID.String()+"/bookings/search",
+		c.base.httpAPIURL+"/entities/"+entityID.String()+"/bookings/search",
 		bytes.NewReader(body),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("could not create request: %w", err)
 	}
 
-	response, err := c.baseClient.executeHTTPRequest(request)
+	response, err := c.base.ExecuteHTTPRequest(request)
 	if err != nil {
 		return nil, fmt.Errorf("could not send request: %w", err)
 	}

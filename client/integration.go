@@ -6,23 +6,45 @@ import (
 	"github.com/jirenius/go-res"
 	"github.com/jirenius/go-res/resprot"
 	"github.com/loungeup/go-loungeup/client/models"
+	"github.com/loungeup/go-loungeup/resmodels"
 	"github.com/loungeup/go-loungeup/transport"
 )
 
-// integrationsClient used to interact with the integrations service using the RES protocol.
-type integrationsClient struct{ baseClient *Client }
+//go:generate mockgen -source integration.go -destination=./mocks/mock_integration.go -package=mocks
 
-func (c *integrationsClient) ReadEntityIntegration(
-	selector *models.EntityIntegrationSelector,
-) (*models.EntityIntegration, error) {
+type IntegrationsManager interface {
+	ReadEntityIntegration(selector *resmodels.EntityIntegrationSelector) (*resmodels.EntityIntegration, error)
+	UpdateEntityIntegration(selector *resmodels.EntityIntegrationSelector, params any) (resprot.Response, error)
+	ReadEntityIntegrations(selector *resmodels.EntityIntegrationsSelector) ([]*resmodels.EntityIntegration, error)
+	ReadIntegration(selector *models.IntegrationSelector) (*models.Integration, error)
+	ReadIntegrations(selector *models.IntegrationsSelector) ([]*models.Integration, error)
+	FetchFromProvider(selector *resmodels.EntityIntegrationSelector, params any) (json.RawMessage, error)
+	FetchLatestEntityIntegrationRoomTypes(selector *resmodels.LatestIntegrationSelector) ([]*models.RoomType, error)
+	CreateTicket(selector *resmodels.EntityIntegrationSelector, params any) (json.RawMessage, error)
+	SendToProvider(selector *resmodels.EntityIntegrationSelector, params any) (json.RawMessage, error)
+}
+
+type IntegrationsClient struct {
+	base *BaseClient
+}
+
+func NewIntegrationsClient(base *BaseClient) *IntegrationsClient {
+	return &IntegrationsClient{
+		base: base,
+	}
+}
+
+func (c *IntegrationsClient) ReadEntityIntegration(
+	selector *resmodels.EntityIntegrationSelector,
+) (*resmodels.EntityIntegration, error) {
 	return c.readEntityIntegrationByRID(selector.RID())
 }
 
-func (c *integrationsClient) UpdateEntityIntegration(
-	selector *models.EntityIntegrationSelector,
+func (c *IntegrationsClient) UpdateEntityIntegration(
+	selector *resmodels.EntityIntegrationSelector,
 	params any,
 ) (resprot.Response, error) {
-	response := c.baseClient.resClient.Request("call."+selector.RID()+".patch",
+	response := c.base.resClient.Request("call."+selector.RID()+".patch",
 		resprot.Request{Params: params})
 
 	if response.HasError() {
@@ -32,17 +54,17 @@ func (c *integrationsClient) UpdateEntityIntegration(
 	return response, nil
 }
 
-func (c *integrationsClient) ReadEntityIntegrations(
-	selector *models.EntityIntegrationsSelector,
-) ([]*models.EntityIntegration, error) {
+func (c *IntegrationsClient) ReadEntityIntegrations(
+	selector *resmodels.EntityIntegrationsSelector,
+) ([]*resmodels.EntityIntegration, error) {
 	cacheKey := selector.RID() + "?" + selector.EncodedQuery()
 
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).([]*models.EntityIntegration); ok {
+	if cachedResult, ok := c.base.ReadCache(cacheKey).([]*resmodels.EntityIntegration); ok {
 		return cachedResult, nil
 	}
 
 	references, err := transport.GetRESCollection[res.Ref](
-		c.baseClient.resClient,
+		c.base.resClient,
 		selector.RID(),
 		resprot.Request{Query: selector.EncodedQuery()},
 	)
@@ -50,7 +72,7 @@ func (c *integrationsClient) ReadEntityIntegrations(
 		return nil, err
 	}
 
-	result := []*models.EntityIntegration{}
+	result := []*resmodels.EntityIntegration{}
 
 	for _, reference := range references {
 		model, err := c.readEntityIntegrationByRID(string(reference))
@@ -61,24 +83,24 @@ func (c *integrationsClient) ReadEntityIntegrations(
 		result = append(result, model)
 	}
 
-	defer c.baseClient.eventuallyWriteCache(cacheKey, result)
+	defer c.base.WriteCache(cacheKey, result)
 
 	return result, nil
 }
 
-func (c *integrationsClient) ReadIntegration(selector *models.IntegrationSelector) (*models.Integration, error) {
+func (c *IntegrationsClient) ReadIntegration(selector *models.IntegrationSelector) (*models.Integration, error) {
 	return c.readIntegrationByRID(selector.RID())
 }
 
-func (c *integrationsClient) ReadIntegrations(selector *models.IntegrationsSelector) ([]*models.Integration, error) {
+func (c *IntegrationsClient) ReadIntegrations(selector *models.IntegrationsSelector) ([]*models.Integration, error) {
 	cacheKey := selector.RID() + "?" + selector.EncodedQuery()
 
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(cacheKey).([]*models.Integration); ok {
+	if cachedResult, ok := c.base.ReadCache(cacheKey).([]*models.Integration); ok {
 		return cachedResult, nil
 	}
 
 	references, err := transport.GetRESCollection[res.Ref](
-		c.baseClient.resClient,
+		c.base.resClient,
 		selector.RID(),
 		resprot.Request{Query: selector.EncodedQuery()},
 	)
@@ -97,27 +119,27 @@ func (c *integrationsClient) ReadIntegrations(selector *models.IntegrationsSelec
 		result = append(result, model)
 	}
 
-	defer c.baseClient.eventuallyWriteCache(cacheKey, result)
+	defer c.base.WriteCache(cacheKey, result)
 
 	return result, nil
 }
 
-func (c *integrationsClient) FetchFromProvider(
-	selector *models.EntityIntegrationSelector,
+func (c *IntegrationsClient) FetchFromProvider(
+	selector *resmodels.EntityIntegrationSelector,
 	params any,
 ) (json.RawMessage, error) {
 	return transport.CallRESResult[json.RawMessage](
-		c.baseClient.resClient,
+		c.base.resClient,
 		selector.RID()+".fetch-from-provider",
 		resprot.Request{Params: params},
 	)
 }
 
-func (c *integrationsClient) FetchLatestEntityIntegrationRoomTypes(
-	selector *models.LatestIntegrationSelector,
+func (c *IntegrationsClient) FetchLatestEntityIntegrationRoomTypes(
+	selector *resmodels.LatestIntegrationSelector,
 ) ([]*models.RoomType, error) {
 	return transport.CallRESResult[[]*models.RoomType](
-		c.baseClient.resClient,
+		c.base.resClient,
 		selector.RID()+".fetch-room-types",
 		resprot.Request{
 			Query: selector.EncodedQuery(),
@@ -125,34 +147,34 @@ func (c *integrationsClient) FetchLatestEntityIntegrationRoomTypes(
 	)
 }
 
-func (c *integrationsClient) CreateTicket(
-	selector *models.EntityIntegrationSelector,
+func (c *IntegrationsClient) CreateTicket(
+	selector *resmodels.EntityIntegrationSelector,
 	params any,
 ) (json.RawMessage, error) {
 	return transport.CallRESResult[json.RawMessage](
-		c.baseClient.resClient,
+		c.base.resClient,
 		selector.RID()+".create-ticket",
 		resprot.Request{Params: params},
 	)
 }
 
-func (c *integrationsClient) SendToProvider(
-	selector *models.EntityIntegrationSelector,
+func (c *IntegrationsClient) SendToProvider(
+	selector *resmodels.EntityIntegrationSelector,
 	params any,
 ) (json.RawMessage, error) {
 	return transport.CallRESResult[json.RawMessage](
-		c.baseClient.resClient,
+		c.base.resClient,
 		selector.RID()+".send-to-provider",
 		resprot.Request{Params: params},
 	)
 }
 
-func (c *integrationsClient) readEntityIntegrationByRID(resourceID string) (*models.EntityIntegration, error) {
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).(*models.EntityIntegration); ok {
+func (c *IntegrationsClient) readEntityIntegrationByRID(resourceID string) (*resmodels.EntityIntegration, error) {
+	if cachedResult, ok := c.base.ReadCache(resourceID).(*resmodels.EntityIntegration); ok {
 		return cachedResult, nil
 	}
 
-	result, err := transport.GetRESModel[*models.EntityIntegration](c.baseClient.resClient, resourceID, resprot.Request{})
+	result, err := transport.GetRESModel[*resmodels.EntityIntegration](c.base.resClient, resourceID, resprot.Request{})
 	if err != nil {
 		return nil, err
 	}
@@ -168,22 +190,22 @@ func (c *integrationsClient) readEntityIntegrationByRID(resourceID string) (*mod
 
 	result.Integration = relatedIntegration
 
-	defer c.baseClient.eventuallyWriteCache(resourceID, result)
+	defer c.base.WriteCache(resourceID, result)
 
 	return result, nil
 }
 
-func (c *integrationsClient) readIntegrationByRID(resourceID string) (*models.Integration, error) {
-	if cachedResult, ok := c.baseClient.eventuallyReadCache(resourceID).(*models.Integration); ok {
+func (c *IntegrationsClient) readIntegrationByRID(resourceID string) (*models.Integration, error) {
+	if cachedResult, ok := c.base.ReadCache(resourceID).(*models.Integration); ok {
 		return cachedResult, nil
 	}
 
-	result, err := transport.GetRESModel[*models.Integration](c.baseClient.resClient, resourceID, resprot.Request{})
+	result, err := transport.GetRESModel[*models.Integration](c.base.resClient, resourceID, resprot.Request{})
 	if err != nil {
 		return nil, err
 	}
 
-	defer c.baseClient.eventuallyWriteCache(resourceID, result)
+	defer c.base.WriteCache(resourceID, result)
 
 	return result, nil
 }

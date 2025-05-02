@@ -10,6 +10,8 @@ import (
 	"github.com/loungeup/go-loungeup/log"
 )
 
+//go:generate mockgen -source res.go -destination=./mocks/mock_res.go -package=mocks
+
 // Here, we are trying to use as much as possible from the resprot package. The resprot package provides functions and
 // types to work with the (low-level) RES protocol.
 

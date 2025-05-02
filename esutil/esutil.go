@@ -7,9 +7,9 @@ import (
 	estypes "github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	essortorder "github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 	"github.com/google/uuid"
-	"github.com/loungeup/go-loungeup/client/models"
 	"github.com/loungeup/go-loungeup/jsonutil"
 	"github.com/loungeup/go-loungeup/pointer"
+	"github.com/loungeup/go-loungeup/resmodels"
 )
 
 //nolint:forcetypeassert
@@ -222,10 +222,10 @@ var computedAttrAggConfigs = map[string]ComputedAttrAggConfig{
 	},
 }
 
-func GetComputedAttrAggConfig[T ~string](v T, entityType models.EntityType) ComputedAttrAggConfig {
+func GetComputedAttrAggConfig[T ~string](v T, entityType resmodels.EntityType) ComputedAttrAggConfig {
 	if result, ok := computedAttrAggConfigs[string(v)]; ok {
 		if string(v) == "mostRelevantBookingId" {
-			result.Agg.ScriptedMetric.Params["entityType"] = json.RawMessage(`"` + entityType.String() + `"`)
+			result.Agg.ScriptedMetric.Params["entityType"] = json.RawMessage(`"` + entityType + `"`)
 		}
 
 		return result

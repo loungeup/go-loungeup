@@ -1,4 +1,4 @@
-package models
+package resmodels
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jirenius/go-res"
+	"github.com/loungeup/go-loungeup/client/models"
 	"github.com/loungeup/go-loungeup/errors"
 )
 
@@ -22,12 +23,12 @@ var (
 )
 
 type EntityIntegration struct {
-	ID                   uuid.UUID                          `json:"id,omitempty"`
-	EntityID             uuid.UUID                          `json:"entityId,omitempty"`
-	IntegrationReference res.Ref                            `json:"integration,omitempty"`
-	Integration          *Integration                       `json:"-"`
-	Values               DataValue[EntityIntegrationValues] `json:"values,omitempty"`
-	Status               string                             `json:"status,omitempty"`
+	ID                   uuid.UUID                              `json:"id,omitempty"`
+	EntityID             uuid.UUID                              `json:"entityId,omitempty"`
+	IntegrationReference res.Ref                                `json:"integration,omitempty"`
+	Integration          *models.Integration                    `json:"-"`
+	Values               res.DataValue[EntityIntegrationValues] `json:"values,omitempty"`
+	Status               string                                 `json:"status,omitempty"`
 }
 
 type EntityIntegrationValues map[string]any
@@ -61,7 +62,7 @@ func (s EntityIntegrationSelector) RID() string {
 }
 
 type EntityIntegrationsSelector struct {
-	*IntegrationsSelector
+	*models.IntegrationsSelector
 
 	EnabledFeatures []string
 	EntityID        uuid.UUID

@@ -1,3 +1,4 @@
+// Package client provides a client to interact with the LoungeUp API.
 package client
 
 import (
@@ -11,78 +12,69 @@ import (
 
 // Client is used to interact with our services.
 type Client struct {
-	Internal *internalClient
+	Bookings      BookingsManager
+	ComputedAttrs ComputedAttrsManager
+	Entities      EntitiesManager
+	Guests        GuestsManager
+	Integrations  IntegrationsManager
+	Products      ProductsManager
+	ProxyDB       ProxyDBManager
+	RoomTypes     RoomTypesManager
+	Segments      SegmentsManager
+	Currency      CurrencyManager
+}
 
-	// The following fields are used internally by sub-clients.
-	cache      cache.ReadWriter
+type BaseClient struct {
 	httpAPIKey string
 	httpClient transport.HTTPDoer
 	httpAPIURL string
 	resClient  transport.RESRequester
+	cache      cache.ReadWriter
 }
 
 // Option used to configure a Client.
-type Option func(*Client)
+type Option func(*BaseClient)
 
 // NewWithTransport returns a Client with the given transport and options.
-func NewWithTransport(transport *transport.Transport, options ...Option) *Client {
-	result := &Client{
-		httpClient: transport.HTTPClient,
-		resClient:  transport.RESClient,
+func NewWithTransport(t *transport.Transport, c cache.ReadWriter, options ...Option) *Client {
+	base := &BaseClient{
+		httpClient: t.HTTPClient,
+		resClient:  t.RESClient,
+		cache:      c,
 	}
 
-	result.Internal = &internalClient{
-		Bookings:      &bookingsClient{baseClient: result},
-		ComputedAttrs: &computedAttrsClient{baseClient: result},
-		Currency:      &currencyClient{baseClient: result},
-		Entities:      &entitiesClient{baseClient: result},
-		Guests:        &guestsClient{baseClient: result},
-		Integrations:  &integrationsClient{baseClient: result},
-		Products:      &productsClient{baseClient: result},
-		ProxyDB:       &proxyDBClient{baseClient: result},
-		RoomTypes:     &roomTypesClient{baseClient: result},
-		Segments:      &segmentsClient{baseClient: result},
+	result := &Client{
+		Bookings:      NewBookingsClient(base),
+		ComputedAttrs: NewComputedAttrsClient(base),
+		Entities:      NewEntitiesClient(base),
+		Guests:        NewGuestsClient(base),
+		Integrations:  NewIntegrationsClient(base),
+		Products:      NewProductsClient(base),
+		ProxyDB:       NewProxyDBClient(base),
+		RoomTypes:     NewRoomTypesClient(base),
+		Segments:      NewSegmentsClient(base),
+		Currency:      NewCurrencyClient(base),
 	}
 
 	for _, option := range options {
-		option(result)
+		option(base)
 	}
 
 	return result
 }
 
-func WithCache(cache cache.ReadWriter) Option { return func(c *Client) { c.cache = cache } }
-func WithHTTPAPIKey(key string) Option        { return func(c *Client) { c.httpAPIKey = key } }
-func WithHTTPAPIURL(url string) Option        { return func(c *Client) { c.httpAPIURL = url } }
-
-func (c *Client) eventuallyReadCache(key string) any {
-	if c.cache == nil {
-		return nil
-	}
-
-	return c.cache.Read(key)
+func WithHTTPAPIKey(key string) Option {
+	return func(b *BaseClient) { b.httpAPIKey = key }
 }
 
-func (c *Client) eventuallyWriteCache(key string, value any) {
-	if c.cache == nil {
-		return
-	}
-
-	c.cache.Write(key, value)
+func WithHTTPAPIURL(url string) Option {
+	return func(b *BaseClient) { b.httpAPIURL = url }
 }
 
-func (c *Client) eventuallyWriteCacheWithDuration(key string, value any, duration time.Duration) {
-	if c.cache == nil {
-		return
-	}
+func (b *BaseClient) ExecuteHTTPRequest(request *http.Request) (*http.Response, error) {
+	request.Header.Set("Authorization", "Bearer "+b.httpAPIKey)
 
-	c.cache.WriteWithDuration(key, value, duration)
-}
-
-func (c *Client) executeHTTPRequest(request *http.Request) (*http.Response, error) {
-	request.Header.Set("Authorization", "Bearer "+c.httpAPIKey)
-
-	response, err := c.httpClient.Do(request)
+	response, err := b.httpClient.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("could not send request: %w", err)
 	}
@@ -92,4 +84,28 @@ func (c *Client) executeHTTPRequest(request *http.Request) (*http.Response, erro
 	}
 
 	return response, nil
+}
+
+func (b *BaseClient) ReadCache(key string) any {
+	if b.cache == nil {
+		return nil
+	}
+
+	return b.cache.Read(key)
+}
+
+func (b *BaseClient) WriteCache(key string, value any) {
+	if b.cache == nil {
+		return
+	}
+
+	b.cache.Write(key, value)
+}
+
+func (b *BaseClient) WriteCacheWithDuration(key string, value any, duration time.Duration) {
+	if b.cache == nil {
+		return
+	}
+
+	b.cache.WriteWithDuration(key, value, duration)
 }
