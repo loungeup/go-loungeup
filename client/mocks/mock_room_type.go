@@ -16,32 +16,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockRoomTypesClient is a mock of RoomTypesClient interface.
-type MockRoomTypesClient struct {
+// MockRoomTypesManager is a mock of RoomTypesManager interface.
+type MockRoomTypesManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockRoomTypesClientMockRecorder
+	recorder *MockRoomTypesManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockRoomTypesClientMockRecorder is the mock recorder for MockRoomTypesClient.
-type MockRoomTypesClientMockRecorder struct {
-	mock *MockRoomTypesClient
+// MockRoomTypesManagerMockRecorder is the mock recorder for MockRoomTypesManager.
+type MockRoomTypesManagerMockRecorder struct {
+	mock *MockRoomTypesManager
 }
 
-// NewMockRoomTypesClient creates a new mock instance.
-func NewMockRoomTypesClient(ctrl *gomock.Controller) *MockRoomTypesClient {
-	mock := &MockRoomTypesClient{ctrl: ctrl}
-	mock.recorder = &MockRoomTypesClientMockRecorder{mock}
+// NewMockRoomTypesManager creates a new mock instance.
+func NewMockRoomTypesManager(ctrl *gomock.Controller) *MockRoomTypesManager {
+	mock := &MockRoomTypesManager{ctrl: ctrl}
+	mock.recorder = &MockRoomTypesManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRoomTypesClient) EXPECT() *MockRoomTypesClientMockRecorder {
+func (m *MockRoomTypesManager) EXPECT() *MockRoomTypesManagerMockRecorder {
 	return m.recorder
 }
 
 // ReadRoomTypes mocks base method.
-func (m *MockRoomTypesClient) ReadRoomTypes(selector *models.RoomTypesSelector) ([]*models.RoomType, error) {
+func (m *MockRoomTypesManager) ReadRoomTypes(selector *models.RoomTypesSelector) ([]*models.RoomType, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadRoomTypes", selector)
 	ret0, _ := ret[0].([]*models.RoomType)
@@ -50,7 +50,7 @@ func (m *MockRoomTypesClient) ReadRoomTypes(selector *models.RoomTypesSelector) 
 }
 
 // ReadRoomTypes indicates an expected call of ReadRoomTypes.
-func (mr *MockRoomTypesClientMockRecorder) ReadRoomTypes(selector any) *gomock.Call {
+func (mr *MockRoomTypesManagerMockRecorder) ReadRoomTypes(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadRoomTypes", reflect.TypeOf((*MockRoomTypesClient)(nil).ReadRoomTypes), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadRoomTypes", reflect.TypeOf((*MockRoomTypesManager)(nil).ReadRoomTypes), selector)
 }

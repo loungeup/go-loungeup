@@ -13,12 +13,13 @@ import (
 //go:generate mockgen -source entity.go -destination=./mocks/mock_entity.go -package=mocks
 
 type EntitiesManager interface {
-	ReadEntity(selector *resmodels.EntityID) (*resmodels.Entity, error)
+	ReadEntity(selector *resmodels.EntitySelector) (*resmodels.Entity, error)
 	ReadEntityAccounts(selector *resmodels.EntityAccountsSelector) ([]*resmodels.Entity, error)
-	ReadAccountParents(selector *resmodels.EntityID) ([]*resmodels.Entity, error)
+	ReadAccountParents(selector *resmodels.EntitySelector) ([]*resmodels.Entity, error)
 	ReadEntityCustomFields(selector *resmodels.EntityCustomFieldsSelector) (*resmodels.EntityCustomFields, error)
 	PatchEntity(selector *resmodels.EntitySelector, updates *resmodels.EntityUpdates) error
-	BuildESQueryEntity(entityID *resmodels.EntityID, params *resmodels.BuildEntityESQueryParams) (json.RawMessage, error)
+	ReadEntityFeatures(selector *resmodels.EntitySelector) (*resmodels.EntityFeatures, error)
+	BuildESQueryEntity(selector *resmodels.EntitySelector, params *resmodels.BuildEntityESQueryParams) (json.RawMessage, error)
 }
 
 // EntitiesClient provides methods to interact with entities.
@@ -33,12 +34,12 @@ func NewEntitiesClient(base *BaseClient) *EntitiesClient {
 }
 
 func (c *EntitiesClient) BuildESQueryEntity(
-	entityID *resmodels.EntityID,
+	selector *resmodels.EntitySelector,
 	params *resmodels.BuildEntityESQueryParams,
 ) (json.RawMessage, error) {
 	return transport.CallRESResult[json.RawMessage](
 		c.base.resClient,
-		"guestprofile.entities."+entityID.String()+".build-elasticsearch-query",
+		"guestprofile.entities."+selector.EntityID.String()+".build-elasticsearch-query",
 		resprot.Request{
 			Params: params,
 			Token:  json.RawMessage(`{"agentRoles": ["service"]}`),
@@ -46,7 +47,7 @@ func (c *EntitiesClient) BuildESQueryEntity(
 	)
 }
 
-func (c *EntitiesClient) ReadEntity(selector *resmodels.EntityID) (*resmodels.Entity, error) {
+func (c *EntitiesClient) ReadEntity(selector *resmodels.EntitySelector) (*resmodels.Entity, error) {
 	return c.readEntityByRID(selector.RID())
 }
 
@@ -76,7 +77,7 @@ func (c *EntitiesClient) ReadEntityAccounts(selector *resmodels.EntityAccountsSe
 	return result, nil
 }
 
-func (c *EntitiesClient) ReadAccountParents(selector *resmodels.EntityID) ([]*resmodels.Entity, error) {
+func (c *EntitiesClient) ReadAccountParents(selector *resmodels.EntitySelector) ([]*resmodels.Entity, error) {
 	entity, err := c.readEntityByRID(selector.RID())
 	if err != nil {
 		return nil, err

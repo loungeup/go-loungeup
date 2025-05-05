@@ -16,32 +16,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockProductsClient is a mock of ProductsClient interface.
-type MockProductsClient struct {
+// MockProductsManager is a mock of ProductsManager interface.
+type MockProductsManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockProductsClientMockRecorder
+	recorder *MockProductsManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockProductsClientMockRecorder is the mock recorder for MockProductsClient.
-type MockProductsClientMockRecorder struct {
-	mock *MockProductsClient
+// MockProductsManagerMockRecorder is the mock recorder for MockProductsManager.
+type MockProductsManagerMockRecorder struct {
+	mock *MockProductsManager
 }
 
-// NewMockProductsClient creates a new mock instance.
-func NewMockProductsClient(ctrl *gomock.Controller) *MockProductsClient {
-	mock := &MockProductsClient{ctrl: ctrl}
-	mock.recorder = &MockProductsClientMockRecorder{mock}
+// NewMockProductsManager creates a new mock instance.
+func NewMockProductsManager(ctrl *gomock.Controller) *MockProductsManager {
+	mock := &MockProductsManager{ctrl: ctrl}
+	mock.recorder = &MockProductsManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockProductsClient) EXPECT() *MockProductsClientMockRecorder {
+func (m *MockProductsManager) EXPECT() *MockProductsManagerMockRecorder {
 	return m.recorder
 }
 
 // ReadProduct mocks base method.
-func (m *MockProductsClient) ReadProduct(selector *models.ProductSelector) (*models.Product, error) {
+func (m *MockProductsManager) ReadProduct(selector *models.ProductSelector) (*models.Product, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadProduct", selector)
 	ret0, _ := ret[0].(*models.Product)
@@ -50,13 +50,13 @@ func (m *MockProductsClient) ReadProduct(selector *models.ProductSelector) (*mod
 }
 
 // ReadProduct indicates an expected call of ReadProduct.
-func (mr *MockProductsClientMockRecorder) ReadProduct(selector any) *gomock.Call {
+func (mr *MockProductsManagerMockRecorder) ReadProduct(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadProduct", reflect.TypeOf((*MockProductsClient)(nil).ReadProduct), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadProduct", reflect.TypeOf((*MockProductsManager)(nil).ReadProduct), selector)
 }
 
 // ReadProducts mocks base method.
-func (m *MockProductsClient) ReadProducts(selector *models.ProductsSelector) ([]*models.Product, error) {
+func (m *MockProductsManager) ReadProducts(selector *models.ProductsSelector) ([]*models.Product, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadProducts", selector)
 	ret0, _ := ret[0].([]*models.Product)
@@ -65,7 +65,7 @@ func (m *MockProductsClient) ReadProducts(selector *models.ProductsSelector) ([]
 }
 
 // ReadProducts indicates an expected call of ReadProducts.
-func (mr *MockProductsClientMockRecorder) ReadProducts(selector any) *gomock.Call {
+func (mr *MockProductsManagerMockRecorder) ReadProducts(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadProducts", reflect.TypeOf((*MockProductsClient)(nil).ReadProducts), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadProducts", reflect.TypeOf((*MockProductsManager)(nil).ReadProducts), selector)
 }

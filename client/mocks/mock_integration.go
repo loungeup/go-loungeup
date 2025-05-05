@@ -19,32 +19,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockIntegrationsClient is a mock of IntegrationsClient interface.
-type MockIntegrationsClient struct {
+// MockIntegrationsManager is a mock of IntegrationsManager interface.
+type MockIntegrationsManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockIntegrationsClientMockRecorder
+	recorder *MockIntegrationsManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockIntegrationsClientMockRecorder is the mock recorder for MockIntegrationsClient.
-type MockIntegrationsClientMockRecorder struct {
-	mock *MockIntegrationsClient
+// MockIntegrationsManagerMockRecorder is the mock recorder for MockIntegrationsManager.
+type MockIntegrationsManagerMockRecorder struct {
+	mock *MockIntegrationsManager
 }
 
-// NewMockIntegrationsClient creates a new mock instance.
-func NewMockIntegrationsClient(ctrl *gomock.Controller) *MockIntegrationsClient {
-	mock := &MockIntegrationsClient{ctrl: ctrl}
-	mock.recorder = &MockIntegrationsClientMockRecorder{mock}
+// NewMockIntegrationsManager creates a new mock instance.
+func NewMockIntegrationsManager(ctrl *gomock.Controller) *MockIntegrationsManager {
+	mock := &MockIntegrationsManager{ctrl: ctrl}
+	mock.recorder = &MockIntegrationsManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIntegrationsClient) EXPECT() *MockIntegrationsClientMockRecorder {
+func (m *MockIntegrationsManager) EXPECT() *MockIntegrationsManagerMockRecorder {
 	return m.recorder
 }
 
 // CreateTicket mocks base method.
-func (m *MockIntegrationsClient) CreateTicket(selector *resmodels.EntityIntegrationSelector, params any) (json.RawMessage, error) {
+func (m *MockIntegrationsManager) CreateTicket(selector *resmodels.EntityIntegrationSelector, params any) (json.RawMessage, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateTicket", selector, params)
 	ret0, _ := ret[0].(json.RawMessage)
@@ -53,13 +53,13 @@ func (m *MockIntegrationsClient) CreateTicket(selector *resmodels.EntityIntegrat
 }
 
 // CreateTicket indicates an expected call of CreateTicket.
-func (mr *MockIntegrationsClientMockRecorder) CreateTicket(selector, params any) *gomock.Call {
+func (mr *MockIntegrationsManagerMockRecorder) CreateTicket(selector, params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTicket", reflect.TypeOf((*MockIntegrationsClient)(nil).CreateTicket), selector, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTicket", reflect.TypeOf((*MockIntegrationsManager)(nil).CreateTicket), selector, params)
 }
 
 // FetchFromProvider mocks base method.
-func (m *MockIntegrationsClient) FetchFromProvider(selector *resmodels.EntityIntegrationSelector, params any) (json.RawMessage, error) {
+func (m *MockIntegrationsManager) FetchFromProvider(selector *resmodels.EntityIntegrationSelector, params any) (json.RawMessage, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FetchFromProvider", selector, params)
 	ret0, _ := ret[0].(json.RawMessage)
@@ -68,13 +68,13 @@ func (m *MockIntegrationsClient) FetchFromProvider(selector *resmodels.EntityInt
 }
 
 // FetchFromProvider indicates an expected call of FetchFromProvider.
-func (mr *MockIntegrationsClientMockRecorder) FetchFromProvider(selector, params any) *gomock.Call {
+func (mr *MockIntegrationsManagerMockRecorder) FetchFromProvider(selector, params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchFromProvider", reflect.TypeOf((*MockIntegrationsClient)(nil).FetchFromProvider), selector, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchFromProvider", reflect.TypeOf((*MockIntegrationsManager)(nil).FetchFromProvider), selector, params)
 }
 
 // FetchLatestEntityIntegrationRoomTypes mocks base method.
-func (m *MockIntegrationsClient) FetchLatestEntityIntegrationRoomTypes(selector *resmodels.LatestIntegrationSelector) ([]*models.RoomType, error) {
+func (m *MockIntegrationsManager) FetchLatestEntityIntegrationRoomTypes(selector *resmodels.LatestIntegrationSelector) ([]*models.RoomType, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FetchLatestEntityIntegrationRoomTypes", selector)
 	ret0, _ := ret[0].([]*models.RoomType)
@@ -83,13 +83,13 @@ func (m *MockIntegrationsClient) FetchLatestEntityIntegrationRoomTypes(selector 
 }
 
 // FetchLatestEntityIntegrationRoomTypes indicates an expected call of FetchLatestEntityIntegrationRoomTypes.
-func (mr *MockIntegrationsClientMockRecorder) FetchLatestEntityIntegrationRoomTypes(selector any) *gomock.Call {
+func (mr *MockIntegrationsManagerMockRecorder) FetchLatestEntityIntegrationRoomTypes(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchLatestEntityIntegrationRoomTypes", reflect.TypeOf((*MockIntegrationsClient)(nil).FetchLatestEntityIntegrationRoomTypes), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchLatestEntityIntegrationRoomTypes", reflect.TypeOf((*MockIntegrationsManager)(nil).FetchLatestEntityIntegrationRoomTypes), selector)
 }
 
 // ReadEntityIntegration mocks base method.
-func (m *MockIntegrationsClient) ReadEntityIntegration(selector *resmodels.EntityIntegrationSelector) (*resmodels.EntityIntegration, error) {
+func (m *MockIntegrationsManager) ReadEntityIntegration(selector *resmodels.EntityIntegrationSelector) (*resmodels.EntityIntegration, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadEntityIntegration", selector)
 	ret0, _ := ret[0].(*resmodels.EntityIntegration)
@@ -98,13 +98,13 @@ func (m *MockIntegrationsClient) ReadEntityIntegration(selector *resmodels.Entit
 }
 
 // ReadEntityIntegration indicates an expected call of ReadEntityIntegration.
-func (mr *MockIntegrationsClientMockRecorder) ReadEntityIntegration(selector any) *gomock.Call {
+func (mr *MockIntegrationsManagerMockRecorder) ReadEntityIntegration(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadEntityIntegration", reflect.TypeOf((*MockIntegrationsClient)(nil).ReadEntityIntegration), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadEntityIntegration", reflect.TypeOf((*MockIntegrationsManager)(nil).ReadEntityIntegration), selector)
 }
 
 // ReadEntityIntegrations mocks base method.
-func (m *MockIntegrationsClient) ReadEntityIntegrations(selector *resmodels.EntityIntegrationsSelector) ([]*resmodels.EntityIntegration, error) {
+func (m *MockIntegrationsManager) ReadEntityIntegrations(selector *resmodels.EntityIntegrationsSelector) ([]*resmodels.EntityIntegration, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadEntityIntegrations", selector)
 	ret0, _ := ret[0].([]*resmodels.EntityIntegration)
@@ -113,13 +113,13 @@ func (m *MockIntegrationsClient) ReadEntityIntegrations(selector *resmodels.Enti
 }
 
 // ReadEntityIntegrations indicates an expected call of ReadEntityIntegrations.
-func (mr *MockIntegrationsClientMockRecorder) ReadEntityIntegrations(selector any) *gomock.Call {
+func (mr *MockIntegrationsManagerMockRecorder) ReadEntityIntegrations(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadEntityIntegrations", reflect.TypeOf((*MockIntegrationsClient)(nil).ReadEntityIntegrations), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadEntityIntegrations", reflect.TypeOf((*MockIntegrationsManager)(nil).ReadEntityIntegrations), selector)
 }
 
 // ReadIntegration mocks base method.
-func (m *MockIntegrationsClient) ReadIntegration(selector *models.IntegrationSelector) (*models.Integration, error) {
+func (m *MockIntegrationsManager) ReadIntegration(selector *models.IntegrationSelector) (*models.Integration, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadIntegration", selector)
 	ret0, _ := ret[0].(*models.Integration)
@@ -128,13 +128,13 @@ func (m *MockIntegrationsClient) ReadIntegration(selector *models.IntegrationSel
 }
 
 // ReadIntegration indicates an expected call of ReadIntegration.
-func (mr *MockIntegrationsClientMockRecorder) ReadIntegration(selector any) *gomock.Call {
+func (mr *MockIntegrationsManagerMockRecorder) ReadIntegration(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadIntegration", reflect.TypeOf((*MockIntegrationsClient)(nil).ReadIntegration), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadIntegration", reflect.TypeOf((*MockIntegrationsManager)(nil).ReadIntegration), selector)
 }
 
 // ReadIntegrations mocks base method.
-func (m *MockIntegrationsClient) ReadIntegrations(selector *models.IntegrationsSelector) ([]*models.Integration, error) {
+func (m *MockIntegrationsManager) ReadIntegrations(selector *models.IntegrationsSelector) ([]*models.Integration, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadIntegrations", selector)
 	ret0, _ := ret[0].([]*models.Integration)
@@ -143,13 +143,13 @@ func (m *MockIntegrationsClient) ReadIntegrations(selector *models.IntegrationsS
 }
 
 // ReadIntegrations indicates an expected call of ReadIntegrations.
-func (mr *MockIntegrationsClientMockRecorder) ReadIntegrations(selector any) *gomock.Call {
+func (mr *MockIntegrationsManagerMockRecorder) ReadIntegrations(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadIntegrations", reflect.TypeOf((*MockIntegrationsClient)(nil).ReadIntegrations), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadIntegrations", reflect.TypeOf((*MockIntegrationsManager)(nil).ReadIntegrations), selector)
 }
 
 // SendToProvider mocks base method.
-func (m *MockIntegrationsClient) SendToProvider(selector *resmodels.EntityIntegrationSelector, params any) (json.RawMessage, error) {
+func (m *MockIntegrationsManager) SendToProvider(selector *resmodels.EntityIntegrationSelector, params any) (json.RawMessage, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendToProvider", selector, params)
 	ret0, _ := ret[0].(json.RawMessage)
@@ -158,13 +158,13 @@ func (m *MockIntegrationsClient) SendToProvider(selector *resmodels.EntityIntegr
 }
 
 // SendToProvider indicates an expected call of SendToProvider.
-func (mr *MockIntegrationsClientMockRecorder) SendToProvider(selector, params any) *gomock.Call {
+func (mr *MockIntegrationsManagerMockRecorder) SendToProvider(selector, params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendToProvider", reflect.TypeOf((*MockIntegrationsClient)(nil).SendToProvider), selector, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendToProvider", reflect.TypeOf((*MockIntegrationsManager)(nil).SendToProvider), selector, params)
 }
 
 // UpdateEntityIntegration mocks base method.
-func (m *MockIntegrationsClient) UpdateEntityIntegration(selector *resmodels.EntityIntegrationSelector, params any) (resprot.Response, error) {
+func (m *MockIntegrationsManager) UpdateEntityIntegration(selector *resmodels.EntityIntegrationSelector, params any) (resprot.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateEntityIntegration", selector, params)
 	ret0, _ := ret[0].(resprot.Response)
@@ -173,7 +173,7 @@ func (m *MockIntegrationsClient) UpdateEntityIntegration(selector *resmodels.Ent
 }
 
 // UpdateEntityIntegration indicates an expected call of UpdateEntityIntegration.
-func (mr *MockIntegrationsClientMockRecorder) UpdateEntityIntegration(selector, params any) *gomock.Call {
+func (mr *MockIntegrationsManagerMockRecorder) UpdateEntityIntegration(selector, params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateEntityIntegration", reflect.TypeOf((*MockIntegrationsClient)(nil).UpdateEntityIntegration), selector, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateEntityIntegration", reflect.TypeOf((*MockIntegrationsManager)(nil).UpdateEntityIntegration), selector, params)
 }

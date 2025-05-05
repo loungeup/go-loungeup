@@ -79,16 +79,6 @@ type EntitySelector struct {
 
 func (s EntitySelector) RID() string { return "authority.entities." + s.EntityID.String() }
 
-type EntityID uuid.UUID
-
-func (s EntityID) RID() string {
-	return "authority.entities." + uuid.UUID(s).String()
-}
-
-func (s EntityID) String() string {
-	return uuid.UUID(s).String()
-}
-
 type EntityAccountsSelector struct {
 	EntityID      uuid.UUID
 	Limit, Offset int

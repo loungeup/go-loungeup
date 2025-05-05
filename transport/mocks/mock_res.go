@@ -41,15 +41,15 @@ func (m *MockRESRequester) EXPECT() *MockRESRequesterMockRecorder {
 }
 
 // Request mocks base method.
-func (m *MockRESRequester) Request(resourceID string, request resprot.Request) resprot.Response {
+func (m *MockRESRequester) Request(subject string, request resprot.Request) resprot.Response {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Request", resourceID, request)
+	ret := m.ctrl.Call(m, "Request", subject, request)
 	ret0, _ := ret[0].(resprot.Response)
 	return ret0
 }
 
 // Request indicates an expected call of Request.
-func (mr *MockRESRequesterMockRecorder) Request(resourceID, request any) *gomock.Call {
+func (mr *MockRESRequesterMockRecorder) Request(subject, request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Request", reflect.TypeOf((*MockRESRequester)(nil).Request), resourceID, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Request", reflect.TypeOf((*MockRESRequester)(nil).Request), subject, request)
 }

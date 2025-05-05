@@ -16,32 +16,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockCurrencyClient is a mock of CurrencyClient interface.
-type MockCurrencyClient struct {
+// MockCurrencyManager is a mock of CurrencyManager interface.
+type MockCurrencyManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockCurrencyClientMockRecorder
+	recorder *MockCurrencyManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockCurrencyClientMockRecorder is the mock recorder for MockCurrencyClient.
-type MockCurrencyClientMockRecorder struct {
-	mock *MockCurrencyClient
+// MockCurrencyManagerMockRecorder is the mock recorder for MockCurrencyManager.
+type MockCurrencyManagerMockRecorder struct {
+	mock *MockCurrencyManager
 }
 
-// NewMockCurrencyClient creates a new mock instance.
-func NewMockCurrencyClient(ctrl *gomock.Controller) *MockCurrencyClient {
-	mock := &MockCurrencyClient{ctrl: ctrl}
-	mock.recorder = &MockCurrencyClientMockRecorder{mock}
+// NewMockCurrencyManager creates a new mock instance.
+func NewMockCurrencyManager(ctrl *gomock.Controller) *MockCurrencyManager {
+	mock := &MockCurrencyManager{ctrl: ctrl}
+	mock.recorder = &MockCurrencyManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockCurrencyClient) EXPECT() *MockCurrencyClientMockRecorder {
+func (m *MockCurrencyManager) EXPECT() *MockCurrencyManagerMockRecorder {
 	return m.recorder
 }
 
 // ReadCurrencyRates mocks base method.
-func (m *MockCurrencyClient) ReadCurrencyRates(selector *models.CurrencyRatesSelector) (*models.CurrencyRates, error) {
+func (m *MockCurrencyManager) ReadCurrencyRates(selector *models.CurrencyRatesSelector) (*models.CurrencyRates, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadCurrencyRates", selector)
 	ret0, _ := ret[0].(*models.CurrencyRates)
@@ -50,7 +50,7 @@ func (m *MockCurrencyClient) ReadCurrencyRates(selector *models.CurrencyRatesSel
 }
 
 // ReadCurrencyRates indicates an expected call of ReadCurrencyRates.
-func (mr *MockCurrencyClientMockRecorder) ReadCurrencyRates(selector any) *gomock.Call {
+func (mr *MockCurrencyManagerMockRecorder) ReadCurrencyRates(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadCurrencyRates", reflect.TypeOf((*MockCurrencyClient)(nil).ReadCurrencyRates), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadCurrencyRates", reflect.TypeOf((*MockCurrencyManager)(nil).ReadCurrencyRates), selector)
 }

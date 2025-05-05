@@ -17,32 +17,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockBookingsClient is a mock of BookingsClient interface.
-type MockBookingsClient struct {
+// MockBookingsManager is a mock of BookingsManager interface.
+type MockBookingsManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockBookingsClientMockRecorder
+	recorder *MockBookingsManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockBookingsClientMockRecorder is the mock recorder for MockBookingsClient.
-type MockBookingsClientMockRecorder struct {
-	mock *MockBookingsClient
+// MockBookingsManagerMockRecorder is the mock recorder for MockBookingsManager.
+type MockBookingsManagerMockRecorder struct {
+	mock *MockBookingsManager
 }
 
-// NewMockBookingsClient creates a new mock instance.
-func NewMockBookingsClient(ctrl *gomock.Controller) *MockBookingsClient {
-	mock := &MockBookingsClient{ctrl: ctrl}
-	mock.recorder = &MockBookingsClientMockRecorder{mock}
+// NewMockBookingsManager creates a new mock instance.
+func NewMockBookingsManager(ctrl *gomock.Controller) *MockBookingsManager {
+	mock := &MockBookingsManager{ctrl: ctrl}
+	mock.recorder = &MockBookingsManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockBookingsClient) EXPECT() *MockBookingsClientMockRecorder {
+func (m *MockBookingsManager) EXPECT() *MockBookingsManagerMockRecorder {
 	return m.recorder
 }
 
 // CountBookings mocks base method.
-func (m *MockBookingsClient) CountBookings(entityID uuid.UUID) (int64, error) {
+func (m *MockBookingsManager) CountBookings(entityID uuid.UUID) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountBookings", entityID)
 	ret0, _ := ret[0].(int64)
@@ -51,13 +51,13 @@ func (m *MockBookingsClient) CountBookings(entityID uuid.UUID) (int64, error) {
 }
 
 // CountBookings indicates an expected call of CountBookings.
-func (mr *MockBookingsClientMockRecorder) CountBookings(entityID any) *gomock.Call {
+func (mr *MockBookingsManagerMockRecorder) CountBookings(entityID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountBookings", reflect.TypeOf((*MockBookingsClient)(nil).CountBookings), entityID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountBookings", reflect.TypeOf((*MockBookingsManager)(nil).CountBookings), entityID)
 }
 
 // IndexBooking mocks base method.
-func (m *MockBookingsClient) IndexBooking(request *models.IndexBookingRequest) error {
+func (m *MockBookingsManager) IndexBooking(request *models.IndexBookingRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IndexBooking", request)
 	ret0, _ := ret[0].(error)
@@ -65,13 +65,13 @@ func (m *MockBookingsClient) IndexBooking(request *models.IndexBookingRequest) e
 }
 
 // IndexBooking indicates an expected call of IndexBooking.
-func (mr *MockBookingsClientMockRecorder) IndexBooking(request any) *gomock.Call {
+func (mr *MockBookingsManagerMockRecorder) IndexBooking(request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IndexBooking", reflect.TypeOf((*MockBookingsClient)(nil).IndexBooking), request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IndexBooking", reflect.TypeOf((*MockBookingsManager)(nil).IndexBooking), request)
 }
 
 // ReadBookingIDs mocks base method.
-func (m *MockBookingsClient) ReadBookingIDs(selector *models.BookingIDsSelector) (models.ReadBookingIDsResponse, error) {
+func (m *MockBookingsManager) ReadBookingIDs(selector *models.BookingIDsSelector) (models.ReadBookingIDsResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadBookingIDs", selector)
 	ret0, _ := ret[0].(models.ReadBookingIDsResponse)
@@ -80,13 +80,13 @@ func (m *MockBookingsClient) ReadBookingIDs(selector *models.BookingIDsSelector)
 }
 
 // ReadBookingIDs indicates an expected call of ReadBookingIDs.
-func (mr *MockBookingsClientMockRecorder) ReadBookingIDs(selector any) *gomock.Call {
+func (mr *MockBookingsManagerMockRecorder) ReadBookingIDs(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadBookingIDs", reflect.TypeOf((*MockBookingsClient)(nil).ReadBookingIDs), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadBookingIDs", reflect.TypeOf((*MockBookingsManager)(nil).ReadBookingIDs), selector)
 }
 
 // ReadIndexableBookingByID mocks base method.
-func (m *MockBookingsClient) ReadIndexableBookingByID(bookingID int) (*models.IndexableBookingResponse, error) {
+func (m *MockBookingsManager) ReadIndexableBookingByID(bookingID int) (*models.IndexableBookingResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadIndexableBookingByID", bookingID)
 	ret0, _ := ret[0].(*models.IndexableBookingResponse)
@@ -95,13 +95,13 @@ func (m *MockBookingsClient) ReadIndexableBookingByID(bookingID int) (*models.In
 }
 
 // ReadIndexableBookingByID indicates an expected call of ReadIndexableBookingByID.
-func (mr *MockBookingsClientMockRecorder) ReadIndexableBookingByID(bookingID any) *gomock.Call {
+func (mr *MockBookingsManagerMockRecorder) ReadIndexableBookingByID(bookingID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadIndexableBookingByID", reflect.TypeOf((*MockBookingsClient)(nil).ReadIndexableBookingByID), bookingID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadIndexableBookingByID", reflect.TypeOf((*MockBookingsManager)(nil).ReadIndexableBookingByID), bookingID)
 }
 
 // Search mocks base method.
-func (m *MockBookingsClient) Search(entityID uuid.UUID, selector models.SearchBookingsRequest) (*models.SearchBookingsResponse, error) {
+func (m *MockBookingsManager) Search(entityID uuid.UUID, selector models.SearchBookingsRequest) (*models.SearchBookingsResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Search", entityID, selector)
 	ret0, _ := ret[0].(*models.SearchBookingsResponse)
@@ -110,7 +110,7 @@ func (m *MockBookingsClient) Search(entityID uuid.UUID, selector models.SearchBo
 }
 
 // Search indicates an expected call of Search.
-func (mr *MockBookingsClientMockRecorder) Search(entityID, selector any) *gomock.Call {
+func (mr *MockBookingsManagerMockRecorder) Search(entityID, selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockBookingsClient)(nil).Search), entityID, selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockBookingsManager)(nil).Search), entityID, selector)
 }

@@ -17,47 +17,47 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockEntitiesClient is a mock of EntitiesClient interface.
-type MockEntitiesClient struct {
+// MockEntitiesManager is a mock of EntitiesManager interface.
+type MockEntitiesManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockEntitiesClientMockRecorder
+	recorder *MockEntitiesManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockEntitiesClientMockRecorder is the mock recorder for MockEntitiesClient.
-type MockEntitiesClientMockRecorder struct {
-	mock *MockEntitiesClient
+// MockEntitiesManagerMockRecorder is the mock recorder for MockEntitiesManager.
+type MockEntitiesManagerMockRecorder struct {
+	mock *MockEntitiesManager
 }
 
-// NewMockEntitiesClient creates a new mock instance.
-func NewMockEntitiesClient(ctrl *gomock.Controller) *MockEntitiesClient {
-	mock := &MockEntitiesClient{ctrl: ctrl}
-	mock.recorder = &MockEntitiesClientMockRecorder{mock}
+// NewMockEntitiesManager creates a new mock instance.
+func NewMockEntitiesManager(ctrl *gomock.Controller) *MockEntitiesManager {
+	mock := &MockEntitiesManager{ctrl: ctrl}
+	mock.recorder = &MockEntitiesManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockEntitiesClient) EXPECT() *MockEntitiesClientMockRecorder {
+func (m *MockEntitiesManager) EXPECT() *MockEntitiesManagerMockRecorder {
 	return m.recorder
 }
 
 // BuildESQueryEntity mocks base method.
-func (m *MockEntitiesClient) BuildESQueryEntity(entityID *resmodels.EntityID, params *resmodels.BuildEntityESQueryParams) (json.RawMessage, error) {
+func (m *MockEntitiesManager) BuildESQueryEntity(selector *resmodels.EntitySelector, params *resmodels.BuildEntityESQueryParams) (json.RawMessage, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BuildESQueryEntity", entityID, params)
+	ret := m.ctrl.Call(m, "BuildESQueryEntity", selector, params)
 	ret0, _ := ret[0].(json.RawMessage)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BuildESQueryEntity indicates an expected call of BuildESQueryEntity.
-func (mr *MockEntitiesClientMockRecorder) BuildESQueryEntity(entityID, params any) *gomock.Call {
+func (mr *MockEntitiesManagerMockRecorder) BuildESQueryEntity(selector, params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildESQueryEntity", reflect.TypeOf((*MockEntitiesClient)(nil).BuildESQueryEntity), entityID, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildESQueryEntity", reflect.TypeOf((*MockEntitiesManager)(nil).BuildESQueryEntity), selector, params)
 }
 
 // PatchEntity mocks base method.
-func (m *MockEntitiesClient) PatchEntity(selector *resmodels.EntityID, updates *resmodels.EntityUpdates) error {
+func (m *MockEntitiesManager) PatchEntity(selector *resmodels.EntitySelector, updates *resmodels.EntityUpdates) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PatchEntity", selector, updates)
 	ret0, _ := ret[0].(error)
@@ -65,13 +65,13 @@ func (m *MockEntitiesClient) PatchEntity(selector *resmodels.EntityID, updates *
 }
 
 // PatchEntity indicates an expected call of PatchEntity.
-func (mr *MockEntitiesClientMockRecorder) PatchEntity(selector, updates any) *gomock.Call {
+func (mr *MockEntitiesManagerMockRecorder) PatchEntity(selector, updates any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchEntity", reflect.TypeOf((*MockEntitiesClient)(nil).PatchEntity), selector, updates)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchEntity", reflect.TypeOf((*MockEntitiesManager)(nil).PatchEntity), selector, updates)
 }
 
 // ReadAccountParents mocks base method.
-func (m *MockEntitiesClient) ReadAccountParents(selector *resmodels.EntityID) ([]*resmodels.Entity, error) {
+func (m *MockEntitiesManager) ReadAccountParents(selector *resmodels.EntitySelector) ([]*resmodels.Entity, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadAccountParents", selector)
 	ret0, _ := ret[0].([]*resmodels.Entity)
@@ -80,13 +80,13 @@ func (m *MockEntitiesClient) ReadAccountParents(selector *resmodels.EntityID) ([
 }
 
 // ReadAccountParents indicates an expected call of ReadAccountParents.
-func (mr *MockEntitiesClientMockRecorder) ReadAccountParents(selector any) *gomock.Call {
+func (mr *MockEntitiesManagerMockRecorder) ReadAccountParents(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadAccountParents", reflect.TypeOf((*MockEntitiesClient)(nil).ReadAccountParents), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadAccountParents", reflect.TypeOf((*MockEntitiesManager)(nil).ReadAccountParents), selector)
 }
 
 // ReadEntity mocks base method.
-func (m *MockEntitiesClient) ReadEntity(selector *resmodels.EntityID) (*resmodels.Entity, error) {
+func (m *MockEntitiesManager) ReadEntity(selector *resmodels.EntitySelector) (*resmodels.Entity, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadEntity", selector)
 	ret0, _ := ret[0].(*resmodels.Entity)
@@ -95,13 +95,13 @@ func (m *MockEntitiesClient) ReadEntity(selector *resmodels.EntityID) (*resmodel
 }
 
 // ReadEntity indicates an expected call of ReadEntity.
-func (mr *MockEntitiesClientMockRecorder) ReadEntity(selector any) *gomock.Call {
+func (mr *MockEntitiesManagerMockRecorder) ReadEntity(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadEntity", reflect.TypeOf((*MockEntitiesClient)(nil).ReadEntity), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadEntity", reflect.TypeOf((*MockEntitiesManager)(nil).ReadEntity), selector)
 }
 
 // ReadEntityAccounts mocks base method.
-func (m *MockEntitiesClient) ReadEntityAccounts(selector *resmodels.EntityAccountsSelector) ([]*resmodels.Entity, error) {
+func (m *MockEntitiesManager) ReadEntityAccounts(selector *resmodels.EntityAccountsSelector) ([]*resmodels.Entity, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadEntityAccounts", selector)
 	ret0, _ := ret[0].([]*resmodels.Entity)
@@ -110,13 +110,13 @@ func (m *MockEntitiesClient) ReadEntityAccounts(selector *resmodels.EntityAccoun
 }
 
 // ReadEntityAccounts indicates an expected call of ReadEntityAccounts.
-func (mr *MockEntitiesClientMockRecorder) ReadEntityAccounts(selector any) *gomock.Call {
+func (mr *MockEntitiesManagerMockRecorder) ReadEntityAccounts(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadEntityAccounts", reflect.TypeOf((*MockEntitiesClient)(nil).ReadEntityAccounts), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadEntityAccounts", reflect.TypeOf((*MockEntitiesManager)(nil).ReadEntityAccounts), selector)
 }
 
 // ReadEntityCustomFields mocks base method.
-func (m *MockEntitiesClient) ReadEntityCustomFields(selector *resmodels.EntityCustomFieldsSelector) (*resmodels.EntityCustomFields, error) {
+func (m *MockEntitiesManager) ReadEntityCustomFields(selector *resmodels.EntityCustomFieldsSelector) (*resmodels.EntityCustomFields, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadEntityCustomFields", selector)
 	ret0, _ := ret[0].(*resmodels.EntityCustomFields)
@@ -125,7 +125,22 @@ func (m *MockEntitiesClient) ReadEntityCustomFields(selector *resmodels.EntityCu
 }
 
 // ReadEntityCustomFields indicates an expected call of ReadEntityCustomFields.
-func (mr *MockEntitiesClientMockRecorder) ReadEntityCustomFields(selector any) *gomock.Call {
+func (mr *MockEntitiesManagerMockRecorder) ReadEntityCustomFields(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadEntityCustomFields", reflect.TypeOf((*MockEntitiesClient)(nil).ReadEntityCustomFields), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadEntityCustomFields", reflect.TypeOf((*MockEntitiesManager)(nil).ReadEntityCustomFields), selector)
+}
+
+// ReadEntityFeatures mocks base method.
+func (m *MockEntitiesManager) ReadEntityFeatures(selector *resmodels.EntitySelector) (*resmodels.EntityFeatures, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadEntityFeatures", selector)
+	ret0, _ := ret[0].(*resmodels.EntityFeatures)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReadEntityFeatures indicates an expected call of ReadEntityFeatures.
+func (mr *MockEntitiesManagerMockRecorder) ReadEntityFeatures(selector any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadEntityFeatures", reflect.TypeOf((*MockEntitiesManager)(nil).ReadEntityFeatures), selector)
 }

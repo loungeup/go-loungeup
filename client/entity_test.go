@@ -49,7 +49,7 @@ type collection struct {
 }
 
 func TestReadEntity(t *testing.T) {
-	uuid := resmodels.EntityID(uuid.New())
+	uuid := uuid.New()
 	entityAccount := createEntity(uuid.String())
 
 	resClient, cache := initTest(t)
@@ -64,7 +64,7 @@ func TestReadEntity(t *testing.T) {
 
 		resClient.EXPECT().Request("get."+resourceID, resprot.Request{}).Return(r)
 
-		resp, err := transportClient.Entities.ReadEntity(&uuid)
+		resp, err := transportClient.Entities.ReadEntity(&resmodels.EntitySelector{EntityID: uuid})
 
 		assert.NoError(t, err)
 		assert.Equal(t, expected.ID, resp.ID)
@@ -78,7 +78,7 @@ func TestReadEntity(t *testing.T) {
 
 		cache.EXPECT().Read(resourceID).Return(expected)
 
-		resp, err := transportClient.Entities.ReadEntity(&uuid)
+		resp, err := transportClient.Entities.ReadEntity(&resmodels.EntitySelector{EntityID: uuid})
 
 		assert.NoError(t, err)
 		assert.Equal(t, expected.ID, resp.ID)
@@ -89,7 +89,7 @@ func TestReadEntity(t *testing.T) {
 
 		resClient.EXPECT().Request("get.authority.entities."+uuid.String(), resprot.Request{}).Return(resprot.Response{})
 
-		resp, err := transportClient.Entities.ReadEntity(&uuid)
+		resp, err := transportClient.Entities.ReadEntity(&resmodels.EntitySelector{EntityID: uuid})
 
 		assert.Error(t, err)
 		assert.Nil(t, resp)
@@ -98,8 +98,8 @@ func TestReadEntity(t *testing.T) {
 
 func TestReadEntityAccounts(t *testing.T) {
 	parentAccountUUID := uuid.New()
-	account1UUID := resmodels.EntityID(uuid.New())
-	account2UUID := resmodels.EntityID(uuid.New())
+	account1UUID := uuid.New()
+	account2UUID := uuid.New()
 
 	_ = createEntity(parentAccountUUID.String())
 
@@ -230,7 +230,7 @@ func TestReadAccountParents(t *testing.T) {
 	t.Run("ReadAccountParents success account has only a chain", func(t *testing.T) {
 		transportClient := newTransport(resClient, nil)
 
-		uuidAccount := resmodels.EntityID(uuid.New())
+		uuidAccount := uuid.New()
 
 		chainEntity := createEntity(uuidAccount.String())
 		accountEntity := createEntity(uuidAccount.String())
@@ -247,7 +247,7 @@ func TestReadAccountParents(t *testing.T) {
 		resClient.EXPECT().Request("get."+resourceID, resprot.Request{}).Return(entityToRESresp(accountEntity))
 		resClient.EXPECT().Request("get."+chainResourceID, resprot.Request{}).Return(entityToRESresp(chainEntity))
 
-		resp, err := transportClient.Entities.ReadAccountParents(&uuidAccount)
+		resp, err := transportClient.Entities.ReadAccountParents(&resmodels.EntitySelector{EntityID: uuidAccount})
 		assert.NoError(t, err)
 		assert.Equal(t, expected[0].ID, resp[0].ID)
 	})
@@ -255,7 +255,7 @@ func TestReadAccountParents(t *testing.T) {
 	t.Run("ReadAccountParents success account has only a group", func(t *testing.T) {
 		transportClient := newTransport(resClient, nil)
 
-		uuidAccount := resmodels.EntityID(uuid.New())
+		uuidAccount := uuid.New()
 
 		groupEntity := createEntity(uuid.New().String())
 		accountEntity := createEntity(uuidAccount.String())
@@ -272,7 +272,7 @@ func TestReadAccountParents(t *testing.T) {
 		resClient.EXPECT().Request("get."+resourceID, resprot.Request{}).Return(entityToRESresp(accountEntity))
 		resClient.EXPECT().Request("get."+groupResourceID, resprot.Request{}).Return(entityToRESresp(groupEntity))
 
-		resp, err := transportClient.Entities.ReadAccountParents(&uuidAccount)
+		resp, err := transportClient.Entities.ReadAccountParents(&resmodels.EntitySelector{EntityID: uuidAccount})
 		assert.NoError(t, err)
 		assert.Equal(t, expected[0].ID, resp[0].ID)
 	})
@@ -280,7 +280,7 @@ func TestReadAccountParents(t *testing.T) {
 	t.Run("ReadAccountParents success account has both chain and group", func(t *testing.T) {
 		transportClient := newTransport(resClient, nil)
 
-		uuidAccount := resmodels.EntityID(uuid.New())
+		uuidAccount := uuid.New()
 
 		groupEntity := createEntity(uuid.New().String())
 		chainEntity := createEntity(uuidAccount.String())
@@ -302,7 +302,7 @@ func TestReadAccountParents(t *testing.T) {
 		resClient.EXPECT().Request("get."+chainResourceID, resprot.Request{}).Return(entityToRESresp(chainEntity))
 		resClient.EXPECT().Request("get."+groupResourceID, resprot.Request{}).Return(entityToRESresp(groupEntity))
 
-		resp, err := transportClient.Entities.ReadAccountParents(&uuidAccount)
+		resp, err := transportClient.Entities.ReadAccountParents(&resmodels.EntitySelector{EntityID: uuidAccount})
 		assert.NoError(t, err)
 		assert.Equal(t, expected[0].ID, resp[0].ID)
 		assert.Equal(t, expected[1].ID, resp[1].ID)
@@ -311,7 +311,7 @@ func TestReadAccountParents(t *testing.T) {
 	t.Run("ReadAccountParents with error: fail to get chain entity", func(t *testing.T) {
 		transportClient := newTransport(resClient, nil)
 
-		uuidAccount := resmodels.EntityID(uuid.New())
+		uuidAccount := uuid.New()
 		accountEntity := createEntity(uuidAccount.String())
 		resourceID := "authority.entities." + accountEntity.ID
 
@@ -326,14 +326,14 @@ func TestReadAccountParents(t *testing.T) {
 			},
 		})
 
-		_, err := transportClient.Entities.ReadAccountParents(&uuidAccount)
+		_, err := transportClient.Entities.ReadAccountParents(&resmodels.EntitySelector{EntityID: uuidAccount})
 		assert.Error(t, err)
 	})
 
 	t.Run("ReadAccountParents with error: fail to get group entity", func(t *testing.T) {
 		transportClient := newTransport(resClient, nil)
 
-		uuidAccount := resmodels.EntityID(uuid.New())
+		uuidAccount := uuid.New()
 		accountEntity := createEntity(uuidAccount.String())
 		resourceID := "authority.entities." + accountEntity.ID
 
@@ -348,14 +348,14 @@ func TestReadAccountParents(t *testing.T) {
 			},
 		})
 
-		_, err := transportClient.Entities.ReadAccountParents(&uuidAccount)
+		_, err := transportClient.Entities.ReadAccountParents(&resmodels.EntitySelector{EntityID: uuidAccount})
 		assert.Error(t, err)
 	})
 
 	t.Run("ReadAccountParents with error: error read entity account", func(t *testing.T) {
 		transportClient := newTransport(resClient, nil)
 
-		uuidAccount := resmodels.EntityID(uuid.New())
+		uuidAccount := uuid.New()
 		accountEntity := createEntity(uuidAccount.String())
 		resourceID := "authority.entities." + accountEntity.ID
 
@@ -366,21 +366,21 @@ func TestReadAccountParents(t *testing.T) {
 			},
 		})
 
-		_, err := transportClient.Entities.ReadAccountParents(&uuidAccount)
+		_, err := transportClient.Entities.ReadAccountParents(&resmodels.EntitySelector{EntityID: uuidAccount})
 		assert.Error(t, err)
 	})
 
 	t.Run("ReadAccountParents with error: entity is not an account", func(t *testing.T) {
 		transportClient := newTransport(resClient, nil)
 
-		uuidAccount := resmodels.EntityID(uuid.New())
+		uuidAccount := uuid.New()
 		entity := createEntity(uuidAccount.String())
 		entity.Type = resmodels.EntityTypeGroup
 		resourceID := "authority.entities." + entity.ID
 
 		resClient.EXPECT().Request("get."+resourceID, resprot.Request{}).Return(entityToRESresp(entity))
 
-		_, err := transportClient.Entities.ReadAccountParents(&uuidAccount)
+		_, err := transportClient.Entities.ReadAccountParents(&resmodels.EntitySelector{EntityID: uuidAccount})
 		assert.Error(t, err)
 	})
 }
@@ -391,7 +391,7 @@ func TestReadEntityCustomFields(t *testing.T) {
 	t.Run("ReadEntityCustomFields success without cache", func(t *testing.T) {
 		transportClient := newTransport(transport, nil)
 
-		entityID := resmodels.EntityID(uuid.New())
+		entityID := uuid.New()
 		createEntity(entityID.String())
 		resourceID := "proxy-db.entities." + entityID.String() + ".custom-fields"
 
@@ -419,7 +419,7 @@ func TestReadEntityCustomFields(t *testing.T) {
 	t.Run("ReadEntityCustomFields success with cache", func(t *testing.T) {
 		transportClient := newTransport(transport, cache)
 
-		entityID := resmodels.EntityID(uuid.New())
+		entityID := uuid.New()
 		createEntity(entityID.String())
 		resourceID := "proxy-db.entities." + entityID.String() + ".custom-fields"
 
@@ -446,7 +446,7 @@ func TestReadEntityCustomFields(t *testing.T) {
 	t.Run("ReadEntityCustomFields success: empty cache and write in cache", func(t *testing.T) {
 		transportClient := newTransport(transport, cache)
 
-		entityID := resmodels.EntityID(uuid.New())
+		entityID := uuid.New()
 		createEntity(entityID.String())
 		resourceID := "proxy-db.entities." + entityID.String() + ".custom-fields"
 
@@ -477,7 +477,7 @@ func TestReadEntityCustomFields(t *testing.T) {
 	t.Run("ReadEntityCustomFields with error: fail GetRESModel", func(t *testing.T) {
 		transportClient := newTransport(transport, nil)
 
-		entityID := resmodels.EntityID(uuid.New())
+		entityID := uuid.New()
 		createEntity(entityID.String())
 		resourceID := "proxy-db.entities." + entityID.String() + ".custom-fields"
 
@@ -502,7 +502,7 @@ func TestPatchEntity(t *testing.T) {
 		selector := &resmodels.EntitySelector{
 			EntityID: uuid.UUID(entityID),
 		}
-		rid := resmodels.EntityID(entityID)
+		// rid := resmodels.EntityID(entityID)
 
 		updates := &resmodels.EntityUpdates{
 			ConvertAmountsTaskRID:    "convertAmountsTaskRID",
@@ -513,7 +513,7 @@ func TestPatchEntity(t *testing.T) {
 		encodedUpdates, err := json.Marshal(updates)
 		assert.NoError(t, err)
 
-		resourceID := "call." + rid.RID() + ".patch"
+		resourceID := "call.authority.entities." + entityID.String() + ".patch"
 
 		transport.EXPECT().Request(resourceID, resprot.Request{Params: json.RawMessage(encodedUpdates)}).Return(resprot.Response{})
 
@@ -527,7 +527,6 @@ func TestPatchEntity(t *testing.T) {
 		selector := &resmodels.EntitySelector{
 			EntityID: uuid.UUID(entityID),
 		}
-		rid := resmodels.EntityID(entityID)
 
 		updates := &resmodels.EntityUpdates{
 			ConvertAmountsTaskRID:    "convertAmountsTaskRID",
@@ -538,7 +537,7 @@ func TestPatchEntity(t *testing.T) {
 		encodedUpdates, err := json.Marshal(updates)
 		assert.NoError(t, err)
 
-		resourceID := "call." + rid.RID() + ".patch"
+		resourceID := "call.authority.entities." + entityID.String() + ".patch"
 
 		transport.EXPECT().Request(resourceID, resprot.Request{Params: json.RawMessage(encodedUpdates)}).Return(resprot.Response{
 			Error: &res.Error{
@@ -557,7 +556,7 @@ func TestBuildESQueryEntity(t *testing.T) {
 		transport, _ := initTest(t)
 		transportClient := newTransport(transport, nil)
 
-		entityID := resmodels.EntityID(uuid.New())
+		entityID := uuid.New()
 		params := &resmodels.BuildEntityESQueryParams{}
 
 		transport.EXPECT().Request("call.guestprofile.entities."+entityID.String()+".build-elasticsearch-query", resprot.Request{
@@ -583,7 +582,9 @@ func TestBuildESQueryEntity(t *testing.T) {
 			}`),
 		})
 
-		resp, err := transportClient.Entities.BuildESQueryEntity(&entityID, params)
+		resp, err := transportClient.Entities.BuildESQueryEntity(&resmodels.EntitySelector{
+			EntityID: entityID,
+		}, params)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, resp)

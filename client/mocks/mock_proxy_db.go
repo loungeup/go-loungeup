@@ -16,32 +16,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockProxyDBClient is a mock of ProxyDBClient interface.
-type MockProxyDBClient struct {
+// MockProxyDBManager is a mock of ProxyDBManager interface.
+type MockProxyDBManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockProxyDBClientMockRecorder
+	recorder *MockProxyDBManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockProxyDBClientMockRecorder is the mock recorder for MockProxyDBClient.
-type MockProxyDBClientMockRecorder struct {
-	mock *MockProxyDBClient
+// MockProxyDBManagerMockRecorder is the mock recorder for MockProxyDBManager.
+type MockProxyDBManagerMockRecorder struct {
+	mock *MockProxyDBManager
 }
 
-// NewMockProxyDBClient creates a new mock instance.
-func NewMockProxyDBClient(ctrl *gomock.Controller) *MockProxyDBClient {
-	mock := &MockProxyDBClient{ctrl: ctrl}
-	mock.recorder = &MockProxyDBClientMockRecorder{mock}
+// NewMockProxyDBManager creates a new mock instance.
+func NewMockProxyDBManager(ctrl *gomock.Controller) *MockProxyDBManager {
+	mock := &MockProxyDBManager{ctrl: ctrl}
+	mock.recorder = &MockProxyDBManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockProxyDBClient) EXPECT() *MockProxyDBClientMockRecorder {
+func (m *MockProxyDBManager) EXPECT() *MockProxyDBManagerMockRecorder {
 	return m.recorder
 }
 
 // ReadBooking mocks base method.
-func (m *MockProxyDBClient) ReadBooking(selector *models.BookingSelector) (*models.Booking, error) {
+func (m *MockProxyDBManager) ReadBooking(selector *models.BookingSelector) (*models.Booking, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadBooking", selector)
 	ret0, _ := ret[0].(*models.Booking)
@@ -50,7 +50,22 @@ func (m *MockProxyDBClient) ReadBooking(selector *models.BookingSelector) (*mode
 }
 
 // ReadBooking indicates an expected call of ReadBooking.
-func (mr *MockProxyDBClientMockRecorder) ReadBooking(selector any) *gomock.Call {
+func (mr *MockProxyDBManagerMockRecorder) ReadBooking(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadBooking", reflect.TypeOf((*MockProxyDBClient)(nil).ReadBooking), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadBooking", reflect.TypeOf((*MockProxyDBManager)(nil).ReadBooking), selector)
+}
+
+// ReadBookingById mocks base method.
+func (m *MockProxyDBManager) ReadBookingById(selector *models.BookingSelectorById) (*models.Booking, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadBookingById", selector)
+	ret0, _ := ret[0].(*models.Booking)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReadBookingById indicates an expected call of ReadBookingById.
+func (mr *MockProxyDBManagerMockRecorder) ReadBookingById(selector any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadBookingById", reflect.TypeOf((*MockProxyDBManager)(nil).ReadBookingById), selector)
 }

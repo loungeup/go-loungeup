@@ -16,32 +16,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockSegmentsClient is a mock of SegmentsClient interface.
-type MockSegmentsClient struct {
+// MockSegmentsManager is a mock of SegmentsManager interface.
+type MockSegmentsManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockSegmentsClientMockRecorder
+	recorder *MockSegmentsManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockSegmentsClientMockRecorder is the mock recorder for MockSegmentsClient.
-type MockSegmentsClientMockRecorder struct {
-	mock *MockSegmentsClient
+// MockSegmentsManagerMockRecorder is the mock recorder for MockSegmentsManager.
+type MockSegmentsManagerMockRecorder struct {
+	mock *MockSegmentsManager
 }
 
-// NewMockSegmentsClient creates a new mock instance.
-func NewMockSegmentsClient(ctrl *gomock.Controller) *MockSegmentsClient {
-	mock := &MockSegmentsClient{ctrl: ctrl}
-	mock.recorder = &MockSegmentsClientMockRecorder{mock}
+// NewMockSegmentsManager creates a new mock instance.
+func NewMockSegmentsManager(ctrl *gomock.Controller) *MockSegmentsManager {
+	mock := &MockSegmentsManager{ctrl: ctrl}
+	mock.recorder = &MockSegmentsManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockSegmentsClient) EXPECT() *MockSegmentsClientMockRecorder {
+func (m *MockSegmentsManager) EXPECT() *MockSegmentsManagerMockRecorder {
 	return m.recorder
 }
 
 // BuildESQuery mocks base method.
-func (m *MockSegmentsClient) BuildESQuery(selector *models.SegmentSelector, params *models.SearchCriterion) (*models.BuildSegmentESQueryResponse, error) {
+func (m *MockSegmentsManager) BuildESQuery(selector *models.SegmentSelector, params *models.SearchCriterion) (*models.BuildSegmentESQueryResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BuildESQuery", selector, params)
 	ret0, _ := ret[0].(*models.BuildSegmentESQueryResponse)
@@ -50,7 +50,7 @@ func (m *MockSegmentsClient) BuildESQuery(selector *models.SegmentSelector, para
 }
 
 // BuildESQuery indicates an expected call of BuildESQuery.
-func (mr *MockSegmentsClientMockRecorder) BuildESQuery(selector, params any) *gomock.Call {
+func (mr *MockSegmentsManagerMockRecorder) BuildESQuery(selector, params any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildESQuery", reflect.TypeOf((*MockSegmentsClient)(nil).BuildESQuery), selector, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildESQuery", reflect.TypeOf((*MockSegmentsManager)(nil).BuildESQuery), selector, params)
 }

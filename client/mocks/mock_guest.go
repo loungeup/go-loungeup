@@ -19,32 +19,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockGuestsClient is a mock of GuestsClient interface.
-type MockGuestsClient struct {
+// MockGuestsManager is a mock of GuestsManager interface.
+type MockGuestsManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockGuestsClientMockRecorder
+	recorder *MockGuestsManagerMockRecorder
 	isgomock struct{}
 }
 
-// MockGuestsClientMockRecorder is the mock recorder for MockGuestsClient.
-type MockGuestsClientMockRecorder struct {
-	mock *MockGuestsClient
+// MockGuestsManagerMockRecorder is the mock recorder for MockGuestsManager.
+type MockGuestsManagerMockRecorder struct {
+	mock *MockGuestsManager
 }
 
-// NewMockGuestsClient creates a new mock instance.
-func NewMockGuestsClient(ctrl *gomock.Controller) *MockGuestsClient {
-	mock := &MockGuestsClient{ctrl: ctrl}
-	mock.recorder = &MockGuestsClientMockRecorder{mock}
+// NewMockGuestsManager creates a new mock instance.
+func NewMockGuestsManager(ctrl *gomock.Controller) *MockGuestsManager {
+	mock := &MockGuestsManager{ctrl: ctrl}
+	mock.recorder = &MockGuestsManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockGuestsClient) EXPECT() *MockGuestsClientMockRecorder {
+func (m *MockGuestsManager) EXPECT() *MockGuestsManagerMockRecorder {
 	return m.recorder
 }
 
 // AnonymizeGuests mocks base method.
-func (m *MockGuestsClient) AnonymizeGuests(entityID uuid.UUID, guestIDs []uuid.UUID) error {
+func (m *MockGuestsManager) AnonymizeGuests(entityID uuid.UUID, guestIDs []uuid.UUID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AnonymizeGuests", entityID, guestIDs)
 	ret0, _ := ret[0].(error)
@@ -52,13 +52,13 @@ func (m *MockGuestsClient) AnonymizeGuests(entityID uuid.UUID, guestIDs []uuid.U
 }
 
 // AnonymizeGuests indicates an expected call of AnonymizeGuests.
-func (mr *MockGuestsClientMockRecorder) AnonymizeGuests(entityID, guestIDs any) *gomock.Call {
+func (mr *MockGuestsManagerMockRecorder) AnonymizeGuests(entityID, guestIDs any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AnonymizeGuests", reflect.TypeOf((*MockGuestsClient)(nil).AnonymizeGuests), entityID, guestIDs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AnonymizeGuests", reflect.TypeOf((*MockGuestsManager)(nil).AnonymizeGuests), entityID, guestIDs)
 }
 
 // CountGuests mocks base method.
-func (m *MockGuestsClient) CountGuests(entityID uuid.UUID, request *models.SearchGuestsRequest) (*models.CountGuestsResponse, error) {
+func (m *MockGuestsManager) CountGuests(entityID uuid.UUID, request *models.SearchGuestsRequest) (*models.CountGuestsResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountGuests", entityID, request)
 	ret0, _ := ret[0].(*models.CountGuestsResponse)
@@ -67,13 +67,13 @@ func (m *MockGuestsClient) CountGuests(entityID uuid.UUID, request *models.Searc
 }
 
 // CountGuests indicates an expected call of CountGuests.
-func (mr *MockGuestsClientMockRecorder) CountGuests(entityID, request any) *gomock.Call {
+func (mr *MockGuestsManagerMockRecorder) CountGuests(entityID, request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountGuests", reflect.TypeOf((*MockGuestsClient)(nil).CountGuests), entityID, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountGuests", reflect.TypeOf((*MockGuestsManager)(nil).CountGuests), entityID, request)
 }
 
 // ReadOne mocks base method.
-func (m *MockGuestsClient) ReadOne(selector *client.GuestSelector) (*models.Guest, error) {
+func (m *MockGuestsManager) ReadOne(selector *client.GuestSelector) (*models.Guest, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadOne", selector)
 	ret0, _ := ret[0].(*models.Guest)
@@ -82,13 +82,13 @@ func (m *MockGuestsClient) ReadOne(selector *client.GuestSelector) (*models.Gues
 }
 
 // ReadOne indicates an expected call of ReadOne.
-func (mr *MockGuestsClientMockRecorder) ReadOne(selector any) *gomock.Call {
+func (mr *MockGuestsManagerMockRecorder) ReadOne(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOne", reflect.TypeOf((*MockGuestsClient)(nil).ReadOne), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOne", reflect.TypeOf((*MockGuestsManager)(nil).ReadOne), selector)
 }
 
 // SearchByContact mocks base method.
-func (m *MockGuestsClient) SearchByContact(selector *models.SearchByContactSelector) (*resresultsets.KeysetPaginationModel, error) {
+func (m *MockGuestsManager) SearchByContact(selector *models.SearchByContactSelector) (*resresultsets.KeysetPaginationModel, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchByContact", selector)
 	ret0, _ := ret[0].(*resresultsets.KeysetPaginationModel)
@@ -97,7 +97,7 @@ func (m *MockGuestsClient) SearchByContact(selector *models.SearchByContactSelec
 }
 
 // SearchByContact indicates an expected call of SearchByContact.
-func (mr *MockGuestsClientMockRecorder) SearchByContact(selector any) *gomock.Call {
+func (mr *MockGuestsManagerMockRecorder) SearchByContact(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchByContact", reflect.TypeOf((*MockGuestsClient)(nil).SearchByContact), selector)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchByContact", reflect.TypeOf((*MockGuestsManager)(nil).SearchByContact), selector)
 }
