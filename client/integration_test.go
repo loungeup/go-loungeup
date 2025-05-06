@@ -27,7 +27,7 @@ func TestReadEntityIntegration(t *testing.T) {
 				}
 			},
 		},
-	}, nil).Integrations.ReadEntityIntegration(testdata.EntityIntegrationSelector)
+	}).Integrations.ReadEntityIntegration(testdata.EntityIntegrationSelector)
 	assert.NoError(t, err)
 	assert.Equal(t, testdata.EntityIntegration, got)
 }
@@ -48,7 +48,7 @@ func TestReadEntityIntegrations(t *testing.T) {
 				}
 			},
 		},
-	}, nil).Integrations.ReadEntityIntegrations(testdata.EntityIntegrationsSelector)
+	}).Integrations.ReadEntityIntegrations(testdata.EntityIntegrationsSelector)
 	assert.NoError(t, err)
 	assert.Equal(t, []*resmodels.EntityIntegration{testdata.EntityIntegration}, got)
 }
@@ -65,7 +65,7 @@ func TestReadIntegration(t *testing.T) {
 				}
 			},
 		},
-	}, nil).Integrations.ReadIntegration(testdata.IntegrationSelector)
+	}).Integrations.ReadIntegration(testdata.IntegrationSelector)
 	assert.NoError(t, err)
 	assert.Equal(t, testdata.Integration, got)
 }
@@ -84,7 +84,7 @@ func TestReadIntegrations(t *testing.T) {
 				}
 			},
 		},
-	}, nil).Integrations.ReadIntegrations(testdata.IntegrationsSelector)
+	}).Integrations.ReadIntegrations(testdata.IntegrationsSelector)
 	assert.NoError(t, err)
 	assert.Equal(t, []*models.Integration{testdata.Integration}, got)
 }
@@ -96,7 +96,7 @@ func TestFetchFromProvider(t *testing.T) {
 				return transporttest.NewRESResultResponse(testdata.ProviderResultModel)
 			},
 		},
-	}, nil).Integrations.FetchFromProvider(testdata.EntityIntegrationSelector, nil)
+	}).Integrations.FetchFromProvider(testdata.EntityIntegrationSelector, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, testdata.ProviderResult, got)
 }
@@ -108,7 +108,7 @@ func TestSendToProvider(t *testing.T) {
 				return transporttest.NewRESResultResponse(testdata.ProviderResultModel)
 			},
 		},
-	}, nil).Integrations.SendToProvider(testdata.EntityIntegrationSelector, nil)
+	}).Integrations.SendToProvider(testdata.EntityIntegrationSelector, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, testdata.ProviderResult, got)
 }

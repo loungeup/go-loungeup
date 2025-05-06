@@ -27,9 +27,8 @@ func initTest(t *testing.T) (*transportMocks.MockRESRequester, *cacheMocks.MockR
 
 func newTransport(resClient transport.RESRequester, cache cache.ReadWriter) *Client {
 	return NewWithTransport(&transport.Transport{
-		RESClient:  resClient,
-		HTTPClient: nil,
-	}, cache)
+		RESClient: resClient,
+	}, WithCache(cache))
 }
 
 type modelEntity struct {

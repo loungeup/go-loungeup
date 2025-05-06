@@ -26,7 +26,7 @@ func TestReadProducts(t *testing.T) {
 				}
 			},
 		},
-	}, nil).Products.ReadProducts(testdata.ProductsSelector)
+	}).Products.ReadProducts(testdata.ProductsSelector)
 	assert.NoError(t, err)
 	assert.Equal(t, []*models.Product{testdata.Product}, got)
 }

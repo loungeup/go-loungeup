@@ -63,7 +63,6 @@ func TestReadOneOrder(t *testing.T) {
 				},
 			}),
 		),
-		nil,
 	)
 
 	got, err := client.Orders.ReadOne(&resmodels.OrderSelector{

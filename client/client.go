@@ -37,11 +37,10 @@ type BaseClient struct {
 type Option func(*BaseClient)
 
 // NewWithTransport returns a Client with the given transport and options.
-func NewWithTransport(t *transport.Transport, c cache.ReadWriter, options ...Option) *Client {
+func NewWithTransport(t *transport.Transport, options ...Option) *Client {
 	base := &BaseClient{
 		httpClient: t.HTTPClient,
 		resClient:  t.RESClient,
-		cache:      c,
 	}
 
 	result := &Client{
@@ -63,6 +62,10 @@ func NewWithTransport(t *transport.Transport, c cache.ReadWriter, options ...Opt
 	}
 
 	return result
+}
+
+func WithCache(cache cache.ReadWriter) Option {
+	return func(b *BaseClient) { b.cache = cache }
 }
 
 func WithHTTPAPIKey(key string) Option {

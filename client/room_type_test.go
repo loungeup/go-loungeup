@@ -28,7 +28,6 @@ func TestReadRoomTypes(t *testing.T) {
 				},
 			},
 		},
-		nil,
 	).RoomTypes.ReadRoomTypes(testdata.RoomTypesSelector)
 	assert.NoError(t, err)
 	assert.Equal(t, []*models.RoomType{testdata.RoomType}, got)
