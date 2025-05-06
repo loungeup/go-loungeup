@@ -14,14 +14,15 @@ import (
 type Client struct {
 	Bookings      BookingsManager
 	ComputedAttrs ComputedAttrsManager
+	Currencies    CurrenciesManager
 	Entities      EntitiesManager
 	Guests        GuestsManager
 	Integrations  IntegrationsManager
+	Orders        OrdersManager
 	Products      ProductsManager
 	ProxyDB       ProxyDBManager
 	RoomTypes     RoomTypesManager
 	Segments      SegmentsManager
-	Currency      CurrencyManager
 }
 
 type BaseClient struct {
@@ -46,14 +47,15 @@ func NewWithTransport(t *transport.Transport, c cache.ReadWriter, options ...Opt
 	result := &Client{
 		Bookings:      NewBookingsClient(base),
 		ComputedAttrs: NewComputedAttrsClient(base),
+		Currencies:    NewCurrenciesClient(base),
 		Entities:      NewEntitiesClient(base),
 		Guests:        NewGuestsClient(base),
 		Integrations:  NewIntegrationsClient(base),
+		Orders:        NewOrdersClient(base),
 		Products:      NewProductsClient(base),
 		ProxyDB:       NewProxyDBClient(base),
 		RoomTypes:     NewRoomTypesClient(base),
 		Segments:      NewSegmentsClient(base),
-		Currency:      NewCurrencyClient(base),
 	}
 
 	for _, option := range options {

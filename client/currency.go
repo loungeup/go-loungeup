@@ -8,21 +8,19 @@ import (
 
 //go:generate mockgen -source currency.go -destination=./mocks/mock_currency.go -package=mocks
 
-type CurrencyManager interface {
+type CurrenciesManager interface {
 	ReadCurrencyRates(selector *models.CurrencyRatesSelector) (*models.CurrencyRates, error)
 }
 
-type CurrencyClient struct {
+type CurrenciesClient struct {
 	base *BaseClient
 }
 
-func NewCurrencyClient(base *BaseClient) *CurrencyClient {
-	return &CurrencyClient{
-		base: base,
-	}
+func NewCurrenciesClient(base *BaseClient) *CurrenciesClient {
+	return &CurrenciesClient{base}
 }
 
-func (c *CurrencyClient) ReadCurrencyRates(selector *models.CurrencyRatesSelector) (*models.CurrencyRates, error) {
+func (c *CurrenciesClient) ReadCurrencyRates(selector *models.CurrencyRatesSelector) (*models.CurrencyRates, error) {
 	cacheKey := selector.RID() + "?" + selector.EncodedQuery()
 
 	if cachedResult, ok := c.base.ReadCache(cacheKey).(*models.CurrencyRates); ok {
