@@ -21,7 +21,7 @@ const (
 )
 
 type Entity struct {
-	ID                    string                   `json:"id,omitempty"`
+	ID                    uuid.UUID                `json:"id,omitempty"`
 	LegacyID              int                      `json:"legacyId,omitempty"`
 	Type                  EntityType               `json:"type,omitempty"`
 	Name                  string                   `json:"name,omitempty"`
